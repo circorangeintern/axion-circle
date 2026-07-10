@@ -1,0 +1,56 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main]
+    paths: ['backend/**']
+  pull_request:
+    branches: [main]
+    paths: ['backend/**']
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgis/postgis:15-3.4
+        env:
+          POSTGRES_DB: cleanreport_test
+          POSTGRES_USER: cleanreport
+          POSTGRES_PASSWORD: cleanreport
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Build & Test
+        working-directory: backend
+        env:
+          DB_URL: jdbc:postgresql://localhost:5432/cleanreport_test
+          DB_USERNAME: cleanreport
+          DB_PASSWORD: cleanreport
+          JWT_SECRET: ci-test-secret-key-minimum-256-bits-for-testing-purposes-only
+        run: ./gradlew build
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: backend/build/reports/tests/

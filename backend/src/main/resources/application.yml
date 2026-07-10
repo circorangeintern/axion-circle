@@ -1,0 +1,80 @@
+# ============================================================
+# CleanReport API — Application Configuration
+# ============================================================
+
+spring:
+  application:
+    name: cleanreport-api
+
+  # --- Database ---
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/cleanreport}
+    username: ${DB_USERNAME:cleanreport}
+    password: ${DB_PASSWORD:cleanreport}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.spatial.dialect.postgis.PostgisPG10Dialect
+        format_sql: true
+    show-sql: false
+    open-in-view: false
+
+  # --- Flyway ---
+  flyway:
+    enabled: true
+    baseline-on-migrate: true
+    locations: classpath:db/migration
+
+  # --- File Upload ---
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
+# --- Server ---
+server:
+  port: ${PORT:8080}
+  servlet:
+    context-path: /api/v1
+
+# --- Actuator ---
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: when_authorized
+
+# --- JWT ---
+jwt:
+  secret: ${JWT_SECRET:cleanreport-dev-secret-key-change-in-production-minimum-256-bits}
+  access-token-expiration: ${JWT_ACCESS_EXPIRATION:900000}
+  refresh-token-expiration: ${JWT_REFRESH_EXPIRATION:604800000}
+
+# --- Cloudinary ---
+cloudinary:
+  cloud-name: ${CLOUDINARY_CLOUD_NAME:}
+  api-key: ${CLOUDINARY_API_KEY:}
+  api-secret: ${CLOUDINARY_API_SECRET:}
+
+# --- SendGrid ---
+sendgrid:
+  api-key: ${SENDGRID_API_KEY:}
+  from-email: ${SENDGRID_FROM_EMAIL:noreply@cleanreport.app}
+  from-name: ${SENDGRID_FROM_NAME:CleanReport}
+
+# --- App Config ---
+app:
+  credits:
+    report-submit: 10
+    report-acknowledged: 5
+    report-resolved: 5
+    first-report-bonus: 20
+  cors:
+    allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
