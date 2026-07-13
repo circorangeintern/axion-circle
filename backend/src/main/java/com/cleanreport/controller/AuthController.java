@@ -1,6 +1,7 @@
 package com.cleanreport.controller;
 
 import com.cleanreport.dto.request.LoginRequest;
+import com.cleanreport.dto.request.RefreshTokenRequest;
 import com.cleanreport.dto.request.RegisterRequest;
 import com.cleanreport.dto.response.ApiResponse;
 import com.cleanreport.dto.response.AuthResponse;
@@ -80,4 +81,22 @@ public class AuthController {
         AuthResponse response = authService.login(request);
         return ResponseEntity.ok(ApiResponse.ok(response, "Login successful"));
     }
+
+    @Operation(
+            summary = "Refresh access token",
+            description = """
+                    Exchange a valid refresh token for a new access token + refresh token pair.
+                    Call this when the access token expires (after 15 min) to avoid forcing re-login.
+                    The old refresh token is invalidated.
+                    """)
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "New tokens issued"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Invalid or expired refresh token")
+    })
+    @PostMapping("/refresh")
+    public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
+        AuthResponse response = authService.refreshToken(request);
+        return ResponseEntity.ok(ApiResponse.ok(response, "Token refreshed successfully"));
+    }
+
 }
