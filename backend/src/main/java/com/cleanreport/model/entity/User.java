@@ -3,8 +3,6 @@ package com.cleanreport.model.entity;
 import com.cleanreport.model.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -34,7 +32,7 @@ public class User {
     private String displayName;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "user_role")
+    @Column(nullable = false)
     private UserRole role;
 
     @Column(name = "credit_balance", nullable = false)
@@ -48,11 +46,20 @@ public class User {
     @Column(name = "avatar_url")
     private String avatarUrl;
 
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    @jakarta.persistence.PrePersist
+    protected void onCreate() {
+        createdAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    @jakarta.persistence.PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
 }

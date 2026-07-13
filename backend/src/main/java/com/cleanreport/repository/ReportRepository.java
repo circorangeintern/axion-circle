@@ -24,8 +24,9 @@ public interface ReportRepository extends JpaRepository<Report, UUID> {
 
     List<Report> findByReporterId(UUID reporterId);
 
-    @Query(value = "SELECT r FROM Report r WHERE " +
-            "ST_DWithin(r.location, ST_MakePoint(:lng, :lat), :radiusMeters) = true")
+    @Query(value = "SELECT * FROM reports r WHERE " +
+            "ST_DWithin(r.location::geography, ST_MakePoint(:lng, :lat)::geography, :radiusMeters)",
+            nativeQuery = true)
     List<Report> findNearby(@Param("lat") double lat, @Param("lng") double lng,
                             @Param("radiusMeters") double radiusMeters);
 

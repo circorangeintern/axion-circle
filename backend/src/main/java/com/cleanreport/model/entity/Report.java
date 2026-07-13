@@ -45,16 +45,16 @@ public class Report {
     private String description;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "report_category")
+    @Column(nullable = false)
     private ReportCategory category;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "report_status")
+    @Column(nullable = false)
     @Builder.Default
     private ReportStatus status = ReportStatus.REPORTED;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, columnDefinition = "report_urgency")
+    @Column(nullable = false)
     @Builder.Default
     private ReportUrgency urgency = ReportUrgency.ROUTINE;
 
