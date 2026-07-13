@@ -10,3 +10,4 @@ public class CleanReportApplication {
         SpringApplication.run(CleanReportApplication.class, args);
     }
 }
+// CI trigger
