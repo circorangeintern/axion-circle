@@ -1,0 +1,23 @@
+# Production profile — uses Neon PostgreSQL
+spring:
+  datasource:
+    url: ${DB_URL}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+    hikari:
+      maximum-pool-size: 5
+      connection-timeout: 20000
+
+  jpa:
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.spatial.dialect.postgis.PostgisPG10Dialect
+
+server:
+  port: ${PORT:8080}
+
+# Swagger disabled in prod (optional — remove if you want it)
+# springdoc:
+#   api-docs:
+#     enabled: false
