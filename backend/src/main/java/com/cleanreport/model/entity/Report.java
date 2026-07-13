@@ -28,7 +28,7 @@ public class Report {
     @Column(name = "reference_number", nullable = false, unique = true)
     private String referenceNumber;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "reporter_id", nullable = false)
     private User reporter;
 
