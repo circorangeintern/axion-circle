@@ -7,17 +7,14 @@ spring:
     hikari:
       maximum-pool-size: 5
       connection-timeout: 20000
+      data-source-properties:
+        stringtype: unspecified
 
   jpa:
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.spatial.dialect.postgis.PostgisPG10Dialect
+        format_sql: false
 
 server:
   port: ${PORT:8080}
-
-# Swagger disabled in prod (optional — remove if you want it)
-# springdoc:
-#   api-docs:
-#     enabled: false
