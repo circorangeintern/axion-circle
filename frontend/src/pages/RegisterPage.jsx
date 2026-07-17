@@ -134,20 +134,9 @@ export default function RegisterPage() {
       navigate('/');
     } catch (error) {
       console.error('Registration error:', error);
-      // If local API server is offline/unreachable during testing, gracefully register locally
-      if (!error.response || error.message === 'Network Error' || error.code === 'ERR_CONNECTION_REFUSED') {
-        const mockToken = 'mock_token_' + Date.now();
-        localStorage.setItem('access_token', mockToken);
-        localStorage.setItem('refresh_token', 'mock_refresh_token');
-        const userObj = {
-          fullName: fullName.trim() || 'Mercy Belrah',
-          email: email.trim() || 'belrah@gmail.com',
-        };
-        localStorage.setItem('user', JSON.stringify(userObj));
-        localStorage.setItem('user_name', userObj.fullName);
-        localStorage.setItem('user_email', userObj.email);
-        toast.success('Account created successfully!');
-        navigate('/');
+      // Connection failure: timeout (ECONNABORTED) or no response from server
+      if (error.isConnectionError || error.code === 'ECONNABORTED' || !error.response) {
+        toast.error('Connection failed. Please try again.');
         return;
       }
 
@@ -489,7 +478,7 @@ export default function RegisterPage() {
                 <div className="flex flex-col gap-2.5 pt-1">
                   <button
                     type="submit"
-                    disabled={isSubmitting}
+                    disabled={!fullName || !password || !confirmPassword || !agreedToTerms || isSubmitting}
                     className="w-full px-4 py-2.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm cursor-pointer"
                   >
                     {isSubmitting ? 'Creating Account...' : 'Create Account'}

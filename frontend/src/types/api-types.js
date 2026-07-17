@@ -1,12 +1,5 @@
 /**
  * CleanReport — API Data Types Reference
- * 
- * This file documents the shape of data returned by the backend API.
- * You don't need to import this — just reference it when you need to know
- * what fields an API response contains.
- * 
- * Example: When you call GET /api/v1/reports, each report looks like the
- * 'Report' object below.
  */
 
 /**

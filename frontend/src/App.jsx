@@ -8,6 +8,7 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import MyReportsPage from './pages/MyReportsPage';
 import CreditsPage from './pages/CreditsPage';
+import RewardsPage from './pages/RewardsPage';
 import AdminPage from './pages/AdminPage';
 import NotFoundPage from './pages/NotFoundPage';
 
@@ -27,6 +28,7 @@ function App() {
         {/* Authenticated Routes */}
         <Route path="/my-reports" element={<MyReportsPage />} />
         <Route path="/credits" element={<CreditsPage />} />
+        <Route path="/rewards" element={<RewardsPage />} />
 
         {/* Admin Routes */}
         <Route path="/admin" element={<AdminPage />} />

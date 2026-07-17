@@ -62,21 +62,9 @@ export default function LoginPage() {
       navigate('/');
     } catch (error) {
       console.error('Login error:', error);
-      // Graceful fallback if local API server is offline/unreachable during dev testing
-      if (!error.response || error.message === 'Network Error' || error.code === 'ERR_CONNECTION_REFUSED') {
-        const mockToken = 'mock_jwt_token_' + Date.now();
-        localStorage.setItem('access_token', mockToken);
-        localStorage.setItem('refresh_token', 'mock_refresh_token');
-        const extractedName = email.split('@')[0] ? email.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim() : 'Mercy Belrah';
-        const userObj = {
-          fullName: extractedName || 'Mercy Belrah',
-          email: email.trim() || 'belrah@gmail.com',
-        };
-        localStorage.setItem('user', JSON.stringify(userObj));
-        localStorage.setItem('user_name', userObj.fullName);
-        localStorage.setItem('user_email', userObj.email);
-        toast.success('Logged in successfully!');
-        navigate('/');
+      // Connection failure: timeout (ECONNABORTED) or no response from server
+      if (error.isConnectionError || error.code === 'ECONNABORTED' || !error.response) {
+        toast.error('Connection failed. Please try again.');
         return;
       }
       toast.error('Invalid email or password');
@@ -183,7 +171,7 @@ export default function LoginPage() {
             {/* Log into Account button */}
             <button
               type="submit"
-              disabled={isSubmitting}
+              disabled={!email || !password || isSubmitting}
               className="w-full px-4 py-2.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2 shadow-sm cursor-pointer"
             >
               {isSubmitting ? 'Logging in...' : 'Log into Account'}

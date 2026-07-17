@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
   Sprout,
@@ -25,8 +25,19 @@ import AppNavbar from '../components/AppNavbar';
 import mapBg from '../assets/map-bg.jpg';
 
 export default function HomePage() {
+  const navigate = useNavigate();
+
   // Check localStorage for access_token to determine logged-in state for Hero section display
   const [isLoggedIn, setIsLoggedIn] = useState(() => Boolean(localStorage.getItem('access_token')));
+  const [isBannerDismissed, setIsBannerDismissed] = useState(false);
+
+  const handleViewAll = () => {
+    if (localStorage.getItem('access_token')) {
+      navigate('/reports');
+    } else {
+      navigate('/login');
+    }
+  };
 
   const getUserFirstName = () => {
     try {
@@ -186,13 +197,14 @@ export default function HomePage() {
           </div>
 
           {/* Dark Promo Banner — exact Figma colors and structure */}
+          {!isBannerDismissed && (
           <div className="bg-[#001310] rounded-2xl p-5 sm:p-7 text-white relative overflow-hidden shadow-md mb-8">
             {/* X close button — top-right, exact Figma */}
             <button
               type="button"
-              onClick={() => toast.success('Banner dismissed!')}
+              onClick={() => setIsBannerDismissed(true)}
               className="absolute top-4 right-4 text-white/50 hover:text-white/90 transition-colors z-20"
-              aria-label="Dismiss"
+              aria-label="Dismiss banner"
             >
               <X className="w-4 h-4" />
             </button>
@@ -234,6 +246,7 @@ export default function HomePage() {
             {/* Decorative Sprout watermark */}
             <Sprout className="w-40 h-40 absolute -left-6 -top-6 text-primary/10 pointer-events-none -rotate-12" />
           </div>
+          )}
 
           {/* Main Layout Grid: Left Column (Regional Activity + Local Goals & Energy Saving) + Right Column (Recent Report) */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-8">
@@ -407,12 +420,13 @@ export default function HomePage() {
                     <h2 className="font-heading font-bold text-base sm:text-lg text-black">
                       Recent Report
                     </h2>
-                    <Link
-                      to="/report"
-                      className="text-xs sm:text-sm font-semibold text-primary hover:underline"
+                    <button
+                      type="button"
+                      onClick={handleViewAll}
+                      className="text-xs sm:text-sm font-semibold text-primary hover:underline cursor-pointer"
                     >
                       view all
-                    </Link>
+                    </button>
                   </div>
 
                   {/* 6 Static Report Rows — evenly distributed across the entire card height to match Left Column perfectly */}

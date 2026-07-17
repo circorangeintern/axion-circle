@@ -10,6 +10,7 @@ import {
   AlertCircle,
   ChevronDown,
   Check,
+  XCircle,
 } from 'lucide-react';
 import api from '../services/api';
 import AppNavbar from '../components/AppNavbar';
@@ -177,10 +178,13 @@ export default function ReportPage() {
       (error) => {
         console.warn('Silent geolocation error:', error);
         setLocationStatus('error');
-        setAreaName('Location unavailable');
-        setAddressText('GPS access denied or unavailable');
+        if (error.code === 1) {
+          setAddressText('Location access denied — tap Edit Location to set manually');
+        } else {
+          setAddressText('Location unavailable — tap Edit Location to set manually');
+        }
       },
-      { timeout: 10000, enableHighAccuracy: true }
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
     );
   }, []);
 
@@ -410,6 +414,9 @@ export default function ReportPage() {
                   Pin Location
                 </label>
                 <div className="relative">
+                  {locationStatus === 'error' && (
+                    <XCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-alert-error z-10" />
+                  )}
                   <input
                     type="text"
                     readOnly
@@ -417,12 +424,12 @@ export default function ReportPage() {
                       locationStatus === 'loading'
                         ? 'Fetching location...'
                         : locationStatus === 'error'
-                        ? 'Location unavailable'
+                        ? addressText
                         : addressText
                         ? `${areaName} (${addressText})`
                         : areaName
                     }
-                    className="w-full pl-3 pr-10 py-2.5 border border-white-stroke rounded-lg text-sm text-paragraph bg-white-bg focus:outline-none"
+                    className={`w-full ${locationStatus === 'error' ? 'pl-9 text-alert-error font-medium' : 'pl-3 text-paragraph'} pr-10 py-2.5 border border-white-stroke rounded-lg text-sm bg-white-bg focus:outline-none`}
                     placeholder="pin location"
                   />
                   <button
@@ -468,10 +475,10 @@ export default function ReportPage() {
                 ) : locationStatus === 'error' ? (
                   <div className="bg-alert-errorLight border border-alert-error/30 rounded-lg p-6 text-center mb-3">
                     <div className="flex items-center justify-center gap-1.5 text-sm font-medium text-alert-error mb-2">
-                      <AlertCircle className="w-4 h-4 text-alert-error" /> Location unavailable
+                      <XCircle className="w-5 h-5 text-alert-error" />
                     </div>
-                    <p className="text-xs text-alert-error mb-3">
-                      We couldn&apos;t auto-capture your GPS coordinates. Tap Edit Location below to set your address manually.
+                    <p className="text-xs font-medium text-alert-error mb-3">
+                      {addressText}
                     </p>
                   </div>
                 ) : (
@@ -517,15 +524,18 @@ export default function ReportPage() {
                       {locationStatus === 'loading'
                         ? 'Fetching location...'
                         : locationStatus === 'error'
-                        ? 'Location unavailable'
+                        ? (addressText.includes('denied') ? 'Location access denied' : 'Location unavailable')
                         : areaName}
                     </div>
-                    <div className="text-xs text-black-icon">
-                      {locationStatus === 'loading'
-                        ? 'Acquiring high-accuracy GPS coordinates...'
-                        : locationStatus === 'error'
-                        ? 'GPS access denied or unavailable'
-                        : addressText}
+                    <div className="text-xs text-black-icon flex items-center gap-1 mt-0.5">
+                      {locationStatus === 'error' && <XCircle className="w-3.5 h-3.5 text-alert-error shrink-0" />}
+                      <span className={locationStatus === 'error' ? 'text-alert-error font-medium' : ''}>
+                        {locationStatus === 'loading'
+                          ? 'Acquiring high-accuracy GPS coordinates...'
+                          : locationStatus === 'error'
+                          ? addressText
+                          : addressText}
+                      </span>
                     </div>
                   </div>
                   <button

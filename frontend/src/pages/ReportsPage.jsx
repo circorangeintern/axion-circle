@@ -22,17 +22,22 @@ import {
 import AppNavbar from '../components/AppNavbar';
 import ReportsFilterModal from '../components/ReportsFilterModal';
 
+import img1 from '../assets/reports/1.jpg';
+import img2 from '../assets/reports/2.jpg';
+import img3 from '../assets/reports/3.jpg';
+import img4 from '../assets/reports/4.jpg';
+import img5 from '../assets/reports/5.jpg';
+import img6 from '../assets/reports/6.jpg';
+import img7 from '../assets/reports/7.jpg';
+import img8 from '../assets/reports/8.jpg';
+import img9 from '../assets/reports/9.jpg';
+import img10 from '../assets/reports/10.jpg';
+import img11 from '../assets/reports/11.jpg';
+import img12 from '../assets/reports/12.jpg';
+
 // Curated list of high-resolution real authentic environmental, garden waste, overflow, and municipal sanitation photos
 const realFallbackPhotos = [
-  'https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&q=80&w=600',
-  'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80&w=600',
-  'https://images.unsplash.com/photo-1605600659908-0ef719419d41?auto=format&fit=crop&q=80&w=600',
-  'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?auto=format&fit=crop&q=80&w=600',
-  'https://images.unsplash.com/photo-1503596476-1c12a8ba09a9?auto=format&fit=crop&q=80&w=600',
-  'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=600',
-  'https://images.unsplash.com/photo-1621451537084-482c73073a0f?auto=format&fit=crop&q=80&w=600',
-  'https://images.unsplash.com/photo-1510251197878-a2e6d2fc89d7?auto=format&fit=crop&q=80&w=600',
-  'https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&q=80&w=600',
+  img1, img2, img3, img4, img5, img6, img7, img8, img9, img10, img11, img12
 ];
 
 export const getCardPhotoUrl = (report) => {
@@ -55,7 +60,7 @@ const initialReportsData = [
     date: '02/06 - 16:48',
     address: '7 Silver Str, by Broad Road, Lagos',
     indicator: 'alert',
-    photoUrl: 'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80&w=600',
+    photoUrl: img1,
   },
   {
     id: 2,
@@ -67,7 +72,7 @@ const initialReportsData = [
     date: '02/06 - 16:48',
     address: '12 Admiralty Way, Lekki Phase 1, Lagos',
     indicator: 'gauge',
-    photoUrl: 'https://images.unsplash.com/photo-1621451537084-482c73073a0f?auto=format&fit=crop&q=80&w=600',
+    photoUrl: img2,
   },
   {
     id: 3,
@@ -79,7 +84,7 @@ const initialReportsData = [
     date: '02/06 - 16:48',
     address: '44 Ozumba Mbadiwe Ave, Victoria Island, Lagos',
     indicator: 'sun',
-    photoUrl: 'https://images.unsplash.com/photo-1510251197878-a2e6d2fc89d7?auto=format&fit=crop&q=80&w=600',
+    photoUrl: img3,
   },
   {
     id: 4,
@@ -91,7 +96,7 @@ const initialReportsData = [
     date: '02/06 - 16:48',
     address: '8 Allen Avenue, Ikeja, Lagos',
     indicator: 'sun',
-    photoUrl: 'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?auto=format&fit=crop&q=80&w=600',
+    photoUrl: img4,
   },
   {
     id: 5,
@@ -103,7 +108,7 @@ const initialReportsData = [
     date: '02/06 - 16:48',
     address: '19 Bourdillon Road, Ikoyi, Lagos',
     indicator: 'gauge',
-    photoUrl: 'https://images.unsplash.com/photo-1605600659908-0ef719419d41?auto=format&fit=crop&q=80&w=600',
+    photoUrl: img5,
   },
   {
     id: 6,
@@ -115,7 +120,7 @@ const initialReportsData = [
     date: '02/06 - 16:48',
     address: '5 Bode Thomas St, Surulere, Lagos',
     indicator: 'alert',
-    photoUrl: 'https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&q=80&w=600',
+    photoUrl: img6,
   },
   {
     id: 7,
@@ -127,7 +132,7 @@ const initialReportsData = [
     date: '02/06 - 16:48',
     address: '22 Warehouse Road, Apapa, Lagos',
     indicator: 'sun',
-    photoUrl: 'https://images.unsplash.com/photo-1503596476-1c12a8ba09a9?auto=format&fit=crop&q=80&w=600',
+    photoUrl: img7,
   },
   {
     id: 8,
@@ -139,7 +144,7 @@ const initialReportsData = [
     date: '02/06 - 16:48',
     address: '10 Marina Street, Lagos Island, Lagos',
     indicator: 'alert',
-    photoUrl: 'https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&q=80&w=600',
+    photoUrl: img8,
   },
   {
     id: 9,
@@ -151,9 +156,46 @@ const initialReportsData = [
     date: '02/06 - 16:48',
     address: '35 Awolowo Way, Ikeja, Lagos',
     indicator: 'gauge',
-    photoUrl: 'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=600',
+    photoUrl: img9,
+  },
+  {
+    id: 10,
+    title: 'Hazardous Waste',
+    category: 'Hazardous Waste',
+    urgency: 'Critical',
+    status: 'Reported',
+    description: 'Unlabelled chemical drums and industrial solvent containers abandoned along the waterfront, posing an environmental and health hazard.',
+    date: '03/06 - 09:15',
+    address: '3 Creek Road, Apapa, Lagos',
+    indicator: 'alert',
+    photoUrl: img10,
+  },
+  {
+    id: 11,
+    title: 'Water Pollution',
+    category: 'Water Pollution',
+    urgency: 'Critical',
+    status: 'In Progress',
+    description: 'Visible oil slick and refuse floating on the lagoon surface near the fish market, threatening local aquatic life and fishermen.',
+    date: '03/06 - 11:30',
+    address: '1 Ahmadu Bello Way, Victoria Island, Lagos',
+    indicator: 'alert',
+    photoUrl: img11,
+  },
+  {
+    id: 12,
+    title: 'Abandoned Waste',
+    category: 'Abandoned Waste',
+    urgency: 'Very Urgent',
+    status: 'Acknowledged',
+    description: 'Old mattresses, broken furniture, and construction rubble dumped beside a residential fence blocking the service road.',
+    date: '03/06 - 14:05',
+    address: '17 Obafemi Awolowo Road, Ikoyi, Lagos',
+    indicator: 'sun',
+    photoUrl: img12,
   },
 ];
+
 
 export default function ReportsPage() {
   const navigate = useNavigate();
@@ -212,8 +254,8 @@ export default function ReportsPage() {
     return matchesStatus && matchesSearch && matchesCategory && matchesUrgency;
   });
 
-  // Dynamic pagination: exactly 8 cards per page so when reports reach 9, Page 2 is automatically activated!
-  const REPORTS_PER_PAGE = 8;
+  // Dynamic pagination: exactly 9 cards per page so page 2 activates at the 10th report
+  const REPORTS_PER_PAGE = 9;
   const totalPages = Math.max(1, Math.ceil(filteredReports.length / REPORTS_PER_PAGE));
   const paginatedReports = filteredReports.slice(
     (currentPage - 1) * REPORTS_PER_PAGE,
@@ -480,7 +522,7 @@ export default function ReportsPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 mb-10">
-              {filteredReports.map((report) => {
+              {paginatedReports.map((report) => {
                 const badge = getStatusBadgeStyle(report.status);
                 return (
                   <div
@@ -548,6 +590,7 @@ export default function ReportsPage() {
           )}
 
           {/* Pagination Section — Desktop View */}
+          {totalPages > 1 && (
           <div className="hidden md:flex items-center justify-between pt-8 mt-6 border-t border-white-stroke">
             <button
               type="button"
@@ -559,43 +602,66 @@ export default function ReportsPage() {
             </button>
 
             <div className="flex items-center gap-1.5">
-              {[1, 2, 3, '...', 8, 9, 10].map((page, idx) => {
-                if (page === '...') {
-                  return (
-                    <span key={`ellipsis-${idx}`} className="text-black-placeholder px-2 text-xs font-semibold select-none">
-                      ...
-                    </span>
-                  );
+              {(() => {
+                // Build a smart page list: always show first, last, current ± 1, with ellipses
+                const pages = [];
+                for (let p = 1; p <= totalPages; p++) {
+                  if (
+                    p === 1 ||
+                    p === totalPages ||
+                    (p >= currentPage - 1 && p <= currentPage + 1)
+                  ) {
+                    pages.push(p);
+                  }
                 }
-                const isCurrent = currentPage === page;
-                return (
-                  <button
-                    key={`page-${page}`}
-                    type="button"
-                    onClick={() => setCurrentPage(page)}
-                    className={`w-8 h-8 rounded-lg font-bold text-xs transition-all flex items-center justify-center ${
-                      isCurrent
-                        ? 'bg-primary text-white shadow-xs'
-                        : 'text-paragraph hover:bg-white-bg'
-                    }`}
-                  >
-                    {page}
-                  </button>
-                );
-              })}
+                // Insert ellipsis markers
+                const withEllipsis = [];
+                pages.forEach((p, i) => {
+                  if (i > 0 && p - pages[i - 1] > 1) {
+                    withEllipsis.push('...');
+                  }
+                  withEllipsis.push(p);
+                });
+                return withEllipsis.map((page, idx) => {
+                  if (page === '...') {
+                    return (
+                      <span key={`ellipsis-${idx}`} className="text-black-placeholder px-2 text-xs font-semibold select-none">
+                        ...
+                      </span>
+                    );
+                  }
+                  const isCurrent = currentPage === page;
+                  return (
+                    <button
+                      key={`page-${page}`}
+                      type="button"
+                      onClick={() => setCurrentPage(page)}
+                      className={`w-8 h-8 rounded-lg font-bold text-xs transition-all flex items-center justify-center ${
+                        isCurrent
+                          ? 'bg-primary text-white shadow-xs'
+                          : 'text-paragraph hover:bg-white-bg'
+                      }`}
+                    >
+                      {page}
+                    </button>
+                  );
+                });
+              })()}
             </div>
 
             <button
               type="button"
-              onClick={() => setCurrentPage(Math.min(10, currentPage + 1))}
-              disabled={currentPage === 10}
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages}
               className="px-4 py-2 rounded-xl border border-white-stroke bg-white text-xs font-semibold text-paragraph hover:bg-white-bg disabled:opacity-40 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-2xs transition-all active:scale-95"
             >
               Next <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
+          )}
 
           {/* Pagination Section — Mobile View */}
+          {totalPages > 1 && (
           <div className="md:hidden flex items-center justify-between pt-6 mt-6 border-t border-white-stroke">
             <button
               type="button"
@@ -608,19 +674,20 @@ export default function ReportsPage() {
             </button>
 
             <span className="text-xs font-bold text-paragraph">
-              Page {currentPage} of 10
+              Page {currentPage} of {totalPages}
             </span>
 
             <button
               type="button"
-              onClick={() => setCurrentPage(Math.min(10, currentPage + 1))}
-              disabled={currentPage === 10}
+              onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
+              disabled={currentPage === totalPages}
               className="p-2.5 rounded-xl border border-white-stroke bg-white text-paragraph disabled:opacity-40 disabled:cursor-not-allowed shadow-2xs active:bg-white-bg"
               aria-label="Next page"
             >
               <ArrowRight className="w-4 h-4" />
             </button>
           </div>
+          )}
         </main>
       </div>
 
