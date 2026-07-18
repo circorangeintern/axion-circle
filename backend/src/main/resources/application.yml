@@ -89,3 +89,6 @@ app:
   oauth:
     google:
       client-id: ${GOOGLE_CLIENT_ID:}
+  email:
+    resend-api-key: ${RESEND_API_KEY:}
+    from: ${EMAIL_FROM:CleanReport <onboarding@resend.dev>}

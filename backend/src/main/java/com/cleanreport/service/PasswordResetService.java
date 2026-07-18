@@ -33,6 +33,7 @@ public class PasswordResetService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final EmailService emailService;
 
     /**
      * Generate a reset token and "send" email.
@@ -50,8 +51,8 @@ public class PasswordResetService {
             user.setPasswordResetExpires(expires);
             userRepository.save(user);
 
-            // TODO: Integrate with Resend/SendGrid for real email sending
-            // For now, log the token (visible in Render logs for testing)
+            // Send reset email (falls back to logging if Resend not configured)
+            emailService.sendPasswordResetEmail(user.getEmail(), user.getDisplayName(), token);
             log.info("Password reset requested for {}. Token: {} (expires: {})", email, token, expires);
         });
 

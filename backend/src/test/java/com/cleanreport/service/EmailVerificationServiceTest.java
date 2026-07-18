@@ -30,6 +30,7 @@ class EmailVerificationServiceTest {
     private static final String TEST_EMAIL = "user@gmail.com";
 
     @Mock private UserRepository userRepository;
+    @Mock private EmailService emailService;
     @InjectMocks private EmailVerificationService emailVerificationService;
 
     private User testUser;

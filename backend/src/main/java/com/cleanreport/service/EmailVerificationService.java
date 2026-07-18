@@ -31,6 +31,7 @@ public class EmailVerificationService {
     private static final SecureRandom RANDOM = new SecureRandom();
 
     private final UserRepository userRepository;
+    private final EmailService emailService;
 
     /**
      * Generate and "send" a verification code for a user.
@@ -44,8 +45,9 @@ public class EmailVerificationService {
         user.setVerificationCodeExpires(expires);
         userRepository.save(user);
 
-        // TODO: Send via Resend/SendGrid in production
-        log.info("Verification code for {}: {} (expires: {})", user.getEmail(), code, expires);
+        // Send verification email (falls back to logging if Resend not configured)
+        emailService.sendVerificationEmail(user.getEmail(), user.getDisplayName(), code);
+        log.info("Verification code generated for {}: {} (expires: {})", user.getEmail(), code, expires);
     }
 
     /**

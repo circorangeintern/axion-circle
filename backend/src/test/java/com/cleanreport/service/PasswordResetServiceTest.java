@@ -34,6 +34,7 @@ class PasswordResetServiceTest {
 
     @Mock private UserRepository userRepository;
     @Mock private PasswordEncoder passwordEncoder;
+    @Mock private EmailService emailService;
 
     @InjectMocks private PasswordResetService passwordResetService;
 
