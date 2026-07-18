@@ -21,7 +21,7 @@ import {
   Layers,
   Users,
   AlertCircle,
-  Map,
+  MapPinned,
   List
 } from 'lucide-react';
 import AppNavbar from '../components/AppNavbar';
@@ -386,7 +386,7 @@ export default function HomePage() {
                         className={`p-1.5 rounded-md transition-colors ${viewMode === 'map' ? 'bg-primary text-white shadow-sm' : 'text-paragraph hover:text-black hover:bg-white-bg'}`}
                         aria-label="Map View"
                       >
-                        <Map className="w-4 h-4" />
+                        <MapPinned className="w-4 h-4" />
                       </button>
                       <button 
                         onClick={() => setViewMode('list')}
