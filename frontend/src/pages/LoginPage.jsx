@@ -22,16 +22,11 @@ export default function LoginPage() {
   const [loadingText, setLoadingText] = useState('Log into Account');
 
   useEffect(() => {
-    let timeout;
     if (isSubmitting) {
       setLoadingText('Signing in...');
-      timeout = setTimeout(() => {
-        setLoadingText('Waking up server, this may take a minute...');
-      }, 5000);
     } else {
       setLoadingText('Log into Account');
     }
-    return () => clearTimeout(timeout);
   }, [isSubmitting]);
 
   const handleSubmit = async (e) => {
@@ -49,12 +44,13 @@ export default function LoginPage() {
       });
 
 
+      const resData = response.data?.data || response.data;
       const accessToken =
-        response.data?.access_token ||
-        response.data?.accessToken ||
-        response.data?.token;
+        resData?.access_token ||
+        resData?.accessToken ||
+        resData?.token;
       const refreshToken =
-        response.data?.refresh_token || response.data?.refreshToken;
+        resData?.refresh_token || resData?.refreshToken;
 
       if (accessToken) {
         localStorage.setItem('access_token', accessToken);
@@ -63,7 +59,7 @@ export default function LoginPage() {
         localStorage.setItem('refresh_token', refreshToken);
       }
 
-      const userObj = response.data?.user || {
+      const userObj = resData?.user || {
         fullName: email.split('@')[0] ? email.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim() : '',
         email: email.trim(),
       };

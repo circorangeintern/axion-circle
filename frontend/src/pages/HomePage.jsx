@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
   Sprout,
@@ -65,7 +65,16 @@ const getMarkerIcon = (status) => {
 export default function HomePage() {
   const navigate = useNavigate();
 
-  const [isLoggedIn, setIsLoggedIn] = useState(() => Boolean(localStorage.getItem('access_token')));
+  const location = useLocation();
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    const token = localStorage.getItem('access_token');
+    return Boolean(token && token !== 'undefined' && token !== 'null');
+  });
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    setIsLoggedIn(Boolean(token && token !== 'undefined' && token !== 'null'));
+  }, [location.pathname]);
   const [isBannerDismissed, setIsBannerDismissed] = useState(false);
   const [reports, setReports] = useState([]);
   const [mapStatus, setMapStatus] = useState('loading'); // 'loading' | 'success' | 'error'
@@ -73,21 +82,15 @@ export default function HomePage() {
   const [viewMode, setViewMode] = useState('map'); // 'map' | 'list'
 
   useEffect(() => {
-    let timeout;
     const fetchReports = async () => {
       try {
         setMapStatus('loading');
-        timeout = setTimeout(() => {
-          setMapStatus('waking_up');
-        }, 5000);
 
         const res = await api.get('/reports');
-        clearTimeout(timeout);
         const data = res.data?.data || res.data || [];
         setReports(Array.isArray(data) ? data : []);
         setMapStatus('success');
       } catch (err) {
-        clearTimeout(timeout);
         console.error('Failed to fetch live reports, falling back to mock data:', err);
         
         // Graceful fallback to mock data for frontend testing
@@ -115,7 +118,6 @@ export default function HomePage() {
       }
     };
     fetchReports();
-    return () => clearTimeout(timeout);
   }, []);
 
   const handleViewAll = () => {
@@ -131,10 +133,24 @@ export default function HomePage() {
       const storedUser = localStorage.getItem('user');
       if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
         const parsed = JSON.parse(storedUser);
-        const fullName = String(parsed?.fullName || parsed?.username || localStorage.getItem('user_name') || '');
-        return fullName.split(' ')[0] || 'there';
+        const name = String(parsed?.displayName || parsed?.name || parsed?.fullName || parsed?.username || localStorage.getItem('user_name') || '');
+        if (name && name.trim() !== '') {
+          return name.split(' ')[0];
+        }
+        
+        // Fallback to email
+        const emailStr = String(parsed?.email || localStorage.getItem('user_email') || '');
+        if (emailStr && emailStr.includes('@')) {
+           return emailStr.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim().split(' ')[0];
+        }
       }
     } catch (e) {}
+    
+    const emailStr = localStorage.getItem('user_email');
+    if (emailStr && emailStr.includes('@')) {
+       return emailStr.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim().split(' ')[0];
+    }
+    
     return 'there';
   };
 
@@ -422,12 +438,6 @@ export default function HomePage() {
                       <span className="text-xs font-bold text-primary">Loading live map...</span>
                     </div>
                   )}
-                  {mapStatus === 'waking_up' && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm z-20">
-                      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-2"></div>
-                      <span className="text-xs font-bold text-primary">Waking up server, this may take a minute...</span>
-                    </div>
-                  )}
                   {mapStatus === 'error' && (
                     <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[400] bg-white text-alert-error text-xs font-bold px-4 py-2 rounded-full shadow-lg border border-alert-error/20 flex items-center gap-2">
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -710,33 +720,6 @@ export default function HomePage() {
         </Link>
       </div>
 
-      {/* Local Development Quick Preview Toggle (Only visible in Dev mode) */}
-      {import.meta.env.DEV && (
-        <div className="fixed bottom-4 right-4 z-30">
-          <button
-            type="button"
-            onClick={() => {
-              if (isLoggedIn) {
-                localStorage.removeItem('access_token');
-                localStorage.removeItem('user');
-                setIsLoggedIn(false);
-                toast.success('Previewing: Logged Out View');
-                setTimeout(() => window.location.reload(), 200);
-              } else {
-                localStorage.setItem('access_token', 'demo-jwt-token-123');
-                localStorage.setItem('user', JSON.stringify({ fullName: 'Demo User', email: 'demo@example.com' }));
-                setIsLoggedIn(true);
-                toast.success('Previewing: Logged In View (Demo User)');
-                setTimeout(() => window.location.reload(), 200);
-              }
-            }}
-            className="flex items-center gap-2 px-3.5 py-2 rounded-full bg-black/95 backdrop-blur-md text-white font-semibold text-xs shadow-xl border border-white/20 hover:scale-105 active:scale-95 transition-all"
-          >
-            <span className={`w-2 h-2 rounded-full ${isLoggedIn ? 'bg-primary animate-pulse' : 'bg-accent'}`}></span>
-            <span>{isLoggedIn ? 'Demo: Logged In (Click to Log Out)' : 'Demo: Logged Out (Click to Log In)'}</span>
-          </button>
-        </div>
-      )}
     </div>
   );
 }

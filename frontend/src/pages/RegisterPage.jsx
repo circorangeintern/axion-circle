@@ -34,16 +34,11 @@ export default function RegisterPage() {
   const [loadingText, setLoadingText] = useState('Create Account');
 
   useEffect(() => {
-    let timeout;
     if (isSubmitting) {
       setLoadingText('Creating Account...');
-      timeout = setTimeout(() => {
-        setLoadingText('Waking up server, this may take a minute...');
-      }, 5000);
     } else {
       setLoadingText('Create Account');
     }
-    return () => clearTimeout(timeout);
   }, [isSubmitting]);
 
   // Step 1 handler
@@ -120,22 +115,23 @@ export default function RegisterPage() {
 
 
 
+      const resData = response.data?.data || response.data;
       const token =
-        response.data?.access_token ||
-        response.data?.accessToken ||
-        response.data?.token;
+        resData?.access_token ||
+        resData?.accessToken ||
+        resData?.token;
       if (token) {
         localStorage.setItem('access_token', token);
       }
-      if (response.data?.refresh_token || response.data?.refreshToken) {
+      if (resData?.refresh_token || resData?.refreshToken) {
         localStorage.setItem(
           'refresh_token',
-          response.data?.refresh_token || response.data?.refreshToken
+          resData?.refresh_token || resData?.refreshToken
         );
       }
 
       // Save user details to localStorage for instant UI persistence
-      const userObj = response.data?.user || {
+      const userObj = resData?.user || {
         fullName: fullName.trim(),
         email: email.trim(),
       };

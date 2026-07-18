@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
   LayoutGrid,
@@ -19,13 +19,21 @@ import {
   Home,
 } from 'lucide-react';
 import NavbarLogo from './NavbarLogo';
-import avatarProfileImg from '../assets/avatar-profile.png';
 
 export default function AppNavbar({ activeTab = '' }) {
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
 
-  const [isLoggedIn, setIsLoggedIn] = useState(() => Boolean(localStorage.getItem('access_token')));
+  const location = useLocation();
+  const [isLoggedIn, setIsLoggedIn] = useState(() => {
+    const token = localStorage.getItem('access_token');
+    return Boolean(token && token !== 'undefined' && token !== 'null');
+  });
+
+  useEffect(() => {
+    const token = localStorage.getItem('access_token');
+    setIsLoggedIn(Boolean(token && token !== 'undefined' && token !== 'null'));
+  }, [location.pathname]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [showMobileUserMenu, setShowMobileUserMenu] = useState(false);
@@ -35,18 +43,41 @@ export default function AppNavbar({ activeTab = '' }) {
       const storedUser = localStorage.getItem('user');
       if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
         const parsed = JSON.parse(storedUser);
+        
+        let dName = String(parsed?.displayName || parsed?.name || parsed?.fullName || parsed?.username || localStorage.getItem('user_name') || '');
+        const email = String(parsed?.email || localStorage.getItem('user_email') || 'belrah@gmail.com');
+        
+        if (!dName || dName.trim() === '') {
+           if (email && email.includes('@')) {
+               dName = email.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim();
+           } else {
+               dName = 'there';
+           }
+        }
+        
         return {
-          displayName: String(parsed?.fullName || parsed?.username || localStorage.getItem('user_name') || ''),
-          email: String(parsed?.email || localStorage.getItem('user_email') || 'belrah@gmail.com'),
+          displayName: dName,
+          email: email,
           avatarUrl: parsed?.avatarUrl || null,
         };
       }
     } catch (e) {
       // Ignore JSON parse errors
     }
+    
+    let dName = String(localStorage.getItem('user_name') || '');
+    const email = String(localStorage.getItem('user_email') || 'belrah@gmail.com');
+    if (!dName || dName.trim() === '') {
+       if (email && email.includes('@')) {
+           dName = email.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim();
+       } else {
+           dName = 'there';
+       }
+    }
+    
     return {
-      displayName: String(localStorage.getItem('user_name') || ''),
-      email: String(localStorage.getItem('user_email') || 'belrah@gmail.com'),
+      displayName: dName,
+      email: email,
       avatarUrl: null,
     };
   };
@@ -54,8 +85,7 @@ export default function AppNavbar({ activeTab = '' }) {
   const userInfo = getUserInfo() || {};
   const displayName = String(userInfo.displayName || 'there');
   const email = String(userInfo.email || 'belrah@gmail.com');
-  const rawAvatarUrl = userInfo.avatarUrl;
-  const avatarUrl = rawAvatarUrl || avatarProfileImg;
+  const avatarUrl = userInfo.avatarUrl || null;
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -200,7 +230,7 @@ export default function AppNavbar({ activeTab = '' }) {
                   <div className="py-1">
                     <button
                       type="button"
-                      onClick={() => { setIsMenuOpen(false); navigate('/my-reports'); }}
+                      onClick={() => { setIsMenuOpen(false); navigate('/profile'); }}
                       className="w-full text-left px-4 py-2 text-xs sm:text-sm text-paragraph hover:bg-white-bg flex items-center gap-2.5 transition-colors"
                     >
                       <User className="w-4 h-4 text-black-icon" /> View profile
@@ -413,7 +443,7 @@ export default function AppNavbar({ activeTab = '' }) {
                     onClick={() => {
                       setIsMobileMenuOpen(false);
                       setShowMobileUserMenu(false);
-                      navigate('/my-reports');
+                      navigate('/profile');
                     }}
                     className="w-full flex items-center gap-3 px-3 py-2 text-xs sm:text-sm text-paragraph hover:bg-white-bg2 rounded-lg font-medium transition-colors"
                   >
