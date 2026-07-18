@@ -4,6 +4,7 @@ import com.cleanreport.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -33,8 +34,10 @@ public class SecurityConfig {
                 .requestMatchers("/health", "/actuator/**").permitAll()
                 .requestMatchers("/auth/**").permitAll()
                 .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
-                // Report viewing is public
-                .requestMatchers("GET", "/reports/**").permitAll()
+                // Report viewing + status history is public (GET only)
+                .requestMatchers(HttpMethod.GET, "/reports/**").permitAll()
+                // Status update requires ADMIN role
+                .requestMatchers(HttpMethod.PUT, "/reports/*/status").hasRole("ADMIN")
                 // Admin endpoints require ADMIN role
                 .requestMatchers("/admin/**").hasRole("ADMIN")
                 // Everything else requires authentication
