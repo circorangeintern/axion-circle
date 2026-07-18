@@ -1,5 +1,6 @@
 package com.cleanreport.controller;
 
+import com.cleanreport.dto.request.AppleOAuthRequest;
 import com.cleanreport.dto.request.FacebookOAuthRequest;
 import com.cleanreport.dto.request.ForgotPasswordRequest;
 import com.cleanreport.dto.request.GoogleOAuthRequest;
@@ -10,6 +11,7 @@ import com.cleanreport.dto.request.ResetPasswordRequest;
 import com.cleanreport.dto.request.VerifyEmailRequest;
 import com.cleanreport.dto.response.ApiResponse;
 import com.cleanreport.dto.response.AuthResponse;
+import com.cleanreport.service.AppleOAuthService;
 import com.cleanreport.service.AuthService;
 import com.cleanreport.service.EmailVerificationService;
 import com.cleanreport.service.FacebookOAuthService;
@@ -36,6 +38,7 @@ public class AuthController {
     private final AuthService authService;
     private final GoogleOAuthService googleOAuthService;
     private final FacebookOAuthService facebookOAuthService;
+    private final AppleOAuthService appleOAuthService;
     private final PasswordResetService passwordResetService;
     private final EmailVerificationService emailVerificationService;
 
@@ -147,6 +150,20 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> facebookLogin(@Valid @RequestBody FacebookOAuthRequest request) {
         AuthResponse response = facebookOAuthService.authenticateWithFacebook(request.getAccessToken());
         return ResponseEntity.ok(ApiResponse.ok(response, "Facebook login successful"));
+    }
+
+    @Operation(
+            summary = "Login with Apple Sign-In",
+            description = """
+                    Exchange Apple identity token for CleanReport JWT tokens.
+                    Apple only sends user name on first sign-in — frontend must pass email and fullName.
+                    Auto-creates user on first login.
+                    """)
+    @PostMapping("/apple")
+    public ResponseEntity<ApiResponse<AuthResponse>> appleLogin(@Valid @RequestBody AppleOAuthRequest request) {
+        AuthResponse response = appleOAuthService.authenticateWithApple(
+                request.getIdentityToken(), request.getEmail(), request.getFullName());
+        return ResponseEntity.ok(ApiResponse.ok(response, "Apple login successful"));
     }
 
     @Operation(

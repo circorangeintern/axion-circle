@@ -21,4 +21,7 @@ public class LoginRequest {
     @NotBlank(message = "Password is required")
     @Schema(example = "mypassword123")
     private String password;
+
+    @Schema(description = "If true, refresh token lasts 30 days instead of 7", example = "false")
+    private Boolean rememberMe;
 }

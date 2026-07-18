@@ -31,6 +31,11 @@ public class JwtService {
         return buildToken(Map.of(), userId.toString(), email, refreshTokenExpiration);
     }
 
+    public String generateRefreshToken(UUID userId, String email, boolean rememberMe) {
+        long expiration = rememberMe ? 30L * 24 * 60 * 60 * 1000 : refreshTokenExpiration; // 30 days if remember
+        return buildToken(Map.of(), userId.toString(), email, expiration);
+    }
+
     public String extractEmail(String token) {
         return extractAllClaims(token).getSubject();
     }

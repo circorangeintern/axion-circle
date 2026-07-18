@@ -71,7 +71,8 @@ public class AuthService {
         }
 
         log.info("User logged in: {}", user.getEmail());
-        return buildAuthResponse(user);
+        boolean rememberMe = request.getRememberMe() != null && request.getRememberMe();
+        return buildAuthResponse(user, rememberMe);
     }
 
     public AuthResponse refreshToken(RefreshTokenRequest request) {
@@ -92,8 +93,12 @@ public class AuthService {
     }
 
     private AuthResponse buildAuthResponse(User user) {
+        return buildAuthResponse(user, false);
+    }
+
+    private AuthResponse buildAuthResponse(User user, boolean rememberMe) {
         String accessToken = jwtService.generateAccessToken(user.getId(), user.getEmail(), user.getRole().name());
-        String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getEmail());
+        String refreshToken = jwtService.generateRefreshToken(user.getId(), user.getEmail(), rememberMe);
 
         UserResponse userResponse = UserResponse.builder()
                 .id(user.getId())

@@ -25,6 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -68,7 +69,7 @@ class AuthServiceTest {
         when(passwordEncoder.encode("password123")).thenReturn("$2a$12$hashedpassword");
         when(userRepository.save(any(User.class))).thenReturn(testUser);
         when(jwtService.generateAccessToken(any(), anyString(), anyString())).thenReturn("access-token");
-        when(jwtService.generateRefreshToken(any(), anyString())).thenReturn("refresh-token");
+        when(jwtService.generateRefreshToken(any(), anyString(), anyBoolean())).thenReturn("refresh-token");
 
         AuthResponse response = authService.register(request);
 
@@ -101,12 +102,12 @@ class AuthServiceTest {
     @Test
     @DisplayName("login - success - returns tokens for valid credentials")
     void login_success() {
-        LoginRequest request = new LoginRequest("amaka@example.com", "password123");
+        LoginRequest request = new LoginRequest("amaka@example.com", "password123", false);
 
         when(userRepository.findByEmail("amaka@example.com")).thenReturn(Optional.of(testUser));
         when(passwordEncoder.matches("password123", "$2a$12$hashedpassword")).thenReturn(true);
         when(jwtService.generateAccessToken(any(), anyString(), anyString())).thenReturn("access-token");
-        when(jwtService.generateRefreshToken(any(), anyString())).thenReturn("refresh-token");
+        when(jwtService.generateRefreshToken(any(), anyString(), anyBoolean())).thenReturn("refresh-token");
 
         AuthResponse response = authService.login(request);
 
@@ -117,7 +118,7 @@ class AuthServiceTest {
     @Test
     @DisplayName("login - unknown email - throws UnauthorizedException")
     void login_unknownEmail_throwsUnauthorized() {
-        LoginRequest request = new LoginRequest("unknown@example.com", "password123");
+        LoginRequest request = new LoginRequest("unknown@example.com", "password123", false);
         when(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
 
         assertThatThrownBy(() -> authService.login(request))
@@ -128,7 +129,7 @@ class AuthServiceTest {
     @Test
     @DisplayName("login - wrong password - throws UnauthorizedException")
     void login_wrongPassword_throwsUnauthorized() {
-        LoginRequest request = new LoginRequest("amaka@example.com", "wrongpassword");
+        LoginRequest request = new LoginRequest("amaka@example.com", "wrongpassword", false);
 
         when(userRepository.findByEmail("amaka@example.com")).thenReturn(Optional.of(testUser));
         when(passwordEncoder.matches("wrongpassword", "$2a$12$hashedpassword")).thenReturn(false);
