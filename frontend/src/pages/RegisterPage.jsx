@@ -104,8 +104,7 @@ export default function RegisterPage() {
         displayName: fullName.trim(),
       });
 
-      console.log('Register response object:', response);
-      console.log('Register response shape (data):', response.data);
+
 
       const token =
         response.data?.access_token ||
@@ -133,7 +132,7 @@ export default function RegisterPage() {
       toast.success('Account created successfully!');
       navigate('/');
     } catch (error) {
-      console.error('Registration error:', error);
+
       // Connection failure: timeout (ECONNABORTED) or no response from server
       if (error.isConnectionError || error.code === 'ECONNABORTED' || !error.response) {
         toast.error('Connection failed. Please try again.');

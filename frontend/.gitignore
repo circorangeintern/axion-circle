@@ -1,1 +1,2 @@
 .vercel
+*.timestamp-*.mjs

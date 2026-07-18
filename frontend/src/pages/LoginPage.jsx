@@ -34,7 +34,6 @@ export default function LoginPage() {
         password: password,
       });
 
-      console.log('Login response shape:', response.data);
 
       const accessToken =
         response.data?.access_token ||
@@ -51,17 +50,17 @@ export default function LoginPage() {
       }
 
       const userObj = response.data?.user || {
-        fullName: email.split('@')[0] ? email.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim() : 'Mercy Belrah',
+        fullName: email.split('@')[0] ? email.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim() : '',
         email: email.trim(),
       };
       localStorage.setItem('user', JSON.stringify(userObj));
-      localStorage.setItem('user_name', userObj.fullName || 'Mercy Belrah');
+      localStorage.setItem('user_name', userObj.fullName || '');
       localStorage.setItem('user_email', email.trim());
 
       toast.success('Logged in successfully!');
       navigate('/');
     } catch (error) {
-      console.error('Login error:', error);
+
       // Connection failure: timeout (ECONNABORTED) or no response from server
       if (error.isConnectionError || error.code === 'ECONNABORTED' || !error.response) {
         toast.error('Connection failed. Please try again.');
@@ -89,7 +88,7 @@ export default function LoginPage() {
           {/* Heading & subtext */}
           <div className="text-center mb-6">
             <h1 className="font-heading text-auth-heading text-primary mb-1">
-              Welcome Back, Mercy
+              Welcome Back, {localStorage.getItem('user_name')?.split(' ')[0] || 'there'}
             </h1>
             <p className="font-body text-auth-subtext text-paragraph">
               Welcome back! Please enter your details.
@@ -121,7 +120,7 @@ export default function LoginPage() {
                 htmlFor="password"
                 className="block text-sm font-medium text-black mb-1"
               >
-                Create Password
+                Password
               </label>
               <div className="relative">
                 <input

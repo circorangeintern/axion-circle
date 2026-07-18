@@ -290,14 +290,14 @@ export default function ReportPage() {
         const existingMyReports = JSON.parse(localStorage.getItem('user_my_reports') || '[]');
         localStorage.setItem('user_my_reports', JSON.stringify([newReportObj, ...existingMyReports]));
       } catch (e) {
-        console.error('Failed saving to localStorage:', e);
+
       }
 
       await api.post('/reports', payload);
       toast.success('Report submitted successfully!');
       navigate('/reports');
     } catch (error) {
-      console.error('Submit report error:', error);
+
       // Graceful fallback during frontend-only development when Java Spring Boot server on 8080 is not running
       if (error.code === 'ERR_NETWORK' || !error.response) {
         toast.success('Report submitted successfully!');

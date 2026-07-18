@@ -36,7 +36,7 @@ export default function AppNavbar({ activeTab = '' }) {
       if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
         const parsed = JSON.parse(storedUser);
         return {
-          displayName: String(parsed?.fullName || parsed?.username || localStorage.getItem('user_name') || 'Mercy Belrah'),
+          displayName: String(parsed?.fullName || parsed?.username || localStorage.getItem('user_name') || ''),
           email: String(parsed?.email || localStorage.getItem('user_email') || 'belrah@gmail.com'),
           avatarUrl: parsed?.avatarUrl || null,
         };
@@ -45,14 +45,14 @@ export default function AppNavbar({ activeTab = '' }) {
       // Ignore JSON parse errors
     }
     return {
-      displayName: String(localStorage.getItem('user_name') || 'Mercy Belrah'),
+      displayName: String(localStorage.getItem('user_name') || ''),
       email: String(localStorage.getItem('user_email') || 'belrah@gmail.com'),
       avatarUrl: null,
     };
   };
 
   const userInfo = getUserInfo() || {};
-  const displayName = String(userInfo.displayName || 'Mercy Belrah');
+  const displayName = String(userInfo.displayName || 'there');
   const email = String(userInfo.email || 'belrah@gmail.com');
   const rawAvatarUrl = userInfo.avatarUrl;
   const avatarUrl = rawAvatarUrl || avatarProfileImg;

@@ -44,11 +44,11 @@ export default function HomePage() {
       const storedUser = localStorage.getItem('user');
       if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
         const parsed = JSON.parse(storedUser);
-        const fullName = String(parsed?.fullName || parsed?.username || localStorage.getItem('user_name') || 'Mercy Belrah');
-        return fullName.split(' ')[0] || 'Mercy';
+        const fullName = String(parsed?.fullName || parsed?.username || localStorage.getItem('user_name') || '');
+        return fullName.split(' ')[0] || 'there';
       }
     } catch (e) {}
-    return 'Mercy';
+    return 'there';
   };
 
   const firstName = getUserFirstName();
@@ -573,9 +573,9 @@ export default function HomePage() {
                 setTimeout(() => window.location.reload(), 200);
               } else {
                 localStorage.setItem('access_token', 'demo-jwt-token-123');
-                localStorage.setItem('user', JSON.stringify({ fullName: 'Mercy Belrah', email: 'belrah@gmail.com' }));
+                localStorage.setItem('user', JSON.stringify({ fullName: 'Demo User', email: 'demo@example.com' }));
                 setIsLoggedIn(true);
-                toast.success('Previewing: Logged In View (Mercy Belrah)');
+                toast.success('Previewing: Logged In View (Demo User)');
                 setTimeout(() => window.location.reload(), 200);
               }
             }}

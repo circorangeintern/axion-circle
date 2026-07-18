@@ -222,7 +222,7 @@ export default function ReportsPage() {
         }
       }
     } catch (e) {
-      console.error('Error reading saved reports:', e);
+
     }
     setReportsList(initialReportsData);
   }, []);

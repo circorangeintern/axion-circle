@@ -97,7 +97,7 @@ export default function MyReportsPage() {
         }
       }
     } catch (e) {
-      console.error('Error reading user_my_reports:', e);
+
     }
     setReports(defaultMyReports);
   }, []);
