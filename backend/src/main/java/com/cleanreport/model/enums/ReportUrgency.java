@@ -2,6 +2,6 @@ package com.cleanreport.model.enums;
 
 public enum ReportUrgency {
     ROUTINE,
-    URGENT,
+    VERY_URGENT,
     CRITICAL
 }

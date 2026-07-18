@@ -23,11 +23,13 @@ public class ReportResponse {
     private String referenceNumber;
     private UUID reporterId;
     private String reporterName;
+    private String title;
     private String photoUrl;
     private String photoAfterUrl;
     private Double latitude;
     private Double longitude;
     private String description;
+    private String address;
     private ReportCategory category;
     private ReportStatus status;
     private ReportUrgency urgency;

@@ -1,6 +1,7 @@
 package com.cleanreport.service;
 
 import com.cleanreport.dto.request.CreateReportRequest;
+import com.cleanreport.dto.response.DashboardStatsResponse;
 import com.cleanreport.dto.response.ReportResponse;
 import com.cleanreport.exception.ResourceNotFoundException;
 import com.cleanreport.model.entity.Report;
@@ -22,7 +23,9 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Slf4j
@@ -34,6 +37,7 @@ public class ReportService {
 
     private final ReportRepository reportRepository;
     private final UserRepository userRepository;
+    private final GeocodingService geocodingService;
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), SRID_WGS84);
 
     @Transactional
@@ -44,12 +48,20 @@ public class ReportService {
         Point location = geometryFactory.createPoint(new Coordinate(request.getLongitude(), request.getLatitude()));
         location.setSRID(SRID_WGS84);
 
+        // Auto-fill address via reverse geocoding if not provided
+        String address = request.getAddress();
+        if (address == null || address.isBlank()) {
+            address = geocodingService.reverseGeocode(request.getLatitude(), request.getLongitude());
+        }
+
         Report report = Report.builder()
                 .referenceNumber(ReferenceNumberGenerator.generate())
                 .reporter(reporter)
+                .title(request.getTitle())
                 .photoUrl(request.getPhotoUrl())
                 .location(location)
                 .description(request.getDescription())
+                .address(address)
                 .category(request.getCategory())
                 .status(ReportStatus.REPORTED)
                 .urgency(request.getUrgency() != null ? request.getUrgency() : ReportUrgency.ROUTINE)
@@ -102,6 +114,46 @@ public class ReportService {
                 .toList();
     }
 
+    /**
+     * Full-text search across report title, description, and address.
+     */
+    public Page<ReportResponse> searchReports(String keyword, Pageable pageable) {
+        return reportRepository.searchByKeyword(keyword, pageable)
+                .map(this::mapToResponse);
+    }
+
+    /**
+     * Dashboard statistics: totals by status and category.
+     */
+    public DashboardStatsResponse getDashboardStats() {
+        long total = reportRepository.count();
+
+        Map<String, Long> byStatus = new LinkedHashMap<>();
+        for (ReportStatus status : ReportStatus.values()) {
+            byStatus.put(status.name(), reportRepository.countByStatus(status));
+        }
+
+        Map<String, Long> byCategory = new LinkedHashMap<>();
+        for (ReportCategory category : ReportCategory.values()) {
+            byCategory.put(category.name(), reportRepository.countByCategory(category));
+        }
+
+        long resolved = byStatus.getOrDefault("RESOLVED", 0L);
+        long pending = total - resolved;
+
+        long totalUsers = userRepository.count();
+
+        return DashboardStatsResponse.builder()
+                .totalReports(total)
+                .resolvedReports(resolved)
+                .pendingReports(pending)
+                .byStatus(byStatus)
+                .byCategory(byCategory)
+                .totalCreditsEarned(total * 10) // Each report = 10 credits
+                .totalUsers(totalUsers)
+                .build();
+    }
+
     private ReportResponse mapToResponse(Report report) {
         String reporterName = report.getIsAnonymous() ? "Anonymous" : report.getReporter().getDisplayName();
 
@@ -110,11 +162,13 @@ public class ReportService {
                 .referenceNumber(report.getReferenceNumber())
                 .reporterId(report.getReporter().getId())
                 .reporterName(reporterName)
+                .title(report.getTitle())
                 .photoUrl(report.getPhotoUrl())
                 .photoAfterUrl(report.getPhotoAfterUrl())
                 .latitude(report.getLocation().getY())
                 .longitude(report.getLocation().getX())
                 .description(report.getDescription())
+                .address(report.getAddress())
                 .category(report.getCategory())
                 .status(report.getStatus())
                 .urgency(report.getUrgency())

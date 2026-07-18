@@ -5,8 +5,6 @@ import com.cleanreport.model.enums.ReportStatus;
 import com.cleanreport.model.enums.ReportUrgency;
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
 import org.locationtech.jts.geom.Point;
 
 import java.time.Instant;
@@ -32,6 +30,9 @@ public class Report {
     @JoinColumn(name = "reporter_id", nullable = false)
     private User reporter;
 
+    @Column(length = 100)
+    private String title;
+
     @Column(name = "photo_url", nullable = false)
     private String photoUrl;
 
@@ -43,6 +44,9 @@ public class Report {
 
     @Column(length = 200)
     private String description;
+
+    @Column(length = 300)
+    private String address;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
@@ -65,11 +69,20 @@ public class Report {
     @Column(name = "area_name")
     private String areaName;
 
-    @CreationTimestamp
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 
-    @UpdateTimestamp
     @Column(name = "updated_at", nullable = false)
     private Instant updatedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = Instant.now();
+        updatedAt = Instant.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedAt = Instant.now();
+    }
 }

@@ -1,6 +1,7 @@
 package com.cleanreport.service;
 
 import com.cleanreport.dto.request.CreateReportRequest;
+import com.cleanreport.dto.response.DashboardStatsResponse;
 import com.cleanreport.dto.response.ReportResponse;
 import com.cleanreport.exception.ResourceNotFoundException;
 import com.cleanreport.model.entity.Report;
@@ -33,6 +34,7 @@ import java.util.UUID;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -50,6 +52,8 @@ class ReportServiceTest {
     private ReportRepository reportRepository;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private GeocodingService geocodingService;
 
     @InjectMocks
     private ReportService reportService;
@@ -75,9 +79,11 @@ class ReportServiceTest {
                 .id(TEST_REPORT_ID)
                 .referenceNumber("CR-00001")
                 .reporter(testUser)
+                .title("Overflowing bin near school")
                 .photoUrl(TEST_PHOTO_URL)
                 .location(point)
                 .description("Test waste report")
+                .address("15 Broad Street, Lagos Island")
                 .category(ReportCategory.ILLEGAL_DUMPING)
                 .status(ReportStatus.REPORTED)
                 .urgency(ReportUrgency.ROUTINE)
@@ -88,13 +94,20 @@ class ReportServiceTest {
     }
 
     @Test
-    @DisplayName("createReport - success - creates report with generated reference number")
+    @DisplayName("createReport - success with title and auto-geocoded address")
     void createReport_success() {
-        CreateReportRequest request = new CreateReportRequest(
-                TEST_PHOTO_URL, TEST_LATITUDE, TEST_LONGITUDE,
-                ReportCategory.ILLEGAL_DUMPING, "Waste near school", ReportUrgency.URGENT, false);
+        CreateReportRequest request = new CreateReportRequest();
+        request.setTitle("Overflowing bin");
+        request.setPhotoUrl(TEST_PHOTO_URL);
+        request.setLatitude(TEST_LATITUDE);
+        request.setLongitude(TEST_LONGITUDE);
+        request.setCategory(ReportCategory.ILLEGAL_DUMPING);
+        request.setDescription("Waste near school");
+        request.setUrgency(ReportUrgency.VERY_URGENT);
+        request.setIsAnonymous(false);
 
         when(userRepository.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(testUser));
+        when(geocodingService.reverseGeocode(TEST_LATITUDE, TEST_LONGITUDE)).thenReturn("15 Broad Street, Lagos");
         when(reportRepository.save(any(Report.class))).thenReturn(testReport);
 
         ReportResponse response = reportService.createReport(request, TEST_EMAIL);
@@ -104,21 +117,44 @@ class ReportServiceTest {
         assertThat(response.getCategory()).isEqualTo(ReportCategory.ILLEGAL_DUMPING);
         assertThat(response.getStatus()).isEqualTo(ReportStatus.REPORTED);
         assertThat(response.getReporterName()).isEqualTo(TEST_DISPLAY_NAME);
-        assertThat(response.getLatitude()).isEqualTo(TEST_LATITUDE);
-        assertThat(response.getLongitude()).isEqualTo(TEST_LONGITUDE);
+        assertThat(response.getTitle()).isEqualTo("Overflowing bin near school");
+        assertThat(response.getAddress()).isEqualTo("15 Broad Street, Lagos Island");
 
         verify(reportRepository).save(any(Report.class));
+        verify(geocodingService).reverseGeocode(TEST_LATITUDE, TEST_LONGITUDE);
+    }
+
+    @Test
+    @DisplayName("createReport - with manual address skips geocoding")
+    void createReport_manualAddress_skipsGeocoding() {
+        CreateReportRequest request = new CreateReportRequest();
+        request.setPhotoUrl(TEST_PHOTO_URL);
+        request.setLatitude(TEST_LATITUDE);
+        request.setLongitude(TEST_LONGITUDE);
+        request.setCategory(ReportCategory.STREET_LITTER);
+        request.setAddress("Manually entered address");
+
+        when(userRepository.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(testUser));
+        when(reportRepository.save(any(Report.class))).thenReturn(testReport);
+
+        reportService.createReport(request, TEST_EMAIL);
+
+        verify(geocodingService, never()).reverseGeocode(anyDouble(), anyDouble());
     }
 
     @Test
     @DisplayName("createReport - anonymous - hides reporter name")
     void createReport_anonymous_hidesName() {
         testReport = testReport.toBuilder().isAnonymous(true).build();
-        CreateReportRequest request = new CreateReportRequest(
-                TEST_PHOTO_URL, TEST_LATITUDE, TEST_LONGITUDE,
-                ReportCategory.OVERFLOW, null, null, true);
+        CreateReportRequest request = new CreateReportRequest();
+        request.setPhotoUrl(TEST_PHOTO_URL);
+        request.setLatitude(TEST_LATITUDE);
+        request.setLongitude(TEST_LONGITUDE);
+        request.setCategory(ReportCategory.OVERFLOW);
+        request.setIsAnonymous(true);
 
         when(userRepository.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(testUser));
+        when(geocodingService.reverseGeocode(TEST_LATITUDE, TEST_LONGITUDE)).thenReturn(null);
         when(reportRepository.save(any(Report.class))).thenReturn(testReport);
 
         ReportResponse response = reportService.createReport(request, TEST_EMAIL);
@@ -130,9 +166,11 @@ class ReportServiceTest {
     @Test
     @DisplayName("createReport - unknown user - throws ResourceNotFoundException")
     void createReport_unknownUser_throwsNotFound() {
-        CreateReportRequest request = new CreateReportRequest(
-                TEST_PHOTO_URL, TEST_LATITUDE, TEST_LONGITUDE,
-                ReportCategory.BLOCKED_DRAIN, null, null, false);
+        CreateReportRequest request = new CreateReportRequest();
+        request.setPhotoUrl(TEST_PHOTO_URL);
+        request.setLatitude(TEST_LATITUDE);
+        request.setLongitude(TEST_LONGITUDE);
+        request.setCategory(ReportCategory.BLOCKED_DRAIN);
 
         when(userRepository.findByEmail("unknown@example.com")).thenReturn(Optional.empty());
 
@@ -144,7 +182,7 @@ class ReportServiceTest {
     }
 
     @Test
-    @DisplayName("getReportById - exists - returns report")
+    @DisplayName("getReportById - exists - returns report with new fields")
     void getReportById_exists() {
         when(reportRepository.findById(TEST_REPORT_ID)).thenReturn(Optional.of(testReport));
 
@@ -152,6 +190,8 @@ class ReportServiceTest {
 
         assertThat(response.getId()).isEqualTo(TEST_REPORT_ID);
         assertThat(response.getPhotoUrl()).isEqualTo(TEST_PHOTO_URL);
+        assertThat(response.getTitle()).isEqualTo("Overflowing bin near school");
+        assertThat(response.getAddress()).isEqualTo("15 Broad Street, Lagos Island");
     }
 
     @Test
@@ -190,6 +230,19 @@ class ReportServiceTest {
     }
 
     @Test
+    @DisplayName("getReports - filter by new category STREET_LITTER")
+    void getReports_filterByNewCategory() {
+        testReport = testReport.toBuilder().category(ReportCategory.STREET_LITTER).build();
+        Page<Report> page = new PageImpl<>(List.of(testReport));
+        when(reportRepository.findByCategory(ReportCategory.STREET_LITTER, PageRequest.of(0, 20))).thenReturn(page);
+
+        Page<ReportResponse> result = reportService.getReports(null, ReportCategory.STREET_LITTER, PageRequest.of(0, 20));
+
+        assertThat(result.getContent()).hasSize(1);
+        assertThat(result.getContent().get(0).getCategory()).isEqualTo(ReportCategory.STREET_LITTER);
+    }
+
+    @Test
     @DisplayName("getMyReports - returns user reports only")
     void getMyReports_success() {
         when(userRepository.findByEmail(TEST_EMAIL)).thenReturn(Optional.of(testUser));
@@ -199,5 +252,40 @@ class ReportServiceTest {
 
         assertThat(result).hasSize(1);
         assertThat(result.get(0).getReporterId()).isEqualTo(TEST_USER_ID);
+    }
+
+    @Test
+    @DisplayName("searchReports - returns matching results")
+    void searchReports_returnsMatches() {
+        Page<Report> page = new PageImpl<>(List.of(testReport));
+        when(reportRepository.searchByKeyword(eq("drainage"), any(PageRequest.class))).thenReturn(page);
+
+        Page<ReportResponse> result = reportService.searchReports("drainage", PageRequest.of(0, 20));
+
+        assertThat(result.getContent()).hasSize(1);
+        verify(reportRepository).searchByKeyword(eq("drainage"), any(PageRequest.class));
+    }
+
+    @Test
+    @DisplayName("getDashboardStats - returns correct totals")
+    void getDashboardStats_returnsTotals() {
+        when(reportRepository.count()).thenReturn(100L);
+        when(reportRepository.countByStatus(ReportStatus.REPORTED)).thenReturn(30L);
+        when(reportRepository.countByStatus(ReportStatus.ACKNOWLEDGED)).thenReturn(20L);
+        when(reportRepository.countByStatus(ReportStatus.IN_PROGRESS)).thenReturn(10L);
+        when(reportRepository.countByStatus(ReportStatus.RESOLVED)).thenReturn(40L);
+        when(reportRepository.countByCategory(any(ReportCategory.class))).thenReturn(15L);
+        when(userRepository.count()).thenReturn(25L);
+
+        DashboardStatsResponse stats = reportService.getDashboardStats();
+
+        assertThat(stats.getTotalReports()).isEqualTo(100L);
+        assertThat(stats.getResolvedReports()).isEqualTo(40L);
+        assertThat(stats.getPendingReports()).isEqualTo(60L);
+        assertThat(stats.getTotalUsers()).isEqualTo(25L);
+        assertThat(stats.getTotalCreditsEarned()).isEqualTo(1000L);
+        assertThat(stats.getByStatus()).containsEntry("REPORTED", 30L);
+        assertThat(stats.getByStatus()).containsEntry("RESOLVED", 40L);
+        assertThat(stats.getByCategory()).hasSize(6);
     }
 }

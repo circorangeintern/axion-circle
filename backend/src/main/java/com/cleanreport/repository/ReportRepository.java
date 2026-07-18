@@ -30,6 +30,17 @@ public interface ReportRepository extends JpaRepository<Report, UUID> {
     List<Report> findNearby(@Param("lat") double lat, @Param("lng") double lng,
                             @Param("radiusMeters") double radiusMeters);
 
+    // Search by keyword across title, description, and address
+    @Query(value = "SELECT * FROM reports r WHERE " +
+            "to_tsvector('english', COALESCE(r.title, '') || ' ' || COALESCE(r.description, '') || ' ' || COALESCE(r.address, '')) " +
+            "@@ plainto_tsquery('english', :keyword) " +
+            "ORDER BY r.created_at DESC",
+            countQuery = "SELECT count(*) FROM reports r WHERE " +
+                    "to_tsvector('english', COALESCE(r.title, '') || ' ' || COALESCE(r.description, '') || ' ' || COALESCE(r.address, '')) " +
+                    "@@ plainto_tsquery('english', :keyword)",
+            nativeQuery = true)
+    Page<Report> searchByKeyword(@Param("keyword") String keyword, Pageable pageable);
+
     long countByStatus(ReportStatus status);
 
     long countByCategory(ReportCategory category);

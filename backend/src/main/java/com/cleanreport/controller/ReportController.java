@@ -2,6 +2,7 @@ package com.cleanreport.controller;
 
 import com.cleanreport.dto.request.CreateReportRequest;
 import com.cleanreport.dto.response.ApiResponse;
+import com.cleanreport.dto.response.DashboardStatsResponse;
 import com.cleanreport.dto.response.ReportResponse;
 import com.cleanreport.model.enums.ReportCategory;
 import com.cleanreport.model.enums.ReportStatus;
@@ -29,7 +30,7 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/reports")
 @RequiredArgsConstructor
-@Tag(name = "Reports", description = "Submit sanitation issue reports, view reports on map/list, filter by status/category/location.")
+@Tag(name = "Reports", description = "Submit sanitation issue reports, search, view stats, filter by status/category/location.")
 public class ReportController {
 
     private final ReportService reportService;
@@ -42,12 +43,17 @@ public class ReportController {
                     **Flow:**
                     1. Frontend uploads photo to Cloudinary → gets photoUrl
                     2. Frontend captures GPS coordinates from browser
-                    3. User selects category and optionally adds description
+                    3. User selects category and optionally adds title + description
                     4. Submit this endpoint with all data
+                    5. If no address provided, reverse geocoding auto-fills it from coordinates
                     
                     **Credits:** Reporter earns +10 credits on successful submission.
                     
                     **Reference number:** A unique CR-XXXXX number is generated for tracking.
+                    
+                    **Categories:** OVERFLOW, ILLEGAL_DUMPING, BLOCKED_DRAIN, STREET_LITTER, RESIDENTIAL_DUMP, COMMERCIAL_DUMP
+                    
+                    **Urgency levels:** ROUTINE (default), VERY_URGENT, CRITICAL
                     """,
             security = @SecurityRequirement(name = "Bearer Auth"))
     @ApiResponses(value = {
@@ -71,15 +77,13 @@ public class ReportController {
                     
                     **Filters:**
                     - `status`: REPORTED, ACKNOWLEDGED, IN_PROGRESS, RESOLVED
-                    - `category`: OVERFLOW, ILLEGAL_DUMPING, BLOCKED_DRAIN
+                    - `category`: OVERFLOW, ILLEGAL_DUMPING, BLOCKED_DRAIN, STREET_LITTER, RESIDENTIAL_DUMP, COMMERCIAL_DUMP
                     
                     **Pagination:**
                     - `page`: 0-based page number (default: 0)
                     - `size`: items per page (default: 20, max: 100)
                     
                     **Sorting:** Always newest first (createdAt DESC).
-                    
-                    **Response includes:** totalElements, totalPages, current page content.
                     """)
     @GetMapping
     public ResponseEntity<ApiResponse<Page<ReportResponse>>> getReports(
@@ -97,11 +101,52 @@ public class ReportController {
     }
 
     @Operation(
+            summary = "Search reports by keyword",
+            description = """
+                    Full-text search across report title, description, and address.
+                    Uses PostgreSQL's `to_tsvector` for efficient text matching.
+                    **Public endpoint — no auth required.**
+                    
+                    **Example:** `/reports/search?q=drainage&page=0&size=10`
+                    """)
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<Page<ReportResponse>>> searchReports(
+            @Parameter(description = "Search keyword", required = true, example = "drainage")
+            @RequestParam("q") String keyword,
+            @Parameter(description = "Page number (0-based)", example = "0")
+            @RequestParam(defaultValue = "0") int page,
+            @Parameter(description = "Items per page (max 100)", example = "20")
+            @RequestParam(defaultValue = "20") int size) {
+        Page<ReportResponse> results = reportService.searchReports(keyword,
+                PageRequest.of(page, Math.min(size, 100)));
+        return ResponseEntity.ok(ApiResponse.ok(results));
+    }
+
+    @Operation(
+            summary = "Get dashboard statistics",
+            description = """
+                    Returns aggregated statistics for the dashboard:
+                    - Total reports count
+                    - Resolved vs pending count
+                    - Breakdown by status
+                    - Breakdown by category
+                    - Total community credits earned
+                    - Total registered users
+                    
+                    **Public endpoint — no auth required.**
+                    """)
+    @GetMapping("/stats")
+    public ResponseEntity<ApiResponse<DashboardStatsResponse>> getDashboardStats() {
+        DashboardStatsResponse stats = reportService.getDashboardStats();
+        return ResponseEntity.ok(ApiResponse.ok(stats));
+    }
+
+    @Operation(
             summary = "Get report by ID",
             description = """
-                    Returns full details of a single report including reporter name 
-                    (or "Anonymous" if submitted anonymously), photo URL, GPS coordinates, 
-                    status, and timestamps. **Public endpoint.**
+                    Returns full details of a single report including reporter name
+                    (or "Anonymous" if submitted anonymously), photo URL, GPS coordinates,
+                    title, address, status, and timestamps. **Public endpoint.**
                     """)
     @ApiResponses(value = {
             @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Report found"),
@@ -124,9 +169,7 @@ public class ReportController {
                     Returns all reports within a given radius of GPS coordinates.
                     Uses PostGIS geospatial query. **Public endpoint.**
                     
-                    **Use case:** Show reports on a map centered on the user's current location.
-                    
-                    **Example:** `/reports/nearby?lat=6.5244&lng=3.3792&radius=5` 
+                    **Example:** `/reports/nearby?lat=6.5244&lng=3.3792&radius=5`
                     → all reports within 5km of Lekki, Lagos.
                     """)
     @GetMapping("/nearby")
