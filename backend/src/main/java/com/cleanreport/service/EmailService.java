@@ -5,40 +5,41 @@ import com.resend.core.exception.ResendException;
 import com.resend.services.emails.model.CreateEmailOptions;
 import com.resend.services.emails.model.CreateEmailResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 /**
  * Email sending service using Resend.
- * Falls back to logging if RESEND_API_KEY is not configured.
+ * Reads RESEND_API_KEY from environment at send time (avoids lazy-init issues).
+ * Falls back to logging if key is not configured.
  */
 @Slf4j
 @Service
 public class EmailService {
 
-    private static final String DEFAULT_FROM = "CleanReport <noreply@cleanreport.app>";
+    private static final String FROM_ADDRESS = "CleanReport <onboarding@resend.dev>";
 
-    @Value("${app.email.resend-api-key:}")
-    private String resendApiKey;
-
-    @Value("${app.email.from:CleanReport <onboarding@resend.dev>}")
-    private String fromAddress;
+    private String getApiKey() {
+        String key = System.getenv("RESEND_API_KEY");
+        return (key != null && !key.isBlank()) ? key : null;
+    }
 
     /**
      * Send an email. Returns true if sent successfully (or logged in dev mode).
      */
     public boolean sendEmail(String to, String subject, String htmlBody) {
-        if (resendApiKey == null || resendApiKey.isBlank()) {
-            log.info("[EMAIL-DEV] To: {} | Subject: {} | Body preview: {}",
-                    to, subject, htmlBody.substring(0, Math.min(100, htmlBody.length())));
+        String apiKey = getApiKey();
+
+        if (apiKey == null) {
+            log.info("[EMAIL-DEV] No RESEND_API_KEY set. To: {} | Subject: {}", to, subject);
+            log.info("[EMAIL-DEV] Body: {}", htmlBody.substring(0, Math.min(200, htmlBody.length())));
             return true;
         }
 
         try {
-            Resend resend = new Resend(resendApiKey);
+            Resend resend = new Resend(apiKey);
 
             CreateEmailOptions params = CreateEmailOptions.builder()
-                    .from(fromAddress)
+                    .from(FROM_ADDRESS)
                     .to(to)
                     .subject(subject)
                     .html(htmlBody)
