@@ -6,6 +6,7 @@ import com.cleanreport.model.enums.ReportStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -14,7 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface ReportRepository extends JpaRepository<Report, UUID> {
+public interface ReportRepository extends JpaRepository<Report, UUID>, JpaSpecificationExecutor<Report> {
 
     Page<Report> findByStatus(ReportStatus status, Pageable pageable);
 
@@ -30,7 +31,7 @@ public interface ReportRepository extends JpaRepository<Report, UUID> {
     List<Report> findNearby(@Param("lat") double lat, @Param("lng") double lng,
                             @Param("radiusMeters") double radiusMeters);
 
-    // Search by keyword across title, description, and address
+    // Full-text search
     @Query(value = "SELECT * FROM reports r WHERE " +
             "to_tsvector('english', COALESCE(r.title, '') || ' ' || COALESCE(r.description, '') || ' ' || COALESCE(r.address, '')) " +
             "@@ plainto_tsquery('english', :keyword) " +
