@@ -11,6 +11,7 @@ import com.cleanreport.model.entity.User;
 import com.cleanreport.model.enums.UserRole;
 import com.cleanreport.repository.UserRepository;
 import com.cleanreport.security.JwtService;
+import com.cleanreport.util.DisposableEmailValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -27,11 +28,19 @@ public class AuthService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final JwtService jwtService;
+    private final EmailVerificationService emailVerificationService;
 
     @Transactional
     public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByEmail(request.getEmail().toLowerCase().trim())) {
-            throw new ConflictException("Email already registered: " + request.getEmail());
+        String email = request.getEmail().toLowerCase().trim();
+
+        // Block disposable/temp email providers
+        if (DisposableEmailValidator.isDisposable(email)) {
+            throw new IllegalArgumentException("Disposable email addresses are not allowed. Please use a permanent email.");
+        }
+
+        if (userRepository.existsByEmail(email)) {
+            throw new ConflictException("Email already registered: " + email);
         }
 
         User user = User.builder()
@@ -45,6 +54,10 @@ public class AuthService {
 
         User savedUser = userRepository.save(user);
         log.info("User registered: {} ({})", savedUser.getEmail(), savedUser.getId());
+
+        // Send verification code
+        emailVerificationService.sendVerificationCode(savedUser);
+
         return buildAuthResponse(savedUser);
     }
 

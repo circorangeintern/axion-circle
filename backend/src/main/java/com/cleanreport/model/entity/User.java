@@ -52,6 +52,16 @@ public class User {
     @Column(name = "password_reset_expires")
     private Instant passwordResetExpires;
 
+    @Column(name = "email_verified", nullable = false)
+    @Builder.Default
+    private Boolean emailVerified = false;
+
+    @Column(name = "verification_code", length = 6)
+    private String verificationCode;
+
+    @Column(name = "verification_code_expires")
+    private Instant verificationCodeExpires;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

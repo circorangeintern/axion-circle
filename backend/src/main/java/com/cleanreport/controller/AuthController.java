@@ -6,9 +6,11 @@ import com.cleanreport.dto.request.LoginRequest;
 import com.cleanreport.dto.request.RefreshTokenRequest;
 import com.cleanreport.dto.request.RegisterRequest;
 import com.cleanreport.dto.request.ResetPasswordRequest;
+import com.cleanreport.dto.request.VerifyEmailRequest;
 import com.cleanreport.dto.response.ApiResponse;
 import com.cleanreport.dto.response.AuthResponse;
 import com.cleanreport.service.AuthService;
+import com.cleanreport.service.EmailVerificationService;
 import com.cleanreport.service.GoogleOAuthService;
 import com.cleanreport.service.PasswordResetService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -32,6 +34,7 @@ public class AuthController {
     private final AuthService authService;
     private final GoogleOAuthService googleOAuthService;
     private final PasswordResetService passwordResetService;
+    private final EmailVerificationService emailVerificationService;
 
     @Operation(
             summary = "Register a new user",
@@ -156,6 +159,27 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
         passwordResetService.resetPassword(request);
         return ResponseEntity.ok(ApiResponse.ok(null, "Password reset successful. You can now log in with your new password."));
+    }
+
+    @Operation(
+            summary = "Verify email with 6-digit code",
+            description = """
+                    After registration, user receives a 6-digit code (via email or from logs in dev).
+                    Submit the code here to verify the email address. Code expires after 10 minutes.
+                    """)
+    @PostMapping("/verify-email")
+    public ResponseEntity<ApiResponse<Void>> verifyEmail(@Valid @RequestBody VerifyEmailRequest request) {
+        emailVerificationService.verifyEmail(request.getEmail(), request.getCode());
+        return ResponseEntity.ok(ApiResponse.ok(null, "Email verified successfully"));
+    }
+
+    @Operation(
+            summary = "Resend verification code",
+            description = "Generates and sends a new 6-digit verification code. Previous code is invalidated.")
+    @PostMapping("/resend-verification")
+    public ResponseEntity<ApiResponse<Void>> resendVerification(@Valid @RequestBody ForgotPasswordRequest request) {
+        emailVerificationService.resendVerificationCode(request.getEmail());
+        return ResponseEntity.ok(ApiResponse.ok(null, "New verification code sent"));
     }
 
 }
