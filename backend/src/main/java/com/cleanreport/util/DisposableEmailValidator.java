@@ -30,7 +30,7 @@ public final class DisposableEmailValidator {
             "tmail.ws", "tmpbox.net", "trashmail.org",
             "mailnull.com", "spamcero.com", "spamhole.com",
             "uglymail.com", "33mail.com",
-            "inboxkitten.com", "burnermail.io", "temp-mail.io"
+            "inboxkitten.com", "burnermail.io", "temp-mail.io", "emailnator.com"
     ));
 
     /**
