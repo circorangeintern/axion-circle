@@ -46,6 +46,12 @@ public class User {
     @Column(name = "avatar_url")
     private String avatarUrl;
 
+    @Column(name = "password_reset_token")
+    private String passwordResetToken;
+
+    @Column(name = "password_reset_expires")
+    private Instant passwordResetExpires;
+
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt;
 

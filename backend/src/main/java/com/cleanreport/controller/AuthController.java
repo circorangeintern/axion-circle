@@ -1,13 +1,16 @@
 package com.cleanreport.controller;
 
+import com.cleanreport.dto.request.ForgotPasswordRequest;
 import com.cleanreport.dto.request.GoogleOAuthRequest;
 import com.cleanreport.dto.request.LoginRequest;
 import com.cleanreport.dto.request.RefreshTokenRequest;
 import com.cleanreport.dto.request.RegisterRequest;
+import com.cleanreport.dto.request.ResetPasswordRequest;
 import com.cleanreport.dto.response.ApiResponse;
 import com.cleanreport.dto.response.AuthResponse;
 import com.cleanreport.service.AuthService;
 import com.cleanreport.service.GoogleOAuthService;
+import com.cleanreport.service.PasswordResetService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -28,6 +31,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final GoogleOAuthService googleOAuthService;
+    private final PasswordResetService passwordResetService;
 
     @Operation(
             summary = "Register a new user",
@@ -124,6 +128,34 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> googleLogin(@Valid @RequestBody GoogleOAuthRequest request) {
         AuthResponse response = googleOAuthService.authenticateWithGoogle(request.getIdToken());
         return ResponseEntity.ok(ApiResponse.ok(response, "Google login successful"));
+    }
+
+    @Operation(
+            summary = "Request password reset",
+            description = """
+                    Sends a password reset email with a time-limited token (15 min).
+                    Always returns 200 even if email doesn't exist (prevents email enumeration).
+                    """)
+    @PostMapping("/forgot-password")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(@Valid @RequestBody ForgotPasswordRequest request) {
+        passwordResetService.requestPasswordReset(request);
+        return ResponseEntity.ok(ApiResponse.ok(null, "If an account with that email exists, a reset link has been sent."));
+    }
+
+    @Operation(
+            summary = "Reset password with token",
+            description = """
+                    Validates the reset token from the email link and sets a new password.
+                    Token expires after 15 minutes. Can only be used once.
+                    """)
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Password reset successful"),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Invalid or expired token")
+    })
+    @PostMapping("/reset-password")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(@Valid @RequestBody ResetPasswordRequest request) {
+        passwordResetService.resetPassword(request);
+        return ResponseEntity.ok(ApiResponse.ok(null, "Password reset successful. You can now log in with your new password."));
     }
 
 }
