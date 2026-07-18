@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
@@ -31,6 +31,20 @@ export default function RegisterPage() {
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadingText, setLoadingText] = useState('Create Account');
+
+  useEffect(() => {
+    let timeout;
+    if (isSubmitting) {
+      setLoadingText('Creating Account...');
+      timeout = setTimeout(() => {
+        setLoadingText('Waking up server, this may take a minute...');
+      }, 5000);
+    } else {
+      setLoadingText('Create Account');
+    }
+    return () => clearTimeout(timeout);
+  }, [isSubmitting]);
 
   // Step 1 handler
   const handleStep1Submit = (e) => {
@@ -480,7 +494,7 @@ export default function RegisterPage() {
                     disabled={!fullName || !password || !confirmPassword || !agreedToTerms || isSubmitting}
                     className="w-full px-4 py-2.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-sm cursor-pointer"
                   >
-                    {isSubmitting ? 'Creating Account...' : 'Create Account'}
+                    {isSubmitting ? loadingText : 'Create Account'}
                   </button>
 
                   <button

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff, ArrowLeft, ArrowRight } from 'lucide-react';
@@ -19,6 +19,20 @@ export default function LoginPage() {
   const [rememberMe, setRememberMe] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [loadingText, setLoadingText] = useState('Log into Account');
+
+  useEffect(() => {
+    let timeout;
+    if (isSubmitting) {
+      setLoadingText('Signing in...');
+      timeout = setTimeout(() => {
+        setLoadingText('Waking up server, this may take a minute...');
+      }, 5000);
+    } else {
+      setLoadingText('Log into Account');
+    }
+    return () => clearTimeout(timeout);
+  }, [isSubmitting]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -173,7 +187,7 @@ export default function LoginPage() {
               disabled={!email || !password || isSubmitting}
               className="w-full px-4 py-2.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed mt-2 shadow-sm cursor-pointer"
             >
-              {isSubmitting ? 'Logging in...' : 'Log into Account'}
+              {isSubmitting ? loadingText : 'Log into Account'}
             </button>
 
             {/* Sign in with Google button */}
