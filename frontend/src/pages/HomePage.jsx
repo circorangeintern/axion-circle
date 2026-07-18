@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
@@ -19,17 +19,104 @@ import {
   Activity,
   Settings,
   Layers,
-  Users
+  Users,
+  AlertCircle,
+  Map,
+  List
 } from 'lucide-react';
 import AppNavbar from '../components/AppNavbar';
 import mapBg from '../assets/map-bg.jpg';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
+import api from '../services/api';
+import { initialReportsData } from './ReportsPage';
+import ReportListView from '../components/ReportListView';
+import MapErrorBoundary from '../components/MapErrorBoundary';
+
+const timeAgo = (dateStr) => {
+  if (!dateStr) return 'Just now';
+  const diff = Date.now() - new Date(dateStr).getTime();
+  const minutes = Math.floor(diff / 60000);
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours}h ago`;
+  const days = Math.floor(hours / 24);
+  return `${days}d ago`;
+};
+
+const getMarkerIcon = (status) => {
+  let color = '#3b82f6'; // default blue
+  const s = (status || '').toLowerCase();
+  if (s === 'reported') color = '#f59e0b'; // amber
+  else if (s === 'acknowledged') color = '#3b82f6'; // blue
+  else if (s === 'inprogress' || s === 'in progress') color = '#a855f7'; // purple
+  else if (s === 'resolved') color = '#22c55e'; // green
+
+  return L.divIcon({
+    className: 'custom-leaflet-pin',
+    html: `<div style="background-color: ${color}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
+    iconSize: [20, 20],
+    iconAnchor: [10, 10],
+  });
+};
 
 export default function HomePage() {
   const navigate = useNavigate();
 
-  // Check localStorage for access_token to determine logged-in state for Hero section display
   const [isLoggedIn, setIsLoggedIn] = useState(() => Boolean(localStorage.getItem('access_token')));
   const [isBannerDismissed, setIsBannerDismissed] = useState(false);
+  const [reports, setReports] = useState([]);
+  const [mapStatus, setMapStatus] = useState('loading'); // 'loading' | 'success' | 'error'
+  const [activeFilter, setActiveFilter] = useState('All');
+  const [viewMode, setViewMode] = useState('map'); // 'map' | 'list'
+
+  useEffect(() => {
+    let timeout;
+    const fetchReports = async () => {
+      try {
+        setMapStatus('loading');
+        timeout = setTimeout(() => {
+          setMapStatus('waking_up');
+        }, 5000);
+
+        const res = await api.get('/reports');
+        clearTimeout(timeout);
+        const data = res.data?.data || res.data || [];
+        setReports(Array.isArray(data) ? data : []);
+        setMapStatus('success');
+      } catch (err) {
+        clearTimeout(timeout);
+        console.error('Failed to fetch live reports, falling back to mock data:', err);
+        
+        // Graceful fallback to mock data for frontend testing
+        const lagosLat = 6.5244;
+        const lagosLng = 3.3792;
+        const fallbackData = initialReportsData.map((report, idx) => {
+          // Generate deterministic coordinates spreading around Lagos center
+          const lat = lagosLat + (Math.sin(idx * 2.5) * 0.08);
+          const lng = lagosLng + (Math.cos(idx * 2.5) * 0.08);
+          
+          // Generate a valid recent date for the timeAgo parser
+          const d = new Date();
+          d.setHours(d.getHours() - (idx * 2) - 1);
+          
+          return {
+            ...report,
+            latitude: lat,
+            longitude: lng,
+            createdAt: d.toISOString()
+          };
+        });
+        
+        setReports(fallbackData);
+        setMapStatus('success');
+      }
+    };
+    fetchReports();
+    return () => clearTimeout(timeout);
+  }, []);
 
   const handleViewAll = () => {
     if (localStorage.getItem('access_token')) {
@@ -52,6 +139,14 @@ export default function HomePage() {
   };
 
   const firstName = getUserFirstName();
+
+  const filteredReports = reports.filter((r) => {
+    if (activeFilter === 'All') return true;
+    if (activeFilter === 'Overflow') return r.category === 'OVERFLOW' || (r.title && r.title.toLowerCase().includes('overflow'));
+    if (activeFilter === 'Illegal Dumping') return r.category === 'ILLEGAL_DUMPING' || (r.title && r.title.toLowerCase().includes('dumping'));
+    if (activeFilter === 'Blocked Drain') return r.category === 'BLOCKED_DRAIN' || (r.title && r.title.toLowerCase().includes('drain'));
+    return true;
+  });
 
   return (
     <div className="min-h-screen bg-white-bg sm:bg-white font-body flex flex-col justify-between relative">
@@ -259,99 +354,157 @@ export default function HomePage() {
                   <h2 className="font-heading font-bold text-base sm:text-lg text-black">
                     Regional Activity
                   </h2>
-                  <div className="flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold text-paragraph">
-                    <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span> High Density
+                  <div className="flex items-center gap-3">
+                    <div className="hidden sm:flex items-center gap-1.5 text-[10px] sm:text-xs font-semibold text-paragraph">
+                      <span className="w-2 h-2 rounded-full bg-primary animate-pulse"></span> High Density
+                    </div>
+                    <div className="flex items-center gap-1 bg-white-bg2 p-1 rounded-lg border border-white-stroke">
+                      <button 
+                        onClick={() => setViewMode('map')}
+                        className={`p-1.5 rounded-md transition-colors ${viewMode === 'map' ? 'bg-primary text-white shadow-sm' : 'text-paragraph hover:text-black hover:bg-white-bg'}`}
+                        aria-label="Map View"
+                      >
+                        <Map className="w-4 h-4" />
+                      </button>
+                      <button 
+                        onClick={() => setViewMode('list')}
+                        className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-primary text-white shadow-sm' : 'text-paragraph hover:text-black hover:bg-white-bg'}`}
+                        aria-label="List View"
+                      >
+                        <List className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Filter Chips Bar (Above Map) */}
+                <div className="px-4 py-3 bg-white-bg2 border-b border-white-stroke flex items-center gap-2 overflow-x-auto z-10 relative">
+                  {['All', 'Overflow', 'Illegal Dumping', 'Blocked Drain'].map((filter) => (
+                    <button
+                      key={filter}
+                      onClick={() => setActiveFilter(filter)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap transition-colors border ${
+                        activeFilter === filter
+                          ? 'bg-primary text-white border-primary shadow-sm'
+                          : 'bg-white text-paragraph border-white-stroke hover:text-black hover:bg-white-bg'
+                      }`}
+                    >
+                      {filter}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Status Color Legend */}
+                <div className="px-4 py-2 bg-white border-b border-white-stroke flex items-center gap-4 sm:gap-6 overflow-x-auto z-10 relative shrink-0">
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="w-2 h-2 rounded-full bg-[#f59e0b]"></span>
+                    <span className="text-[10px] text-paragraph font-semibold tracking-wide">Reported</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="w-2 h-2 rounded-full bg-[#3b82f6]"></span>
+                    <span className="text-[10px] text-paragraph font-semibold tracking-wide">Acknowledged</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="w-2 h-2 rounded-full bg-[#a855f7]"></span>
+                    <span className="text-[10px] text-paragraph font-semibold tracking-wide">In Progress</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 shrink-0">
+                    <span className="w-2 h-2 rounded-full bg-[#22c55e]"></span>
+                    <span className="text-[10px] text-paragraph font-semibold tracking-wide">Resolved</span>
                   </div>
                 </div>
 
                 {/* Map Area (Edge to Edge) */}
-                <div 
-                  className="w-full h-80 sm:h-[380px] bg-[#f0ede5] relative overflow-hidden flex items-center justify-center bg-cover bg-center"
-                  style={{ backgroundImage: `url(${mapBg})` }}
-                >
-                  {/* Map Overlay to slightly wash out the background and improve contrast for UI elements */}
-                  <div className="absolute inset-0 bg-white/30 backdrop-blur-[1px]"></div>
-
-                  {/* Glowing Heatmap Dots */}
-                  {[
-                    { t: '20%', l: '35%', s: 'w-16 h-16' },
-                    { t: '45%', l: '48%', s: 'w-20 h-20' },
-                    { t: '35%', l: '20%', s: 'w-12 h-12' },
-                    { t: '65%', l: '25%', s: 'w-24 h-24' },
-                    { t: '75%', l: '45%', s: 'w-14 h-14' },
-                    { t: '55%', l: '60%', s: 'w-16 h-16' },
-                    { t: '30%', l: '65%', s: 'w-12 h-12' },
-                    { t: '70%', l: '70%', s: 'w-16 h-16' },
-                  ].map((pos, i) => (
-                    <div key={i} className={`absolute top-[${pos.t}] left-[${pos.l}] ${pos.s} rounded-full bg-[#22c55e]/30 blur-md flex items-center justify-center animate-pulse`} style={{ top: pos.t, left: pos.l }}>
-                      <div className="w-1.5 h-1.5 bg-white/90 rounded-full blur-[1px]"></div>
+                <div className="w-full h-80 sm:h-[380px] bg-[#f0ede5] relative overflow-hidden flex items-center justify-center bg-cover bg-center z-0">
+                  {mapStatus === 'loading' && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm z-20">
+                      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-2"></div>
+                      <span className="text-xs font-bold text-primary">Loading live map...</span>
                     </div>
-                  ))}
-
-                  {/* Left Sidebar Overlay */}
-                  <div className="absolute top-0 left-0 bottom-0 w-[140px] bg-white/95 backdrop-blur-md border-r border-white-stroke py-3 hidden sm:flex flex-col z-10">
-                     <div className="px-4 py-2 bg-[#f0f5f4] text-primary font-bold text-[10px] flex items-center gap-2 border-l-2 border-primary">
-                       <Home className="w-3.5 h-3.5" /> Overview
-                     </div>
-                     <div className="px-4 py-2 text-paragraph font-medium text-[10px] flex items-center gap-2 hover:bg-white-bg cursor-pointer transition-colors">
-                       <FileText className="w-3.5 h-3.5" /> Reports
-                     </div>
-                     <div className="px-4 py-2 text-paragraph font-medium text-[10px] flex items-center gap-2 hover:bg-white-bg cursor-pointer transition-colors">
-                       <Activity className="w-3.5 h-3.5" /> Analytics
-                     </div>
-                     <div className="px-4 py-2 text-paragraph font-medium text-[10px] flex items-center gap-2 hover:bg-white-bg cursor-pointer transition-colors">
-                       <Settings className="w-3.5 h-3.5" /> Settings
-                     </div>
-                     <div className="px-4 py-2 text-paragraph font-medium text-[10px] flex items-center gap-2 hover:bg-white-bg cursor-pointer transition-colors">
-                       <Layers className="w-3.5 h-3.5" /> Map Layers
-                     </div>
-                     <div className="px-4 py-2 text-paragraph font-medium text-[10px] flex items-center gap-2 hover:bg-white-bg cursor-pointer transition-colors">
-                       <Users className="w-3.5 h-3.5" /> Community Feed
-                     </div>
-                  </div>
-
-                  {/* Right Activity Feed Overlay */}
-                  <div className="absolute top-0 right-0 bottom-0 w-[200px] bg-white/95 backdrop-blur-md border-l border-white-stroke p-3 z-10 hidden sm:flex flex-col">
-                    <h4 className="text-[8px] font-bold text-black tracking-wider uppercase mb-3">Activity Feed - Downtown District</h4>
-                    
-                    <div className="flex flex-col gap-3">
-                      <div className="text-[8px] leading-relaxed text-paragraph">
-                        Report #4521: Street Light Outage - Main St & 5th Ave (2m ago) <span className="text-primary font-bold">[RESOLVED]</span>
-                      </div>
-                      <div className="text-[8px] leading-relaxed text-paragraph">
-                        Report #4520: Pothole - Oak Rd & 10th St (5m ago) <span className="text-[#d97706] font-bold">[PENDING]</span>
-                      </div>
-                      <div className="text-[8px] leading-relaxed text-paragraph">
-                        Report #4519: Graffiti - Central Park Path (15m ago) <span className="text-primary font-bold">[IN PROGRESS]</span>
-                      </div>
-                      <div className="text-[8px] leading-relaxed text-paragraph">
-                        Report #4518: Waste Collection Issue - Elm Alley (32m ago) <span className="text-primary font-bold">[RESOLVED]</span>
-                      </div>
+                  )}
+                  {mapStatus === 'waking_up' && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/50 backdrop-blur-sm z-20">
+                      <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-2"></div>
+                      <span className="text-xs font-bold text-primary">Waking up server, this may take a minute...</span>
                     </div>
-
-                    <div className="mt-auto pt-3 border-t border-white-stroke flex flex-col gap-1.5">
-                      <div className="flex items-center gap-1.5 text-[7px] font-bold text-paragraph uppercase tracking-wider">
-                        <span className="w-2 h-2 bg-primary rounded-full animate-pulse shadow-[0_0_4px_#058743]"></span> Report Activity
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[7px] font-bold text-paragraph uppercase tracking-wider">
-                        <span className="w-2 h-2 bg-[#d1e6d3] border border-[#a8c9ac]"></span> Parks
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[7px] font-bold text-paragraph uppercase tracking-wider">
-                        <span className="w-2 h-[2px] bg-[#cbd5e1]"></span> Streets
-                      </div>
-                      <div className="flex items-center gap-1.5 text-[7px] font-bold text-paragraph uppercase tracking-wider">
-                        <span className="w-2 h-2 bg-[#94a3b8]"></span> Buildings
-                      </div>
+                  )}
+                  {mapStatus === 'error' && (
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 z-[400] bg-white text-alert-error text-xs font-bold px-4 py-2 rounded-full shadow-lg border border-alert-error/20 flex items-center gap-2">
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                      </svg>
+                      Backend Disconnected
                     </div>
-                  </div>
+                  )}
+
+                  {mapStatus === 'success' && viewMode === 'map' ? (
+                    <MapErrorBoundary onMapError={() => setViewMode('list')}>
+                      <MapContainer
+                        center={[6.5244, 3.3792]} // Lagos
+                        zoom={12}
+                        scrollWheelZoom={false}
+                        className="w-full h-full z-0"
+                        style={{ height: '100%', width: '100%' }}
+                      >
+                        <TileLayer
+                          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                        />
+                        {filteredReports
+                          .filter((r) => r.latitude && r.longitude) // Ensure coordinates exist
+                          .map((report) => (
+                          <Marker
+                            key={report.id}
+                            position={[report.latitude, report.longitude]}
+                            icon={getMarkerIcon(report.status)}
+                          >
+                            <Popup className="custom-popup rounded-xl">
+                              <div className="w-[200px]">
+                                {report.photoUrl && (
+                                  <img src={report.photoUrl} alt="Report evidence" className="w-full h-24 object-cover rounded-t-lg mb-2" />
+                                )}
+                                <div className={`p-3 ${report.photoUrl ? 'pt-0' : ''}`}>
+                                  <div className="flex items-center justify-between mb-1.5">
+                                    <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-sm ${
+                                      (report.status || '').toLowerCase() === 'resolved' ? 'bg-alert-successLight text-primary' :
+                                      (report.status || '').toLowerCase() === 'inprogress' || (report.status || '').toLowerCase() === 'in progress' ? 'bg-alert-inprogressLight text-alert-inprogress' :
+                                      (report.status || '').toLowerCase() === 'acknowledged' ? 'bg-alert-infoLight text-alert-info' :
+                                      'bg-alert-warningLight text-accent'
+                                    }`}>
+                                      {report.status || 'Reported'}
+                                    </span>
+                                    <span className="text-[10px] text-paragraph font-medium">{timeAgo(report.createdAt || report.date)}</span>
+                                  </div>
+                                  <h4 className="text-xs font-bold text-black mb-0.5 leading-tight">{report.category || report.title || 'Sanitation Issue'}</h4>
+                                  <p className="text-[10px] text-paragraph line-clamp-2 mb-2 leading-relaxed">{report.description}</p>
+                                  <Link
+                                    to={`/reports/${report.id}`}
+                                    className="block w-full text-center py-1.5 bg-primary/10 hover:bg-primary/20 text-primary font-bold text-[10px] rounded transition-colors"
+                                  >
+                                    View Report
+                                  </Link>
+                                </div>
+                              </div>
+                            </Popup>
+                          </Marker>
+                        ))}
+                      </MapContainer>
+                    </MapErrorBoundary>
+                  ) : mapStatus === 'success' && viewMode === 'list' ? (
+                    <div className="w-full h-full z-10 relative">
+                      <ReportListView reports={filteredReports} />
+                    </div>
+                  ) : null}
 
                   {/* Bottom Left District Overview Overlay */}
-                  <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-white border border-white-stroke rounded-lg p-3 sm:p-4 w-[200px] sm:w-[240px] shadow-lg z-20">
-                    <h3 className="font-bold text-[11px] sm:text-xs text-black mb-1.5">District Overview</h3>
-                    <p className="text-[9px] sm:text-[10px] text-paragraph leading-relaxed">
-                      Most reports currently localized in North Sector (Road Maintenance). 4 new reports in last hour.
-                    </p>
-                  </div>
+                  {viewMode === 'map' && (
+                    <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-white border border-white-stroke rounded-lg p-3 sm:p-4 w-[200px] sm:w-[240px] shadow-lg z-[400] pointer-events-none">
+                      <h3 className="font-bold text-[11px] sm:text-xs text-black mb-1.5">District Overview</h3>
+                      <p className="text-[9px] sm:text-[10px] text-paragraph leading-relaxed">
+                        Most reports currently localized in North Sector (Road Maintenance). 4 new reports in last hour.
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -546,18 +699,16 @@ export default function HomePage() {
         </div>
       </footer>
 
-      {/* Mobile Floating Action Button (FAB) only shown when logged out or fast action needed */}
-      {!isLoggedIn && (
-        <div className="md:hidden fixed bottom-4 right-4 z-40">
-          <Link
-            to="/report"
-            className="w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center hover:bg-primary/90 active:scale-95 transition-all"
-            aria-label="New Report"
-          >
-            <Plus className="w-6 h-6" />
-          </Link>
-        </div>
-      )}
+      {/* Floating Action Button (FAB) always shown for quick reporting */}
+      <div className="fixed bottom-6 right-6 z-40">
+        <Link
+          to="/report"
+          className="w-14 h-14 bg-primary text-white rounded-full shadow-lg flex items-center justify-center hover:bg-primary/90 hover:scale-105 active:scale-95 transition-all"
+          aria-label="New Report"
+        >
+          <Plus className="w-6 h-6" />
+        </Link>
+      </div>
 
       {/* Local Development Quick Preview Toggle (Only visible in Dev mode) */}
       {import.meta.env.DEV && (

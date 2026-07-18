@@ -49,7 +49,7 @@ export const getCardPhotoUrl = (report) => {
 };
 
 // Static cards covering all categories with exact real matching photography per item
-const initialReportsData = [
+export const initialReportsData = [
   {
     id: 1,
     title: 'Overflowing Bin',
