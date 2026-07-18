@@ -1,5 +1,6 @@
 package com.cleanreport.controller;
 
+import com.cleanreport.dto.request.FacebookOAuthRequest;
 import com.cleanreport.dto.request.ForgotPasswordRequest;
 import com.cleanreport.dto.request.GoogleOAuthRequest;
 import com.cleanreport.dto.request.LoginRequest;
@@ -11,6 +12,7 @@ import com.cleanreport.dto.response.ApiResponse;
 import com.cleanreport.dto.response.AuthResponse;
 import com.cleanreport.service.AuthService;
 import com.cleanreport.service.EmailVerificationService;
+import com.cleanreport.service.FacebookOAuthService;
 import com.cleanreport.service.GoogleOAuthService;
 import com.cleanreport.service.PasswordResetService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -33,6 +35,7 @@ public class AuthController {
 
     private final AuthService authService;
     private final GoogleOAuthService googleOAuthService;
+    private final FacebookOAuthService facebookOAuthService;
     private final PasswordResetService passwordResetService;
     private final EmailVerificationService emailVerificationService;
 
@@ -131,6 +134,19 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> googleLogin(@Valid @RequestBody GoogleOAuthRequest request) {
         AuthResponse response = googleOAuthService.authenticateWithGoogle(request.getIdToken());
         return ResponseEntity.ok(ApiResponse.ok(response, "Google login successful"));
+    }
+
+    @Operation(
+            summary = "Login with Facebook OAuth",
+            description = """
+                    Exchange a Facebook access token for CleanReport JWT tokens.
+                    Frontend uses Facebook Login SDK, sends the access token here.
+                    Auto-creates user on first login. Requires public email permission.
+                    """)
+    @PostMapping("/facebook")
+    public ResponseEntity<ApiResponse<AuthResponse>> facebookLogin(@Valid @RequestBody FacebookOAuthRequest request) {
+        AuthResponse response = facebookOAuthService.authenticateWithFacebook(request.getAccessToken());
+        return ResponseEntity.ok(ApiResponse.ok(response, "Facebook login successful"));
     }
 
     @Operation(
