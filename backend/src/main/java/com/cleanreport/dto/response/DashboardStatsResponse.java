@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.Collections;
 import java.util.Map;
 
 @Data
@@ -35,4 +36,18 @@ public class DashboardStatsResponse {
 
     @Schema(description = "Number of registered users", example = "38")
     private long totalUsers;
+
+    /**
+     * Returns unmodifiable view of status map to prevent external mutation.
+     */
+    public Map<String, Long> getByStatus() {
+        return byStatus != null ? Collections.unmodifiableMap(byStatus) : null;
+    }
+
+    /**
+     * Returns unmodifiable view of category map to prevent external mutation.
+     */
+    public Map<String, Long> getByCategory() {
+        return byCategory != null ? Collections.unmodifiableMap(byCategory) : null;
+    }
 }

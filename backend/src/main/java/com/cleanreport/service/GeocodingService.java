@@ -2,6 +2,7 @@ package com.cleanreport.service;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -17,6 +18,8 @@ import java.util.Map;
 public class GeocodingService {
 
     private static final String NOMINATIM_URL = "https://nominatim.openstreetmap.org/reverse";
+    private static final int MAX_ADDRESS_LENGTH = 300;
+
     private final RestTemplate restTemplate;
 
     public GeocodingService() {
@@ -43,12 +46,20 @@ public class GeocodingService {
 
             if (response != null && response.containsKey("display_name")) {
                 String fullAddress = (String) response.get("display_name");
-                // Trim to max 300 chars
-                return fullAddress.length() > 300 ? fullAddress.substring(0, 297) + "..." : fullAddress;
+                return truncateAddress(fullAddress);
             }
-        } catch (Exception e) {
+        } catch (RestClientException e) {
             log.warn("Reverse geocoding failed for ({}, {}): {}", latitude, longitude, e.getMessage());
         }
         return null;
+    }
+
+    private String truncateAddress(String address) {
+        if (address == null) {
+            return null;
+        }
+        return address.length() > MAX_ADDRESS_LENGTH
+                ? address.substring(0, MAX_ADDRESS_LENGTH - 3) + "..."
+                : address;
     }
 }
