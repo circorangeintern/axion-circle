@@ -116,27 +116,47 @@ export default function RegisterPage() {
 
 
       const resData = response.data?.data || response.data;
-      const token =
+      let token =
         resData?.access_token ||
         resData?.accessToken ||
         resData?.token;
+      let refreshToken = resData?.refresh_token || resData?.refreshToken;
+      let userObj = resData?.user;
+
+      // If the backend doesn't return a token on registration, automatically log the user in
+      if (!token) {
+        try {
+          const loginRes = await api.post('/auth/login', {
+            email: email.trim(),
+            password: password,
+          });
+          const loginData = loginRes.data?.data || loginRes.data;
+          token = loginData?.access_token || loginData?.accessToken || loginData?.token;
+          refreshToken = loginData?.refresh_token || loginData?.refreshToken;
+          userObj = loginData?.user || userObj;
+        } catch (loginErr) {
+          // If auto-login fails, send them to the login page
+          toast.success('Account created successfully! Please log in.');
+          navigate('/login');
+          return;
+        }
+      }
+
       if (token) {
         localStorage.setItem('access_token', token);
       }
-      if (resData?.refresh_token || resData?.refreshToken) {
-        localStorage.setItem(
-          'refresh_token',
-          resData?.refresh_token || resData?.refreshToken
-        );
+      if (refreshToken) {
+        localStorage.setItem('refresh_token', refreshToken);
       }
 
       // Save user details to localStorage for instant UI persistence
-      const userObj = resData?.user || {
+      userObj = userObj || {
         fullName: fullName.trim(),
         email: email.trim(),
       };
+      
       localStorage.setItem('user', JSON.stringify(userObj));
-      localStorage.setItem('user_name', fullName.trim());
+      localStorage.setItem('user_name', userObj.fullName || userObj.name || userObj.displayName || fullName.trim());
       localStorage.setItem('user_email', email.trim());
 
       toast.success('Account created successfully!');
