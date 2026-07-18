@@ -135,11 +135,17 @@ export default function RegisterPage() {
           refreshToken = loginData?.refresh_token || loginData?.refreshToken;
           userObj = loginData?.user || userObj;
         } catch (loginErr) {
-          // If auto-login fails, send them to the login page
           toast.success('Account created successfully! Please log in.');
           navigate('/login');
           return;
         }
+      }
+
+      // If token is STILL missing (e.g., backend returned 200 OK but with an error payload due to DB replica delay)
+      if (!token) {
+        toast.success('Account created successfully! Please log in.');
+        navigate('/login');
+        return;
       }
 
       if (token) {

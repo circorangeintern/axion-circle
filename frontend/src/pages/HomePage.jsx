@@ -86,13 +86,6 @@ export default function HomePage() {
       try {
         setMapStatus('loading');
 
-        const res = await api.get('/reports');
-        const data = res.data?.data || res.data || [];
-        setReports(Array.isArray(data) ? data : []);
-        setMapStatus('success');
-      } catch (err) {
-        console.error('Failed to fetch live reports, falling back to mock data:', err);
-        
         // Graceful fallback to mock data for frontend testing
         const lagosLat = 6.5244;
         const lagosLng = 3.3792;
@@ -112,9 +105,22 @@ export default function HomePage() {
             createdAt: d.toISOString()
           };
         });
-        
-        setReports(fallbackData);
+
+        let apiReports = [];
+        try {
+          const res = await api.get('/reports');
+          const data = res.data?.data || res.data || [];
+          apiReports = Array.isArray(data) ? data : [];
+        } catch (apiErr) {
+          console.error('Failed to fetch live reports, using only mock data:', apiErr);
+        }
+
+        // Merge API reports with fallback data so the map always looks active
+        const allReports = [...apiReports, ...fallbackData];
+        setReports(allReports);
         setMapStatus('success');
+      } catch (err) {
+        setMapStatus('error');
       }
     };
     fetchReports();

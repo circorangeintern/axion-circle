@@ -168,7 +168,7 @@ export const initialReportsData = [
     date: '03/06 - 09:15',
     address: '3 Creek Road, Apapa, Lagos',
     indicator: 'alert',
-    photoUrl: img10,
+    photoUrl: 'https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&w=600&q=80',
   },
   {
     id: 11,
@@ -180,7 +180,7 @@ export const initialReportsData = [
     date: '03/06 - 11:30',
     address: '1 Ahmadu Bello Way, Victoria Island, Lagos',
     indicator: 'alert',
-    photoUrl: img11,
+    photoUrl: 'https://images.unsplash.com/photo-1621451537084-482c73073e0f?auto=format&fit=crop&w=600&q=80',
   },
   {
     id: 12,
