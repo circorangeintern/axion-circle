@@ -54,6 +54,8 @@ class ReportServiceTest {
     private UserRepository userRepository;
     @Mock
     private GeocodingService geocodingService;
+    @Mock
+    private CreditService creditService;
 
     @InjectMocks
     private ReportService reportService;

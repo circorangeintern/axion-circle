@@ -44,6 +44,8 @@ class StatusServiceTest {
     private StatusHistoryRepository statusHistoryRepository;
     @Mock
     private UserRepository userRepository;
+    @Mock
+    private CreditService creditService;
 
     @InjectMocks
     private StatusService statusService;

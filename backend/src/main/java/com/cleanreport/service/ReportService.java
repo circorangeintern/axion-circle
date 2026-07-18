@@ -38,6 +38,7 @@ public class ReportService {
     private final ReportRepository reportRepository;
     private final UserRepository userRepository;
     private final GeocodingService geocodingService;
+    private final CreditService creditService;
     private final GeometryFactory geometryFactory = new GeometryFactory(new PrecisionModel(), SRID_WGS84);
 
     @Transactional
@@ -71,7 +72,9 @@ public class ReportService {
         Report saved = reportRepository.save(report);
         log.info("Report created: {} by user {}", saved.getReferenceNumber(), reporter.getEmail());
 
-        // TODO: Award credits (+10) to reporter — will be added in SCRUM-42
+        // Award credits for report submission
+        creditService.awardReportSubmitCredits(reporter, saved);
+
         return mapToResponse(saved);
     }
 

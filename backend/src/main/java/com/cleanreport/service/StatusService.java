@@ -33,6 +33,7 @@ public class StatusService {
     private final ReportRepository reportRepository;
     private final StatusHistoryRepository statusHistoryRepository;
     private final UserRepository userRepository;
+    private final CreditService creditService;
 
     /**
      * Update a report's status. Only forward transitions allowed.
@@ -64,6 +65,13 @@ public class StatusService {
         // Update report status
         report.setStatus(newStatus);
         reportRepository.save(report);
+
+        // Award credits to reporter based on status transition
+        if (newStatus == ReportStatus.ACKNOWLEDGED) {
+            creditService.awardAcknowledgedCredits(report);
+        } else if (newStatus == ReportStatus.RESOLVED) {
+            creditService.awardResolvedCredits(report);
+        }
 
         log.info("Report {} status changed: {} → {} by {}", report.getReferenceNumber(), currentStatus, newStatus, adminEmail);
 
