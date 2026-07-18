@@ -1,11 +1,13 @@
 package com.cleanreport.controller;
 
+import com.cleanreport.dto.request.GoogleOAuthRequest;
 import com.cleanreport.dto.request.LoginRequest;
 import com.cleanreport.dto.request.RefreshTokenRequest;
 import com.cleanreport.dto.request.RegisterRequest;
 import com.cleanreport.dto.response.ApiResponse;
 import com.cleanreport.dto.response.AuthResponse;
 import com.cleanreport.service.AuthService;
+import com.cleanreport.service.GoogleOAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -25,6 +27,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final GoogleOAuthService googleOAuthService;
 
     @Operation(
             summary = "Register a new user",
@@ -97,6 +100,30 @@ public class AuthController {
     public ResponseEntity<ApiResponse<AuthResponse>> refreshToken(@Valid @RequestBody RefreshTokenRequest request) {
         AuthResponse response = authService.refreshToken(request);
         return ResponseEntity.ok(ApiResponse.ok(response, "Token refreshed successfully"));
+    }
+
+    @Operation(
+            summary = "Login with Google OAuth",
+            description = """
+                    Exchange a Google ID token for CleanReport JWT tokens.
+                    
+                    **Frontend flow:**
+                    1. User clicks "Sign in with Google" button
+                    2. Google Sign-In returns an ID token
+                    3. Frontend sends that token to this endpoint
+                    4. Backend verifies with Google, creates user if first time, returns our JWT
+                    
+                    **Auto-creates user on first login** with REPORTER role.
+                    If user already exists (same email), returns tokens for existing account.
+                    """)
+    @ApiResponses(value = {
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "200", description = "Google login successful. Returns JWT tokens + user details."),
+            @io.swagger.v3.oas.annotations.responses.ApiResponse(responseCode = "401", description = "Invalid Google token or email not verified")
+    })
+    @PostMapping("/google")
+    public ResponseEntity<ApiResponse<AuthResponse>> googleLogin(@Valid @RequestBody GoogleOAuthRequest request) {
+        AuthResponse response = googleOAuthService.authenticateWithGoogle(request.getIdToken());
+        return ResponseEntity.ok(ApiResponse.ok(response, "Google login successful"));
     }
 
 }
