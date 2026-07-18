@@ -18,12 +18,7 @@ import org.springframework.web.client.RestTemplate;
 import java.util.Map;
 
 /**
- * Handles Google OAuth2 login flow:
- * 1. Frontend obtains Google ID token via Google Sign-In
- * 2. Frontend sends ID token to POST /auth/google
- * 3. This service verifies the token with Google's tokeninfo endpoint
- * 4. If valid: find existing user by email OR auto-create a new user
- * 5. Return our JWT tokens
+ * Handles Google OAuth2 login flow.
  */
 @Slf4j
 @Service
@@ -37,18 +32,11 @@ public class GoogleOAuthService {
 
     private final UserRepository userRepository;
     private final JwtService jwtService;
-    private final RestTemplate restTemplate;
 
-    public GoogleOAuthService(UserRepository userRepository, JwtService jwtService) {
-        this.userRepository = userRepository;
-        this.jwtService = jwtService;
-        this.restTemplate = new RestTemplate();
+    private RestTemplate getRestTemplate() {
+        return new RestTemplate();
     }
 
-    /**
-     * Verify Google ID token and return our JWT.
-     * Auto-creates user on first login.
-     */
     @Transactional
     public AuthResponse authenticateWithGoogle(String idToken) {
         Map<String, Object> googleUser = verifyGoogleToken(idToken);
@@ -62,11 +50,9 @@ public class GoogleOAuthService {
             throw new UnauthorizedException("Google token does not contain email");
         }
 
-        // Find existing user or create new one
         User user = userRepository.findByEmail(email.toLowerCase())
                 .orElseGet(() -> createGoogleUser(email, name, avatarUrl, googleId));
 
-        // Update avatar if changed
         if (avatarUrl != null && !avatarUrl.equals(user.getAvatarUrl())) {
             user.setAvatarUrl(avatarUrl);
             userRepository.save(user);
@@ -79,14 +65,13 @@ public class GoogleOAuthService {
     @SuppressWarnings("unchecked")
     private Map<String, Object> verifyGoogleToken(String idToken) {
         try {
-            Map<String, Object> response = restTemplate.getForObject(
+            Map<String, Object> response = getRestTemplate().getForObject(
                     GOOGLE_TOKEN_INFO_URL + idToken, Map.class);
 
             if (response == null || !response.containsKey("email")) {
                 throw new UnauthorizedException("Invalid Google token");
             }
 
-            // Verify audience matches our client ID (if configured)
             if (googleClientId != null && !googleClientId.isBlank()) {
                 String aud = (String) response.get("aud");
                 if (!googleClientId.equals(aud)) {
@@ -94,7 +79,6 @@ public class GoogleOAuthService {
                 }
             }
 
-            // Verify email is verified
             String emailVerified = String.valueOf(response.get("email_verified"));
             if (!"true".equals(emailVerified)) {
                 throw new UnauthorizedException("Google email not verified");
