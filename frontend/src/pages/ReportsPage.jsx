@@ -261,7 +261,7 @@ export default function ReportsPage() {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const response = await api.get('/reports?size=100');
+        const response = await api.get(`/reports?size=100&t=${Date.now()}`);
         const backendReports = response.data?.data?.content || [];
         const mappedReports = backendReports.map(mapBackendReportToFrontend);
         
