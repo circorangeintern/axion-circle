@@ -802,13 +802,31 @@ export default function ReportPage() {
               Your request for a clean has been successfully sent. You will be updated with a reward if approved
             </p>
             <div className="space-y-3">
+              {/* 1. View My Reports (Only show if user is logged in) */}
+              {localStorage.getItem('access_token') && (
+                <button
+                  type="button"
+                  onClick={() => navigate('/my-reports')}
+                  className="w-full bg-[#187A38] text-white font-medium py-3.5 rounded-lg hover:bg-[#14662E] transition-colors"
+                >
+                  View My Reports
+                </button>
+              )}
+
+              {/* 2. View All Reports (Always show) */}
               <button
                 type="button"
                 onClick={() => navigate('/reports')}
-                className="w-full bg-[#187A38] text-white font-medium py-3.5 rounded-lg hover:bg-[#14662E] transition-colors"
+                className={`w-full font-medium py-3.5 rounded-lg transition-colors ${
+                  localStorage.getItem('access_token')
+                    ? 'bg-white text-[#187A38] border border-[#187A38] hover:bg-alert-successLight'
+                    : 'bg-[#187A38] text-white hover:bg-[#14662E]'
+                }`}
               >
                 View all Reports
               </button>
+
+              {/* 3. Request for another Clean up (Always show) */}
               <button
                 type="button"
                 onClick={handleReset}
