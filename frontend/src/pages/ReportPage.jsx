@@ -295,15 +295,9 @@ export default function ReportPage() {
 
       await api.post('/reports', payload);
       toast.success('Report submitted successfully!');
-      navigate('/reports');
+      navigate('/my-reports');
     } catch (error) {
 
-      // Graceful fallback during frontend-only development when Java Spring Boot server on 8080 is not running
-      if (error.code === 'ERR_NETWORK' || !error.response) {
-        toast.success('Report submitted successfully!');
-        navigate('/reports');
-        return;
-      }
       const serverMsg =
         error.response?.data?.message ||
         error.response?.data?.error ||

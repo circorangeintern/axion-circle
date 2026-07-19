@@ -453,7 +453,7 @@ export default function HomePage() {
                     </div>
                   )}
 
-                  {mapStatus === 'success' && viewMode === 'map' ? (
+                  {viewMode === 'map' ? (
                     <MapErrorBoundary onMapError={() => setViewMode('list')}>
                       <MapContainer
                         center={[6.5244, 3.3792]} // Lagos
@@ -506,7 +506,7 @@ export default function HomePage() {
                         ))}
                       </MapContainer>
                     </MapErrorBoundary>
-                  ) : mapStatus === 'success' && viewMode === 'list' ? (
+                  ) : viewMode === 'list' ? (
                     <div className="w-full h-full z-10 relative">
                       <ReportListView reports={filteredReports} />
                     </div>
