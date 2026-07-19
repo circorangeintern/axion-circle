@@ -31,10 +31,20 @@ const realFallbackPhotos = [
 ];
 
 const getCardPhotoUrl = (report) => {
-  if (report && report.photoUrl && report.photoUrl !== 'https://res.cloudinary.com/demo/image/upload/v1/evidence.jpg') {
+  if (
+    report &&
+    report.photoUrl &&
+    report.photoUrl !== 'https://res.cloudinary.com/demo/image/upload/v1/evidence.jpg' &&
+    report.photoUrl !== 'https://res.cloudinary.com/demo/image/upload/sample.jpg'
+  ) {
     return report.photoUrl;
   }
-  const idx = Math.abs(Number(report?.id || 0)) % realFallbackPhotos.length;
+  const idStr = String(report?.id || '0');
+  let hash = 0;
+  for (let i = 0; i < idStr.length; i++) {
+    hash = idStr.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  const idx = Math.abs(hash) % realFallbackPhotos.length;
   return realFallbackPhotos[idx];
 };
 
