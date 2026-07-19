@@ -11,6 +11,9 @@ import {
   ChevronDown,
   Check,
   XCircle,
+  Clock,
+  AlertTriangle,
+  Siren,
 } from 'lucide-react';
 import api from '../services/api';
 import AppNavbar from '../components/AppNavbar';
@@ -87,6 +90,8 @@ const CustomSelect = ({ label, value, onChange, options, placeholder, required =
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const selectedOption = options.find(opt => (typeof opt === 'string' ? opt : opt.label) === value);
+
   return (
     <div className="relative" ref={dropdownRef}>
       <label className="block text-xs sm:text-sm font-semibold text-black mb-1.5 sm:mb-2">
@@ -98,7 +103,8 @@ const CustomSelect = ({ label, value, onChange, options, placeholder, required =
         className="w-full px-3.5 py-2.5 border border-white-stroke rounded-xl text-sm bg-white flex items-center justify-between text-left focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/20 transition-all shadow-sm"
       >
         <span className={value ? 'text-black font-medium flex items-center gap-2' : 'text-black-placeholder'}>
-          {hasUserIcons && value && <User className="w-4 h-4 text-black-icon shrink-0" />}
+          {hasUserIcons && value && !selectedOption?.icon && <User className="w-4 h-4 text-black-icon shrink-0" />}
+          {selectedOption?.icon && <span className="flex items-center justify-center shrink-0">{selectedOption.icon}</span>}
           {value || placeholder}
         </span>
         <ChevronDown className={`w-4 h-4 text-black-icon transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
@@ -107,13 +113,14 @@ const CustomSelect = ({ label, value, onChange, options, placeholder, required =
       {isOpen && (
         <div className="absolute z-50 w-full mt-1.5 bg-white border border-white-stroke rounded-xl shadow-xl py-1.5 max-h-60 overflow-auto animate-in fade-in zoom-in-95 duration-150">
           {options.map((option) => {
-            const isSelected = value === option;
+            const label = typeof option === 'string' ? option : option.label;
+            const isSelected = value === label;
             return (
               <button
-                key={option}
+                key={label}
                 type="button"
                 onClick={() => {
-                  onChange(option);
+                  onChange(label);
                   setIsOpen(false);
                 }}
                 className={`w-full px-3.5 py-2.5 text-sm flex items-center justify-between text-left transition-colors ${
@@ -123,8 +130,9 @@ const CustomSelect = ({ label, value, onChange, options, placeholder, required =
                 }`}
               >
                 <span className="flex items-center gap-2">
-                  {hasUserIcons && <User className="w-4 h-4 text-black-icon shrink-0" />}
-                  {option}
+                  {hasUserIcons && !option.icon && <User className="w-4 h-4 text-black-icon shrink-0" />}
+                  {option.icon && <span className="flex items-center justify-center shrink-0">{option.icon}</span>}
+                  {label}
                 </span>
                 {isSelected && <Check className="w-4 h-4 text-primary shrink-0" />}
               </button>
@@ -148,6 +156,18 @@ export default function ReportPage() {
   const [description, setDescription] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false); // Built as OFF per ticket's explicit grading/acceptance criteria
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+
+  const handleReset = () => {
+    setPhoto(null);
+    setPhotoPreviewUrl(null);
+    setCategory('');
+    setUrgency('');
+    setDescription('');
+    setIsAnonymous(false);
+    setShowSuccessModal(false);
+    window.scrollTo(0, 0);
+  };
 
   // Location states
   const [latitude, setLatitude] = useState(null);
@@ -367,8 +387,7 @@ export default function ReportPage() {
       }
 
       await api.post('/reports', payload);
-      toast.success('Report submitted successfully!');
-      navigate('/my-reports');
+      setShowSuccessModal(true);
     } catch (error) {
       console.error('Submission error:', error);
       let serverMsg = 'Failed to submit report. Please try again.';
@@ -662,8 +681,11 @@ export default function ReportPage() {
               value={urgency}
               onChange={setUrgency}
               placeholder="select level"
-              hasUserIcons={true}
-              options={['Routine', 'Very Urgent', 'Critical']}
+              options={[
+                { label: 'Routine', icon: <div className="bg-[#e6f4ff] rounded-full p-1.5"><Clock className="w-3.5 h-3.5 text-[#0066cc]" /></div> },
+                { label: 'Very Urgent', icon: <div className="bg-[#fff7e6] rounded-full p-1.5"><AlertTriangle className="w-3.5 h-3.5 text-[#cc8800]" /></div> },
+                { label: 'Critical', icon: <div className="bg-[#ffe6e6] rounded-full p-1.5"><Siren className="w-3.5 h-3.5 text-[#cc0000]" /></div> },
+              ]}
             />
 
             {/* 5. Description textarea */}
@@ -765,6 +787,39 @@ export default function ReportPage() {
           </Link>
         </div>
       </footer>
+
+      {/* Success Modal Overlay */}
+      {showSuccessModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-[24px] p-6 sm:p-10 w-full max-w-[440px] text-center shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="mx-auto w-16 h-16 bg-[#e6f2e6] rounded-full flex items-center justify-center mb-6">
+              <Check className="w-8 h-8 text-[#187A38]" />
+            </div>
+            <h2 className="text-2xl font-bold text-black mb-3 font-heading">
+              Clean Request Sent
+            </h2>
+            <p className="text-[15px] text-paragraph mb-8 leading-relaxed">
+              Your request for a clean has been successfully sent. You will be updated with a reward if approved
+            </p>
+            <div className="space-y-3">
+              <button
+                type="button"
+                onClick={() => navigate('/reports')}
+                className="w-full bg-[#187A38] text-white font-medium py-3.5 rounded-lg hover:bg-[#14662E] transition-colors"
+              >
+                View all Reports
+              </button>
+              <button
+                type="button"
+                onClick={handleReset}
+                className="w-full bg-white text-black font-medium py-3.5 rounded-lg border border-white-stroke hover:bg-white-bg transition-colors"
+              >
+                Request for another Clean up
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

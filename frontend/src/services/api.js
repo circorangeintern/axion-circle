@@ -19,10 +19,26 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor — handle 401 (token expired) and connection/timeout errors
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach(prom => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
+// Response interceptor — handle token refresh and connection errors
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
+    const originalRequest = error.config;
+
     // Timeout or network-level failure (no response from server)
     if (error.code === 'ECONNABORTED' || !error.response) {
       return Promise.reject({
@@ -32,11 +48,57 @@ api.interceptors.response.use(
       });
     }
 
-    if (error.response?.status === 401 || error.response?.status === 403) {
-      // Token expired or invalid signature often returns 403 in Spring Security
-      localStorage.removeItem("access_token");
-      window.location.href = "/login";
+    if ((error.response?.status === 401 || error.response?.status === 403) && !originalRequest._retry) {
+      if (isRefreshing) {
+        return new Promise(function(resolve, reject) {
+          failedQueue.push({resolve, reject})
+        }).then(token => {
+          originalRequest.headers['Authorization'] = 'Bearer ' + token;
+          return api(originalRequest);
+        }).catch(err => {
+          return Promise.reject(err);
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      const refreshToken = localStorage.getItem('refresh_token');
+      if (!refreshToken) {
+        isRefreshing = false;
+        localStorage.removeItem("access_token");
+        window.location.href = "/login";
+        return Promise.reject(error);
+      }
+
+      try {
+        // Use a new axios instance to avoid infinite interceptor loops
+        const { data } = await axios.post(`${API_URL}/auth/refresh`, {
+          refreshToken: refreshToken
+        });
+
+        const newAccessToken = data?.data?.accessToken || data?.accessToken;
+        const newRefreshToken = data?.data?.refreshToken || data?.refreshToken;
+
+        if (newAccessToken) localStorage.setItem("access_token", newAccessToken);
+        if (newRefreshToken) localStorage.setItem("refresh_token", newRefreshToken);
+
+        api.defaults.headers.common['Authorization'] = 'Bearer ' + newAccessToken;
+        originalRequest.headers['Authorization'] = 'Bearer ' + newAccessToken;
+
+        processQueue(null, newAccessToken);
+        isRefreshing = false;
+        return api(originalRequest);
+      } catch (err) {
+        processQueue(err, null);
+        isRefreshing = false;
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        window.location.href = "/login";
+        return Promise.reject(err);
+      }
     }
+
     return Promise.reject(error);
   }
 );
