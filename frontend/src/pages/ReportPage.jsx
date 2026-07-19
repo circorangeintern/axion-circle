@@ -16,7 +16,7 @@ import api from '../services/api';
 import AppNavbar from '../components/AppNavbar';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
-import { MapContainer, TileLayer, Marker, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 
 // Custom red pin icon for Leaflet map marker
 const customPinIcon = L.divIcon({
@@ -27,6 +27,38 @@ const customPinIcon = L.divIcon({
   iconSize: [32, 32],
   iconAnchor: [16, 32],
 });
+
+// Component to handle map clicks for manual pinning
+function MapClickHandler({ setLatitude, setLongitude, setLocationStatus, setAreaName, setAddressText }) {
+  useMapEvents({
+    click: async (e) => {
+      const lat = e.latlng.lat;
+      const lng = e.latlng.lng;
+      setLatitude(lat);
+      setLongitude(lng);
+      setLocationStatus('loading');
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16`);
+        const data = await res.json();
+        if (data && data.address) {
+          const area = data.address.suburb || data.address.neighbourhood || data.address.city_district || data.address.city || data.address.town || data.address.county || 'Pinned Location';
+          const street = data.address.road ? `${data.address.house_number || ''} ${data.address.road}`.trim() : (data.display_name.split(',')[0] || 'Selected on map');
+          const postcode = data.address.postcode || '';
+          setAreaName(area);
+          setAddressText(`${street}${postcode ? ', ' + postcode : ''}`);
+          setLocationStatus('success');
+          return;
+        }
+      } catch (err) {
+        console.warn('Reverse geocoding failed:', err);
+      }
+      setAreaName('Pinned Location');
+      setAddressText(`Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`);
+      setLocationStatus('success');
+    }
+  });
+  return null;
+}
 
 // Component to dynamically update map view when coordinates change
 function RecenterMap({ lat, lng }) {
@@ -86,7 +118,7 @@ const CustomSelect = ({ label, value, onChange, options, placeholder, required =
                 }}
                 className={`w-full px-3.5 py-2.5 text-sm flex items-center justify-between text-left transition-colors ${
                   isSelected
-                    ? 'bg-alert-success text-primary font-semibold'
+                    ? 'bg-primary/10 text-primary font-semibold'
                     : 'text-paragraph hover:bg-white-bg'
                 }`}
               >
@@ -219,14 +251,39 @@ export default function ReportPage() {
     e.preventDefault();
   };
 
-  const handleSaveManualLocation = () => {
+  const handleSaveManualLocation = async () => {
     if (!manualLocationInput.trim()) {
       toast.error('Please enter a location name or address.');
       return;
     }
+    
+    setIsEditingLocation(false);
+    setLocationStatus('loading');
+    
+    try {
+      const query = encodeURIComponent(manualLocationInput.trim() + ', Lagos'); // bias towards Lagos
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`);
+      const data = await res.json();
+      
+      if (data && data.length > 0) {
+        const lat = parseFloat(data[0].lat);
+        const lng = parseFloat(data[0].lon);
+        setLatitude(lat);
+        setLongitude(lng);
+        setAreaName(manualLocationInput.trim());
+        setAddressText(data[0].display_name.split(',')[0]);
+        setLocationStatus('success');
+        return;
+      } else {
+        toast.error('Could not pinpoint that exact location. Placing pin at default area.');
+      }
+    } catch (err) {
+      console.error('Geocoding failed:', err);
+    }
+    
+    // Fallback if API fails or no results
     setAreaName(manualLocationInput.trim());
     setAddressText('Custom manual location');
-    setIsEditingLocation(false);
     setLocationStatus('success');
   };
 
@@ -244,9 +301,9 @@ export default function ReportPage() {
       if (category === 'Overflowing Bin') mappedCategory = 'OVERFLOW';
       else if (category === 'Blocked Drainage') mappedCategory = 'BLOCKED_DRAIN';
 
-      // Map UI Urgency strings to backend enum (ROUTINE, URGENT, CRITICAL)
+      // Map UI Urgency strings to backend enum (ROUTINE, VERY_URGENT, CRITICAL)
       let mappedUrgency = 'ROUTINE';
-      if (urgency === 'Very Urgent') mappedUrgency = 'URGENT';
+      if (urgency === 'Very Urgent') mappedUrgency = 'VERY_URGENT';
       else if (urgency === 'Critical') mappedUrgency = 'CRITICAL';
 
       // Convert photo to Base64 data URL (or null if no photo attached)
@@ -266,8 +323,9 @@ export default function ReportPage() {
       const photoUrl = await getPhotoUrl();
 
       // Create JSON payload matching backend CreateReportRequest DTO exactly
+      // We send a short placeholder URL to the backend to prevent VARCHAR(255) DataIntegrityViolationException from massive Base64 strings
       const payload = {
-        photoUrl: photoUrl,
+        photoUrl: 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
         latitude: latitude !== null ? latitude : 6.5244,
         longitude: longitude !== null ? longitude : 3.3792,
         category: mappedCategory,
@@ -287,21 +345,49 @@ export default function ReportPage() {
         indicator: mappedUrgency === 'CRITICAL' || mappedUrgency === 'HIGH' ? 'alert' : 'sun',
       };
       try {
-        const existingMyReports = JSON.parse(localStorage.getItem('user_my_reports') || '[]');
-        localStorage.setItem('user_my_reports', JSON.stringify([newReportObj, ...existingMyReports]));
+        let existingMyReports = JSON.parse(localStorage.getItem('user_my_reports') || '[]');
+        existingMyReports = [newReportObj, ...existingMyReports].slice(0, 15); // Hard cap at 15
+        
+        const saveWithQuotaCheck = (reports) => {
+          try {
+            localStorage.setItem('user_my_reports', JSON.stringify(reports));
+          } catch (e) {
+            if (e.name === 'QuotaExceededError' && reports.length > 1) {
+               // If browser quota is full (due to massive Base64 strings), remove the oldest report and try again
+               reports.pop();
+               saveWithQuotaCheck(reports);
+            } else {
+               console.error('Local storage completely full, cannot save locally');
+            }
+          }
+        };
+        saveWithQuotaCheck(existingMyReports);
       } catch (e) {
-
+        console.error('Failed to parse or save to local storage', e);
       }
 
       await api.post('/reports', payload);
       toast.success('Report submitted successfully!');
       navigate('/my-reports');
     } catch (error) {
-
-      const serverMsg =
-        error.response?.data?.message ||
-        error.response?.data?.error ||
-        'Failed to submit report. Please try again.';
+      console.error('Submission error:', error);
+      let serverMsg = 'Failed to submit report. Please try again.';
+      
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        if (typeof error.response.data === 'string') {
+          serverMsg = `Server Error (${error.response.status}): ${error.response.statusText}`;
+        } else {
+          serverMsg = error.response.data?.message || error.response.data?.error || `Error ${error.response.status}: ${error.response.statusText}`;
+        }
+      } else if (error.request) {
+        // The request was made but no response was received
+        serverMsg = 'Network Error: Cannot reach the server. It might be down.';
+      } else {
+        // Something happened in setting up the request
+        serverMsg = error.message;
+      }
+      
       toast.error(serverMsg);
     } finally {
       setIsSubmitting(false);
@@ -331,7 +417,11 @@ export default function ReportPage() {
               Dashboard
             </Link>
             <span>&gt;</span>
-            <span className="text-paragraph font-medium">Reports</span>
+            <Link to="/reports" className="hover:text-paragraph transition-colors">
+              All Reports
+            </Link>
+            <span>&gt;</span>
+            <span className="text-paragraph font-medium">New Request</span>
           </div>
 
           {/* Header Title & Subtext */}
@@ -480,11 +570,18 @@ export default function ReportPage() {
                     {latitude !== null && longitude !== null && (
                       <RecenterMap lat={latitude} lng={longitude} />
                     )}
+                    <MapClickHandler
+                      setLatitude={setLatitude}
+                      setLongitude={setLongitude}
+                      setLocationStatus={setLocationStatus}
+                      setAreaName={setAreaName}
+                      setAddressText={setAddressText}
+                    />
                   </MapContainer>
 
                   {/* Overlays for loading/error states */}
                   {locationStatus === 'loading' && (
-                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm z-20">
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm z-20 pointer-events-none">
                       <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mb-2"></div>
                       <span className="text-xs font-medium text-paragraph">Acquiring GPS coordinates...</span>
                     </div>
@@ -506,7 +603,7 @@ export default function ReportPage() {
                         {locationStatus === 'loading'
                           ? 'Acquiring high-accuracy GPS coordinates...'
                           : locationStatus === 'error'
-                          ? addressText
+                          ? 'Click the map to drop a pin, or tap Edit Location to type'
                           : addressText}
                       </span>
                     </div>

@@ -32,8 +32,8 @@ api.interceptors.response.use(
       });
     }
 
-    if (error.response?.status === 401) {
-      // TODO: implement token refresh logic
+    if (error.response?.status === 401 || error.response?.status === 403) {
+      // Token expired or invalid signature often returns 403 in Spring Security
       localStorage.removeItem("access_token");
       window.location.href = "/login";
     }
