@@ -80,26 +80,75 @@ const defaultMyReports = [
 
 const statusTabs = ['All', 'Reported', 'In Progress', 'Resolved', 'Acknowledged'];
 
+import api from '../services/api';
+
 export default function MyReportsPage() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [reports, setReports] = useState([]);
 
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem('user_my_reports');
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setReports([...parsed, ...defaultMyReports]);
-          return;
-        }
-      }
-    } catch (e) {
-
+  const mapBackendReportToFrontend = (report) => {
+    const formatEnum = (str) => {
+      if (!str) return 'Routine';
+      return str.split('_').map(w => w.charAt(0) + w.slice(1).toLowerCase()).join(' ');
+    };
+    
+    const categoryLabel = formatEnum(report.category);
+    const urgencyLabel = formatEnum(report.urgency);
+    const statusLabel = formatEnum(report.status);
+    
+    let dateStr = 'Unknown Date';
+    if (report.createdAt) {
+      const d = new Date(report.createdAt);
+      dateStr = d.toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' }) + ' - ' + d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false });
     }
-    setReports(defaultMyReports);
+
+    let indicator = 'sun';
+    if (report.urgency === 'CRITICAL' || report.urgency === 'VERY_URGENT') indicator = 'alert';
+    else if (report.status === 'IN_PROGRESS') indicator = 'gauge';
+
+    return {
+      id: report.id || Math.random().toString(),
+      title: categoryLabel || 'Sanitation Issue',
+      category: categoryLabel,
+      urgency: urgencyLabel,
+      status: statusLabel,
+      description: report.description || 'Sanitation issue report',
+      date: dateStr,
+      address: report.areaName || 'Location unavailable — tap Edit Location to set manually',
+      indicator: indicator,
+      photoUrl: report.photoUrl,
+    };
+  };
+
+  useEffect(() => {
+    const fetchReports = async () => {
+      try {
+        const response = await api.get('/reports/my');
+        const backendReports = response.data?.data || [];
+        const mappedReports = backendReports.map(mapBackendReportToFrontend);
+        
+        // Combine backend reports with initial dummy data
+        setReports([...mappedReports, ...defaultMyReports]);
+      } catch (error) {
+        console.error('Failed to fetch reports from backend:', error);
+        // Fallback to local storage and default data if API fails
+        try {
+          const stored = localStorage.getItem('user_my_reports');
+          if (stored) {
+            const parsed = JSON.parse(stored);
+            if (Array.isArray(parsed) && parsed.length > 0) {
+              setReports([...parsed, ...defaultMyReports]);
+              return;
+            }
+          }
+        } catch (e) {}
+        setReports(defaultMyReports);
+      }
+    };
+
+    fetchReports();
   }, []);
 
   const handleRetrieveReward = () => {
