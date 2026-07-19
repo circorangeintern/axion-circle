@@ -461,56 +461,35 @@ export default function ReportPage() {
                   <MapPin className="w-3.5 h-3.5 text-black shrink-0" /> LOCATION
                 </div>
 
-                {locationStatus === 'loading' ? (
-                  <div className="w-full h-44 bg-white-bg rounded-lg border border-white-stroke flex flex-col items-center justify-center gap-2 mb-3">
-                    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                    <span className="text-xs font-medium text-paragraph">Acquiring real GPS coordinates...</span>
-                  </div>
-                ) : locationStatus === 'error' ? (
-                  <div className="bg-alert-errorLight border border-alert-error/30 rounded-lg p-6 text-center mb-3">
-                    <div className="flex items-center justify-center gap-1.5 text-sm font-medium text-alert-error mb-2">
-                      <XCircle className="w-5 h-5 text-alert-error" />
-                    </div>
-                    <p className="text-xs font-medium text-alert-error mb-3">
-                      {addressText}
-                    </p>
-                  </div>
-                ) : (
-                  <div className="w-full h-48 rounded-xl overflow-hidden relative mb-3 border border-white-stroke shadow-sm bg-[#e5e3df] z-0">
-                    {/* Real interactive Leaflet map via react-leaflet centered on user's exact coordinates */}
-                    {latitude !== null && longitude !== null ? (
-                      <MapContainer
-                        center={[latitude, longitude]}
-                        zoom={16}
-                        scrollWheelZoom={false}
-                        className="w-full h-full z-0"
-                        style={{ height: '100%', width: '100%', minHeight: '192px' }}
-                      >
-                        <TileLayer
-                          attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-                        />
-                        <Marker position={[latitude, longitude]} icon={customPinIcon} />
-                        <RecenterMap lat={latitude} lng={longitude} />
-                      </MapContainer>
-                    ) : (
-                      /* Realistic vector map fallback exactly like Figma design */
-                      <div className="absolute inset-0 flex items-center justify-center bg-[#e5e3df]">
-                        <div className="absolute inset-0 opacity-60 bg-[linear-gradient(to_right,#ffffff_2px,transparent_2px),linear-gradient(to_bottom,#ffffff_2px,transparent_2px)] bg-[size:48px_48px]"></div>
-                        <div className="absolute top-1/4 left-0 right-0 h-4 bg-[#a6c8e0] opacity-70 -rotate-6"></div>
-                        <div className="absolute bottom-1/3 left-1/4 w-32 h-20 bg-[#cde6c7] rounded-full opacity-70 blur-sm"></div>
-                        <div className="relative z-10 flex flex-col items-center">
-                          <div className="w-8 h-8 rounded-full bg-alert-error text-white flex items-center justify-center shadow-lg animate-bounce">
-                            <MapPin className="w-4 h-4 text-white" />
-                          </div>
-                          <span className="mt-1 px-2.5 py-0.5 rounded-full bg-white/95 shadow text-xs font-semibold text-black border border-white-stroke">
-                            {areaName}
-                          </span>
-                        </div>
-                      </div>
+                <div className="w-full h-48 rounded-xl overflow-hidden relative mb-3 border border-white-stroke shadow-sm z-0 bg-[#e5e3df]">
+                  {/* Always render the real interactive Leaflet map */}
+                  <MapContainer
+                    center={latitude !== null && longitude !== null ? [latitude, longitude] : [6.5244, 3.3792]} // Default to Lagos if no coords
+                    zoom={15}
+                    scrollWheelZoom={false}
+                    className="w-full h-full z-0"
+                    style={{ height: '100%', width: '100%', minHeight: '192px' }}
+                  >
+                    <TileLayer
+                      attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+                      url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    />
+                    {latitude !== null && longitude !== null && (
+                      <Marker position={[latitude, longitude]} icon={customPinIcon} />
                     )}
-                  </div>
-                )}
+                    {latitude !== null && longitude !== null && (
+                      <RecenterMap lat={latitude} lng={longitude} />
+                    )}
+                  </MapContainer>
+
+                  {/* Overlays for loading/error states */}
+                  {locationStatus === 'loading' && (
+                    <div className="absolute inset-0 flex flex-col items-center justify-center bg-white/60 backdrop-blur-sm z-20">
+                      <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin mb-2"></div>
+                      <span className="text-xs font-medium text-paragraph">Acquiring GPS coordinates...</span>
+                    </div>
+                  )}
+                </div>
 
                 <div className="flex items-center justify-between gap-4 pt-1">
                   <div>
@@ -519,7 +498,7 @@ export default function ReportPage() {
                         ? 'Fetching location...'
                         : locationStatus === 'error'
                         ? (addressText.includes('denied') ? 'Location access denied' : 'Location unavailable')
-                        : areaName}
+                        : areaName || 'Pin Location, Lagos'}
                     </div>
                     <div className="text-xs text-black-icon flex items-center gap-1 mt-0.5">
                       {locationStatus === 'error' && <XCircle className="w-3.5 h-3.5 text-alert-error shrink-0" />}
