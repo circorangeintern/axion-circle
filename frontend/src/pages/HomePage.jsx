@@ -86,37 +86,27 @@ export default function HomePage() {
       try {
         setMapStatus('loading');
 
-        // Graceful fallback to mock data for frontend testing
-        const lagosLat = 6.5244;
-        const lagosLng = 3.3792;
-        const fallbackData = initialReportsData.map((report, idx) => {
-          // Generate deterministic coordinates spreading around Lagos center
-          const lat = lagosLat + (Math.sin(idx * 2.5) * 0.08);
-          const lng = lagosLng + (Math.cos(idx * 2.5) * 0.08);
-          
-          // Generate a valid recent date for the timeAgo parser
-          const d = new Date();
-          d.setHours(d.getHours() - (idx * 2) - 1);
-          
-          return {
-            ...report,
-            latitude: lat,
-            longitude: lng,
-            createdAt: d.toISOString()
-          };
-        });
-
         let apiReports = [];
         try {
           const res = await api.get('/reports');
-          const data = res.data?.data || res.data || [];
-          apiReports = Array.isArray(data) ? data : [];
+          const content = res.data?.data?.content || [];
+          apiReports = Array.isArray(content) ? content : [];
         } catch (apiErr) {
-          console.error('Failed to fetch live reports, using only mock data:', apiErr);
+          console.error('Failed to fetch live reports:', apiErr);
+          setMapStatus('error');
+          return;
         }
 
-        // Merge API reports with fallback data so the map always looks active
-        const allReports = [...apiReports, ...fallbackData];
+        const lagosLat = 6.5244;
+        const lagosLng = 3.3792;
+        const allReports = [...apiReports].map((r, idx) => ({
+          ...r,
+          latitude: r.latitude || (lagosLat + (Math.sin(idx * 2.5) * 0.08)),
+          longitude: r.longitude || (lagosLng + (Math.cos(idx * 2.5) * 0.08)),
+          rawDate: r.createdAt ? new Date(r.createdAt).getTime() : (r.date ? 0 : Date.now())
+        }));
+        
+        allReports.sort((a, b) => (b.rawDate || 0) - (a.rawDate || 0));
         setReports(allReports);
         setMapStatus('success');
       } catch (err) {
@@ -146,14 +136,14 @@ export default function HomePage() {
         
         // Fallback to email
         const emailStr = String(parsed?.email || localStorage.getItem('user_email') || '');
-        if (emailStr && emailStr.includes('@')) {
+        if (emailStr && typeof emailStr === 'string' && emailStr.includes('@')) {
            return emailStr.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim().split(' ')[0];
         }
       }
     } catch (e) {}
     
     const emailStr = localStorage.getItem('user_email');
-    if (emailStr && emailStr.includes('@')) {
+    if (emailStr && typeof emailStr === 'string' && emailStr.includes('@')) {
        return emailStr.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim().split(' ')[0];
     }
     
@@ -491,7 +481,7 @@ export default function HomePage() {
                                     </span>
                                     <span className="text-[10px] text-paragraph font-medium">{timeAgo(report.createdAt || report.date)}</span>
                                   </div>
-                                  <h4 className="text-xs font-bold text-black mb-0.5 leading-tight">{report.category || report.title || 'Sanitation Issue'}</h4>
+                                  <h4 className="text-xs font-bold text-black mb-0.5 leading-tight">{report.title || report.category || 'Sanitation Issue'}</h4>
                                   <p className="text-[10px] text-paragraph line-clamp-2 mb-2 leading-relaxed">{report.description}</p>
                                   <Link
                                     to={`/reports/${report.id}`}
@@ -600,95 +590,35 @@ export default function HomePage() {
 
                   {/* 6 Static Report Rows — evenly distributed across the entire card height to match Left Column perfectly */}
                   <div className="divide-y divide-white-stroke flex flex-col justify-between flex-1">
-                    {/* Row 1 — Inprogress */}
-                    <div className="py-3 flex flex-col justify-center first:pt-0">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className="bg-alert-inprogressLight text-alert-inprogress border border-alert-inprogressStroke px-2.5 py-0.5 rounded-full text-[11px] font-semibold">
-                          Inprogress
-                        </span>
-                        <span className="text-[11px] text-black-placeholder">Oct 12, 2023</span>
-                      </div>
-                      <h3 className="text-xs sm:text-sm font-bold text-black">Overflowing Waste drum</h3>
-                      <div className="flex items-center gap-1 text-[11px] text-black-icon mt-0.5">
-                        <MapPin className="w-3 h-3 shrink-0" />
-                        <span>Cole Street 5th Ave, Lagos Island</span>
-                      </div>
-                    </div>
+                    {reports.length === 0 && (
+                      <div className="py-8 text-center text-sm text-paragraph">No recent reports found</div>
+                    )}
+                    {reports.slice(0, 6).map((report, idx) => {
+                      const status = (report.status || 'Reported').toLowerCase();
+                      const statusConfig = {
+                        'resolved': { bg: 'bg-alert-successLight', text: 'text-primary', border: 'border-alert-successStroke', label: 'Resolved' },
+                        'inprogress': { bg: 'bg-alert-inprogressLight', text: 'text-alert-inprogress', border: 'border-alert-inprogressStroke', label: 'In Progress' },
+                        'in progress': { bg: 'bg-alert-inprogressLight', text: 'text-alert-inprogress', border: 'border-alert-inprogressStroke', label: 'In Progress' },
+                        'acknowledged': { bg: 'bg-alert-infoLight', text: 'text-alert-info', border: 'border-alert-infoStroke', label: 'Acknowledged' },
+                      };
+                      const config = statusConfig[status] || { bg: 'bg-alert-warningLight', text: 'text-accent', border: 'border-alert-warningStroke', label: 'Reported' };
 
-                    {/* Row 2 — Resolved */}
-                    <div className="py-3 flex flex-col justify-center">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className="bg-alert-successLight text-primary border border-alert-successStroke px-2.5 py-0.5 rounded-full text-[11px] font-semibold">
-                          Resolved
-                        </span>
-                        <span className="text-[11px] text-black-placeholder">Oct 12, 2023</span>
-                      </div>
-                      <h3 className="text-xs sm:text-sm font-bold text-black">Overflowing Waste drum</h3>
-                      <div className="flex items-center gap-1 text-[11px] text-black-icon mt-0.5">
-                        <MapPin className="w-3 h-3 shrink-0" />
-                        <span>Cole Street 5th Ave, Lagos Island</span>
-                      </div>
-                    </div>
-
-                    {/* Row 3 — Acknowledged */}
-                    <div className="py-3 flex flex-col justify-center">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className="bg-alert-infoLight text-alert-info border border-alert-infoStroke px-2.5 py-0.5 rounded-full text-[11px] font-semibold">
-                          Acknowledged
-                        </span>
-                        <span className="text-[11px] text-black-placeholder">Oct 12, 2023</span>
-                      </div>
-                      <h3 className="text-xs sm:text-sm font-bold text-black">Overflowing Waste drum</h3>
-                      <div className="flex items-center gap-1 text-[11px] text-black-icon mt-0.5">
-                        <MapPin className="w-3 h-3 shrink-0" />
-                        <span>Cole Street 5th Ave, Lagos Island</span>
-                      </div>
-                    </div>
-
-                    {/* Row 4 — Reported */}
-                    <div className="py-3 flex flex-col justify-center">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className="bg-alert-warningLight text-accent border border-alert-warningStroke px-2.5 py-0.5 rounded-full text-[11px] font-semibold">
-                          Reported
-                        </span>
-                        <span className="text-[11px] text-black-placeholder">Oct 12, 2023</span>
-                      </div>
-                      <h3 className="text-xs sm:text-sm font-bold text-black">Overflowing Waste drum</h3>
-                      <div className="flex items-center gap-1 text-[11px] text-black-icon mt-0.5">
-                        <MapPin className="w-3 h-3 shrink-0" />
-                        <span>Cole Street 5th Ave, Lagos Island</span>
-                      </div>
-                    </div>
-
-                    {/* Row 5 — Reported */}
-                    <div className="py-3 flex flex-col justify-center">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className="bg-alert-warningLight text-accent border border-alert-warningStroke px-2.5 py-0.5 rounded-full text-[11px] font-semibold">
-                          Reported
-                        </span>
-                        <span className="text-[11px] text-black-placeholder">Oct 12, 2023</span>
-                      </div>
-                      <h3 className="text-xs sm:text-sm font-bold text-black">Overflowing Waste drum</h3>
-                      <div className="flex items-center gap-1 text-[11px] text-black-icon mt-0.5">
-                        <MapPin className="w-3 h-3 shrink-0" />
-                        <span>Cole Street 5th Ave, Lagos Island</span>
-                      </div>
-                    </div>
-
-                    {/* Row 6 — Resolved (matches Figma 6th row) */}
-                    <div className="py-3 flex flex-col justify-center last:pb-0">
-                      <div className="flex items-center justify-between gap-2 mb-1">
-                        <span className="bg-alert-successLight text-primary border border-alert-successStroke px-2.5 py-0.5 rounded-full text-[11px] font-semibold">
-                          Resolved
-                        </span>
-                        <span className="text-[11px] text-black-placeholder">Oct 12, 2023</span>
-                      </div>
-                      <h3 className="text-xs sm:text-sm font-bold text-black">Overflowing Waste drum</h3>
-                      <div className="flex items-center gap-1 text-[11px] text-black-icon mt-0.5">
-                        <MapPin className="w-3 h-3 shrink-0" />
-                        <span>Cole Street 5th Ave, Lagos Island</span>
-                      </div>
-                    </div>
+                      return (
+                        <div key={report.id || idx} className="py-3 flex flex-col justify-center first:pt-0 last:pb-0">
+                          <div className="flex items-center justify-between gap-2 mb-1">
+                            <span className={`${config.bg} ${config.text} border ${config.border} px-2.5 py-0.5 rounded-full text-[11px] font-semibold`}>
+                              {config.label}
+                            </span>
+                            <span className="text-[11px] text-black-placeholder">{timeAgo(report.createdAt || report.date)}</span>
+                          </div>
+                          <h3 className="text-xs sm:text-sm font-bold text-black">{report.title || report.category || 'Sanitation Issue'}</h3>
+                          <div className="flex items-center gap-1 text-[11px] text-black-icon mt-0.5">
+                            <MapPin className="w-3 h-3 shrink-0" />
+                            <span className="truncate">{report.address || report.areaName || 'Location unavailable'}</span>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               </div>

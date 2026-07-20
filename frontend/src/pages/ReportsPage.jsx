@@ -44,6 +44,9 @@ export const getCardPhotoUrl = (report) => {
   if (
     report &&
     report.photoUrl &&
+    report.photoUrl !== 'null' &&
+    report.photoUrl !== 'undefined' &&
+    report.photoUrl.trim() !== '' &&
     report.photoUrl !== 'https://res.cloudinary.com/demo/image/upload/v1/evidence.jpg' &&
     report.photoUrl !== 'https://res.cloudinary.com/demo/image/upload/sample.jpg'
   ) {
@@ -222,7 +225,8 @@ export default function ReportsPage() {
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [reportsList, setReportsList] = useState(initialReportsData);
+  const [reportsList, setReportsList] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const mapBackendReportToFrontend = (report) => {
     const formatEnum = (str) => {
@@ -246,15 +250,17 @@ export default function ReportsPage() {
 
     return {
       id: report.id || Math.random().toString(),
-      title: categoryLabel || 'Sanitation Issue',
+      title: report.title || categoryLabel || 'Sanitation Issue',
       category: categoryLabel,
       urgency: urgencyLabel,
       status: statusLabel,
       description: report.description || 'Sanitation issue report',
       date: dateStr,
-      address: report.areaName || 'Location unavailable — tap Edit Location to set manually',
+      address: report.address || report.areaName || 'Location unavailable — tap Edit Location to set manually',
       indicator: indicator,
       photoUrl: report.photoUrl,
+      reporterName: report.reporterName || 'Anonymous',
+      rawDate: report.createdAt ? new Date(report.createdAt).getTime() : Date.now(),
     };
   };
 
@@ -262,11 +268,12 @@ export default function ReportsPage() {
     const fetchReports = async () => {
       try {
         const response = await api.get(`/reports?size=100&t=${Date.now()}`);
-        const backendReports = response.data?.data?.content || [];
+        const data = response.data?.data;
+        const backendReports = Array.isArray(data) ? data : (data?.content || []);
         const mappedReports = backendReports.map(mapBackendReportToFrontend);
         
-        // Combine backend reports with initial dummy data
-        setReportsList([...mappedReports, ...initialReportsData]);
+        mappedReports.sort((a, b) => (b.rawDate || 0) - (a.rawDate || 0));
+        setReportsList(mappedReports);
       } catch (error) {
         console.error('Failed to fetch reports from backend:', error);
         // Fallback to local storage and default data if API fails
@@ -275,12 +282,16 @@ export default function ReportsPage() {
           if (stored) {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              setReportsList([...parsed, ...initialReportsData]);
+              parsed.sort((a, b) => (b.rawDate || 0) - (a.rawDate || 0));
+              setReportsList(parsed);
+              setIsLoading(false);
               return;
             }
           }
         } catch (e) {}
-        setReportsList(initialReportsData);
+        setReportsList([]);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -561,7 +572,12 @@ export default function ReportsPage() {
           </div>
 
           {/* Report Cards Grid */}
-          {filteredReports.length === 0 ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+              <p className="text-sm font-medium text-paragraph">Loading community reports...</p>
+            </div>
+          ) : filteredReports.length === 0 ? (
             <div className="bg-white border border-white-stroke rounded-2xl p-12 text-center my-8 shadow-2xs">
               <Sprout className="w-12 h-12 text-white-stroke mx-auto mb-3 animate-pulse" />
               <h3 className="text-base sm:text-lg font-bold text-black mb-1">No community reports found</h3>
@@ -630,6 +646,12 @@ export default function ReportsPage() {
                           <MapPin className="w-3.5 h-3.5 text-black-icon shrink-0" />
                           <span className="truncate">{report.address}</span>
                         </div>
+                        {report.reporterName && (
+                          <div className="flex items-center gap-2 text-black-icon">
+                            <span className="w-3.5 h-3.5 flex items-center justify-center font-bold text-[8px] bg-white-stroke rounded-full shrink-0">@</span>
+                            <span className="truncate">By {report.reporterName}</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Bottom Link: Show Details */}

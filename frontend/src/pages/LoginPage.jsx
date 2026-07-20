@@ -189,7 +189,7 @@ export default function LoginPage() {
             {/* Sign in with Google button */}
             <button
               type="button"
-              onClick={() => toast.success('Signing in with Google...')}
+              onClick={() => toast('Google Sign-in coming soon!')}
               className="w-full mt-3 px-4 py-2.5 bg-white border border-white-stroke text-black font-medium rounded-lg hover:bg-white-bg active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm shadow-sm cursor-pointer"
             >
               <svg

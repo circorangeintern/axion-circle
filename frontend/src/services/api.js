@@ -1,10 +1,10 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1";
+const API_URL = import.meta.env.VITE_API_URL || "https://cleanreport-api.onrender.com/api/v1";
 
 export const api = axios.create({
   baseURL: API_URL,
-  timeout: 60000,
+  timeout: 120000,
   headers: {
     "Content-Type": "application/json",
   },
@@ -67,6 +67,8 @@ api.interceptors.response.use(
       if (!refreshToken) {
         isRefreshing = false;
         localStorage.removeItem("access_token");
+        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user");
         window.location.href = "/login";
         return Promise.reject(error);
       }
@@ -77,8 +79,8 @@ api.interceptors.response.use(
           refreshToken: refreshToken
         });
 
-        const newAccessToken = data?.data?.accessToken || data?.accessToken;
-        const newRefreshToken = data?.data?.refreshToken || data?.refreshToken;
+        const newAccessToken = data?.data?.accessToken || data?.accessToken || data?.data?.access_token || data?.access_token;
+        const newRefreshToken = data?.data?.refreshToken || data?.refreshToken || data?.data?.refresh_token || data?.refresh_token;
 
         if (newAccessToken) localStorage.setItem("access_token", newAccessToken);
         if (newRefreshToken) localStorage.setItem("refresh_token", newRefreshToken);
@@ -94,6 +96,7 @@ api.interceptors.response.use(
         isRefreshing = false;
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
+        localStorage.removeItem("user");
         window.location.href = "/login";
         return Promise.reject(err);
       }

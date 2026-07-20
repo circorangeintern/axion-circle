@@ -53,7 +53,7 @@ export default function ReportListView({ reports }) {
                   </span>
                 </div>
                 <h4 className="text-sm font-bold text-black mb-1 leading-tight truncate">
-                  {report.category || report.title || 'Sanitation Issue'}
+                  {report.title || report.category || 'Sanitation Issue'}
                 </h4>
                 <p className="text-xs text-paragraph line-clamp-2 leading-relaxed">
                   {report.description}

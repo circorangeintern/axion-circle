@@ -34,6 +34,9 @@ const getCardPhotoUrl = (report) => {
   if (
     report &&
     report.photoUrl &&
+    report.photoUrl !== 'null' &&
+    report.photoUrl !== 'undefined' &&
+    report.photoUrl.trim() !== '' &&
     report.photoUrl !== 'https://res.cloudinary.com/demo/image/upload/v1/evidence.jpg' &&
     report.photoUrl !== 'https://res.cloudinary.com/demo/image/upload/sample.jpg'
   ) {
@@ -58,6 +61,7 @@ const defaultMyReports = [
     status: 'In Progress',
     description: 'Waste littered around the Penchwood garden for over 3 weeks and counting. Requires immediate municipal dispatch.',
     date: '17/07 - 14:20',
+    rawDate: new Date('2026-07-17T14:20:00').getTime(),
     address: '7 Silver Str, by Broad Road, Lagos',
     indicator: 'alert',
     photoUrl: 'https://images.unsplash.com/photo-1605600659908-0ef719419d41?auto=format&fit=crop&q=80&w=600',
@@ -70,6 +74,7 @@ const defaultMyReports = [
     status: 'Reported',
     description: 'Heavy rain caused the drainage on Admiralty Way to overflow into pedestrian walkway and street.',
     date: '15/07 - 09:15',
+    rawDate: new Date('2026-07-15T09:15:00').getTime(),
     address: '14 Admiralty Way, Lekki Phase 1, Lagos',
     indicator: 'gauge',
     photoUrl: 'https://images.unsplash.com/photo-1510251197878-a2e6d2fc89d7?auto=format&fit=crop&q=80&w=600',
@@ -82,6 +87,7 @@ const defaultMyReports = [
     status: 'Resolved',
     description: 'Large pile of household refuse dumped overnight beside the community playground gate.',
     date: '10/07 - 16:48',
+    rawDate: new Date('2026-07-10T16:48:00').getTime(),
     address: 'Plot 4, Allen Avenue, Ikeja, Lagos',
     indicator: 'sun',
     photoUrl: 'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?auto=format&fit=crop&q=80&w=600',
@@ -97,6 +103,7 @@ export default function MyReportsPage() {
   const [activeTab, setActiveTab] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
   const [reports, setReports] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const mapBackendReportToFrontend = (report) => {
     const formatEnum = (str) => {
@@ -120,15 +127,17 @@ export default function MyReportsPage() {
 
     return {
       id: report.id || Math.random().toString(),
-      title: categoryLabel || 'Sanitation Issue',
+      title: report.title || categoryLabel || 'Sanitation Issue',
       category: categoryLabel,
       urgency: urgencyLabel,
       status: statusLabel,
       description: report.description || 'Sanitation issue report',
       date: dateStr,
-      address: report.areaName || 'Location unavailable — tap Edit Location to set manually',
+      address: report.address || report.areaName || 'Location unavailable — tap Edit Location to set manually',
       indicator: indicator,
       photoUrl: report.photoUrl,
+      reporterName: report.reporterName || 'Anonymous',
+      rawDate: report.createdAt ? new Date(report.createdAt).getTime() : Date.now(),
     };
   };
 
@@ -136,11 +145,12 @@ export default function MyReportsPage() {
     const fetchReports = async () => {
       try {
         const response = await api.get(`/reports/my?t=${Date.now()}`);
-        const backendReports = response.data?.data || [];
+        const data = response.data?.data;
+        const backendReports = Array.isArray(data) ? data : (data?.content || []);
         const mappedReports = backendReports.map(mapBackendReportToFrontend);
         
-        // Combine backend reports with initial dummy data
-        setReports([...mappedReports, ...defaultMyReports]);
+        mappedReports.sort((a, b) => (b.rawDate || 0) - (a.rawDate || 0));
+        setReports(mappedReports);
       } catch (error) {
         console.error('Failed to fetch reports from backend:', error);
         // Fallback to local storage and default data if API fails
@@ -149,12 +159,16 @@ export default function MyReportsPage() {
           if (stored) {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed) && parsed.length > 0) {
-              setReports([...parsed, ...defaultMyReports]);
+              parsed.sort((a, b) => (b.rawDate || 0) - (a.rawDate || 0));
+              setReports(parsed);
+              setIsLoading(false);
               return;
             }
           }
         } catch (e) {}
-        setReports(defaultMyReports);
+        setReports([]);
+      } finally {
+        setIsLoading(false);
       }
     };
 
@@ -168,7 +182,7 @@ export default function MyReportsPage() {
 
   const handleClearSavedReports = () => {
     localStorage.removeItem('user_my_reports');
-    setReports(defaultMyReports);
+    setReports([]);
     toast.success('Local test submissions cleared.');
   };
 
@@ -354,7 +368,12 @@ export default function MyReportsPage() {
           </div>
 
           {/* Report Cards Grid */}
-          {filteredReports.length === 0 ? (
+          {isLoading ? (
+            <div className="flex flex-col items-center justify-center py-20">
+              <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+              <p className="text-sm font-medium text-paragraph">Loading your reports...</p>
+            </div>
+          ) : filteredReports.length === 0 ? (
             <div className="bg-white border border-white-stroke rounded-2xl p-12 text-center my-8 shadow-2xs">
               <Sprout className="w-12 h-12 text-white-stroke mx-auto mb-3 animate-pulse" />
               <h3 className="text-base sm:text-lg font-bold text-black mb-1">No submitted reports found</h3>
@@ -422,6 +441,12 @@ export default function MyReportsPage() {
                           <MapPin className="w-3.5 h-3.5 text-black-icon shrink-0" />
                           <span className="truncate">{report.address}</span>
                         </div>
+                        {report.reporterName && (
+                          <div className="flex items-center gap-2 text-black-icon">
+                            <span className="w-3.5 h-3.5 flex items-center justify-center font-bold text-[8px] bg-white-stroke rounded-full shrink-0">@</span>
+                            <span className="truncate">By {report.reporterName}</span>
+                          </div>
+                        )}
                       </div>
 
                       {/* Bottom Link: Show Details */}

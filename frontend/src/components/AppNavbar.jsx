@@ -48,7 +48,7 @@ export default function AppNavbar({ activeTab = '' }) {
         const email = String(parsed?.email || localStorage.getItem('user_email') || 'belrah@gmail.com');
         
         if (!dName || dName.trim() === '') {
-           if (email && email.includes('@')) {
+           if (email && typeof email === 'string' && email.includes('@')) {
                dName = email.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim();
            } else {
                dName = 'there';
@@ -68,7 +68,7 @@ export default function AppNavbar({ activeTab = '' }) {
     let dName = String(localStorage.getItem('user_name') || '');
     const email = String(localStorage.getItem('user_email') || 'belrah@gmail.com');
     if (!dName || dName.trim() === '') {
-       if (email && email.includes('@')) {
+       if (email && typeof email === 'string' && email.includes('@')) {
            dName = email.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim();
        } else {
            dName = 'there';

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Camera, User } from 'lucide-react';
 import toast from 'react-hot-toast';
 import AppNavbar from '../components/AppNavbar';
+import { uploadToCloudinary } from '../services/cloudinary';
 
 export default function ProfilePage() {
   const [user, setUser] = useState(null);
@@ -23,7 +24,9 @@ export default function ProfilePage() {
     }
   }, []);
 
-  const handleImageUpload = (e) => {
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     
@@ -37,24 +40,34 @@ export default function ProfilePage() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const base64String = event.target.result;
-      const updatedUser = { ...user, avatarUrl: base64String };
+    try {
+      setIsUploading(true);
+      const loadingToast = toast.loading('Uploading profile picture...');
+      
+      const secureUrl = await uploadToCloudinary(file);
+      
+      const updatedUser = { ...user, avatarUrl: secureUrl };
       setUser(updatedUser);
       localStorage.setItem('user', JSON.stringify(updatedUser));
+      
+      toast.dismiss(loadingToast);
       toast.success('Profile picture updated successfully!');
       
       setTimeout(() => window.location.reload(), 500);
-    };
-    reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Avatar upload error:', error);
+      toast.dismiss();
+      toast.error('Failed to upload profile picture. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
   };
 
   const getInitials = (name, email) => {
-    if (name && name.trim() !== '') {
+    if (name && typeof name === 'string' && name.trim() !== '') {
       return name.charAt(0).toUpperCase();
     }
-    if (email && email.trim() !== '') {
+    if (email && typeof email === 'string' && email.trim() !== '') {
       return email.charAt(0).toUpperCase();
     }
     return 'U';

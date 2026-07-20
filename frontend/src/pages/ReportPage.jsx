@@ -16,6 +16,7 @@ import {
   Siren,
 } from 'lucide-react';
 import api from '../services/api';
+import { uploadToCloudinary } from '../services/cloudinary';
 import AppNavbar from '../components/AppNavbar';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -156,6 +157,7 @@ export default function ReportPage() {
   const [description, setDescription] = useState('');
   const [isAnonymous, setIsAnonymous] = useState(false); // Built as OFF per ticket's explicit grading/acceptance criteria
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
 
   const handleReset = () => {
@@ -223,9 +225,9 @@ export default function ReportPage() {
           console.warn('Reverse geocoding fallback:', geoErr);
         }
 
-        // Exact Figma design fallback if Nominatim is unreachable or offline
-        setAreaName('Downtown District');
-        setAddressText('342 Civic Plaza, 10007');
+        // Graceful fallback if Nominatim is unreachable or offline
+        setAreaName('Pinned Location');
+        setAddressText(`Lat: ${lat.toFixed(4)}, Lng: ${lng.toFixed(4)}`);
       },
       (error) => {
         console.warn('Silent geolocation error:', error);
@@ -314,77 +316,42 @@ export default function ReportPage() {
       return;
     }
 
-    setIsSubmitting(true);
     try {
-      // Map UI Category strings to backend enum (OVERFLOW, ILLEGAL_DUMPING, BLOCKED_DRAIN)
-      let mappedCategory = 'ILLEGAL_DUMPING';
-      if (category === 'Overflowing Bin') mappedCategory = 'OVERFLOW';
-      else if (category === 'Blocked Drainage') mappedCategory = 'BLOCKED_DRAIN';
+      setIsUploadingPhoto(true);
+      let photoUrl = '';
+      try {
+        photoUrl = await uploadToCloudinary(photo);
+      } finally {
+        setIsUploadingPhoto(false);
+      }
 
-      // Map UI Urgency strings to backend enum (ROUTINE, VERY_URGENT, CRITICAL)
+      setIsSubmitting(true);
+
+      // Map UI Category strings to backend enum
+      let mappedCategory = 'ILLEGAL_DUMPING';
+      if (category === 'Overflow') mappedCategory = 'OVERFLOW';
+      else if (category === 'Illegal Dumping') mappedCategory = 'ILLEGAL_DUMPING';
+      else if (category === 'Blocked Drain') mappedCategory = 'BLOCKED_DRAIN';
+      else if (category === 'Street Litter') mappedCategory = 'STREET_LITTER';
+      else if (category === 'Residential Dump') mappedCategory = 'RESIDENTIAL_DUMP';
+      else if (category === 'Commercial Dump') mappedCategory = 'COMMERCIAL_DUMP';
+
+      // Map UI Urgency strings to backend enum
       let mappedUrgency = 'ROUTINE';
       if (urgency === 'Very Urgent') mappedUrgency = 'VERY_URGENT';
       else if (urgency === 'Critical') mappedUrgency = 'CRITICAL';
 
-      // Convert photo to Base64 data URL (or null if no photo attached)
-      const getPhotoUrl = () => {
-        return new Promise((resolve) => {
-          if (!photo) {
-            resolve(null);
-            return;
-          }
-          const reader = new FileReader();
-          reader.onloadend = () => resolve(reader.result || null);
-          reader.onerror = () => resolve(null);
-          reader.readAsDataURL(photo);
-        });
-      };
-
-      const photoUrl = await getPhotoUrl();
-
-      // Create JSON payload matching backend CreateReportRequest DTO exactly
-      // We send a short placeholder URL to the backend to prevent VARCHAR(255) DataIntegrityViolationException from massive Base64 strings
       const payload = {
-        photoUrl: 'https://res.cloudinary.com/demo/image/upload/sample.jpg',
+        title: `${category} report`,
+        photoUrl: photoUrl,
         latitude: latitude !== null ? latitude : 6.5244,
         longitude: longitude !== null ? longitude : 3.3792,
         category: mappedCategory,
         description: description.trim() || 'Sanitation issue report',
+        address: addressText || areaName || 'Pin Location, Lagos',
         urgency: mappedUrgency,
         isAnonymous: Boolean(isAnonymous),
       };
-
-      const newReportObj = {
-        id: Date.now(),
-        title: mappedCategory || category || 'Sanitation Issue',
-        status: 'Reported',
-        description: description.trim() || 'Sanitation issue report',
-        date: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: '2-digit' }) + ' - ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hour12: false }),
-        address: addressText || areaName || 'Pin Location, Lagos',
-        photoUrl: photoUrl,
-        indicator: mappedUrgency === 'CRITICAL' || mappedUrgency === 'HIGH' ? 'alert' : 'sun',
-      };
-      try {
-        let existingMyReports = JSON.parse(localStorage.getItem('user_my_reports') || '[]');
-        existingMyReports = [newReportObj, ...existingMyReports].slice(0, 15); // Hard cap at 15
-        
-        const saveWithQuotaCheck = (reports) => {
-          try {
-            localStorage.setItem('user_my_reports', JSON.stringify(reports));
-          } catch (e) {
-            if (e.name === 'QuotaExceededError' && reports.length > 1) {
-               // If browser quota is full (due to massive Base64 strings), remove the oldest report and try again
-               reports.pop();
-               saveWithQuotaCheck(reports);
-            } else {
-               console.error('Local storage completely full, cannot save locally');
-            }
-          }
-        };
-        saveWithQuotaCheck(existingMyReports);
-      } catch (e) {
-        console.error('Failed to parse or save to local storage', e);
-      }
 
       await api.post('/reports', payload);
       setShowSuccessModal(true);
@@ -509,63 +476,8 @@ export default function ReportPage() {
               )}
             </div>
 
-            {/* 2. Location Section — Desktop Map Card vs Mobile Pin Location */}
-            <div>
-              {/* Mobile version: Pin Location text input */}
-              <div className="block md:hidden">
-                <label className="block text-xs font-semibold text-black mb-1.5">
-                  Pin Location
-                </label>
-                <div className="relative">
-                  {locationStatus === 'error' && (
-                    <XCircle className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-alert-error z-10" />
-                  )}
-                  <input
-                    type="text"
-                    readOnly
-                    value={
-                      locationStatus === 'loading'
-                        ? 'Fetching location...'
-                        : locationStatus === 'error'
-                        ? addressText
-                        : addressText
-                        ? `${areaName} (${addressText})`
-                        : areaName
-                    }
-                    className={`w-full ${locationStatus === 'error' ? 'pl-9 text-alert-error font-medium' : 'pl-3 text-paragraph'} pr-10 py-2.5 border border-white-stroke rounded-lg text-sm bg-white-bg focus:outline-none`}
-                    placeholder="pin location"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingLocation((prev) => !prev)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-black-icon hover:text-primary p-1"
-                    aria-label="Edit location"
-                  >
-                    <MapPin className="w-4 h-4" />
-                  </button>
-                </div>
-                {isEditingLocation && (
-                  <div className="mt-2 flex gap-2">
-                    <input
-                      type="text"
-                      value={manualLocationInput}
-                      onChange={(e) => setManualLocationInput(e.target.value)}
-                      placeholder="Enter street or area manually..."
-                      className="flex-1 px-3 py-2 border border-white-stroke rounded-lg text-xs focus:outline-none focus:border-primary"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleSaveManualLocation}
-                      className="px-3 py-2 bg-primary text-white rounded-lg text-xs font-medium hover:bg-primary/90"
-                    >
-                      Save
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* Desktop version: Full Map Card */}
-              <div className="hidden md:block bg-white border border-white-stroke rounded-xl p-4 shadow-sm">
+              {/* Map Card */}
+              <div className="bg-white border border-white-stroke rounded-xl p-4 shadow-sm">
                 <div className="text-xs font-bold uppercase tracking-wider text-black flex items-center gap-1.5 mb-3">
                   <MapPin className="w-3.5 h-3.5 text-black shrink-0" /> LOCATION
                 </div>
@@ -655,7 +567,6 @@ export default function ReportPage() {
                   </div>
                 )}
               </div>
-            </div>
 
             {/* 3. Category Selector */}
             <CustomSelect
@@ -665,10 +576,9 @@ export default function ReportPage() {
               placeholder="select issue"
               required={true}
               options={[
+                'Overflow',
                 'Illegal Dumping',
-                'Overflowing Bin',
-                'Blocked Drainage',
-                'Graffiti',
+                'Blocked Drain',
                 'Street Litter',
                 'Residential Dump',
                 'Commercial Dump',
@@ -736,10 +646,10 @@ export default function ReportPage() {
             <div className="pt-2">
               <button
                 type="submit"
-                disabled={!photo || !category || isSubmitting}
+                disabled={!photo || !category || isSubmitting || isUploadingPhoto}
                 className="w-full bg-primary text-white font-medium py-3 sm:py-3.5 rounded-lg hover:bg-primary/90 active:scale-[0.99] transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base shadow-sm"
               >
-                {isSubmitting ? (
+                {isUploadingPhoto ? (
                   <>
                     <svg
                       className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
@@ -761,7 +671,31 @@ export default function ReportPage() {
                         d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                       ></path>
                     </svg>
-                    Submitting...
+                    Uploading photo...
+                  </>
+                ) : isSubmitting ? (
+                  <>
+                    <svg
+                      className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    Submitting report...
                   </>
                 ) : (
                   'Submit Report'
@@ -788,17 +722,47 @@ export default function ReportPage() {
         </div>
       </footer>
 
-      {/* Success Modal Overlay */}
       {showSuccessModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
           <div className="bg-white rounded-[24px] p-6 sm:p-10 w-full max-w-[440px] text-center shadow-2xl animate-in zoom-in-95 duration-200">
-            <div className="mx-auto w-16 h-16 bg-[#e6f2e6] rounded-full flex items-center justify-center mb-6">
-              <Check className="w-8 h-8 text-[#187A38]" />
+            <div className="mx-auto flex justify-center mb-6">
+              <svg width="140" height="140" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+                {/* Center Green Circle */}
+                <circle cx="60" cy="60" r="32" fill="#187A38" />
+                {/* White Checkmark */}
+                <path d="M47 62.5L55.5 71L74 50" stroke="white" strokeWidth="6" strokeLinecap="round" strokeLinejoin="round" />
+                
+                {/* Confetti Particles */}
+                {/* Top-left blue line */}
+                <path d="M41 24L45 32" stroke="#4285F4" strokeWidth="4" strokeLinecap="round" />
+                {/* Top yellow circle */}
+                <circle cx="63" cy="18" r="3" fill="#FABB05" />
+                {/* Top-right red arc */}
+                <path d="M78 28C80 26 83 26 85 28C86 29 86 31 85 32" stroke="#EA4335" strokeWidth="3" strokeLinecap="round" />
+                {/* Right yellow star */}
+                <path d="M96 40L98 44L102 44L99 47L100 51L96 49L93 51L94 47L91 44L95 44L96 40Z" fill="#FABB05" />
+                {/* Bottom-right purple arc */}
+                <path d="M96 74C98 75 99 78 98 80C97 82 94 82 92 81" stroke="#A142F4" strokeWidth="3" strokeLinecap="round" />
+                {/* Bottom-right red line */}
+                <path d="M84 94L88 98" stroke="#EA4335" strokeWidth="4" strokeLinecap="round" />
+                {/* Bottom blue star */}
+                <path d="M64 100L66 103L70 103L67 105L68 109L64 107L61 109L62 105L59 103L63 103L64 100Z" fill="#4285F4" />
+                {/* Bottom-left green arc */}
+                <path d="M42 93C40 91 38 92 37 94C36 96 37 98 39 99" stroke="#34A853" strokeWidth="3" strokeLinecap="round" />
+                {/* Left orange star */}
+                <path d="M30 84L32 87L36 87L33 89L34 93L30 91L27 93L28 89L25 87L29 87L30 84Z" fill="#FA7B17" />
+                {/* Left purple dot */}
+                <circle cx="28" cy="67" r="3" fill="#A142F4" />
+                {/* Top-left yellow rectangle */}
+                <rect x="23" y="45" width="8" height="4" rx="2" transform="rotate(-15 23 45)" fill="#FABB05" />
+                {/* Top-left green star */}
+                <path d="M30 36L32 39L36 39L33 41L34 45L30 43L27 45L28 41L25 39L29 39L30 36Z" fill="#34A853" />
+              </svg>
             </div>
-            <h2 className="text-2xl font-bold text-black mb-3 font-heading">
+            <h2 className="text-[28px] font-bold text-black mb-3 font-heading tracking-tight">
               Clean Request Sent
             </h2>
-            <p className="text-[15px] text-paragraph mb-8 leading-relaxed">
+            <p className="text-[15px] text-paragraph mb-8 leading-relaxed max-w-[340px] mx-auto">
               Your request for a clean has been successfully sent. You will be updated with a reward if approved
             </p>
             <div className="space-y-3">
@@ -807,7 +771,7 @@ export default function ReportPage() {
                 <button
                   type="button"
                   onClick={() => navigate('/my-reports')}
-                  className="w-full bg-[#187A38] text-white font-medium py-3.5 rounded-lg hover:bg-[#14662E] transition-colors"
+                  className="w-full bg-[#187A38] text-white font-semibold py-3.5 rounded-xl hover:bg-[#14662E] transition-colors"
                 >
                   View My Reports
                 </button>
@@ -817,9 +781,9 @@ export default function ReportPage() {
               <button
                 type="button"
                 onClick={() => navigate('/reports')}
-                className={`w-full font-medium py-3.5 rounded-lg transition-colors ${
+                className={`w-full font-semibold py-3.5 rounded-xl transition-colors ${
                   localStorage.getItem('access_token')
-                    ? 'bg-white text-[#187A38] border border-[#187A38] hover:bg-alert-successLight'
+                    ? 'bg-white text-[#187A38] border-2 border-[#187A38] hover:bg-alert-successLight'
                     : 'bg-[#187A38] text-white hover:bg-[#14662E]'
                 }`}
               >
@@ -830,7 +794,7 @@ export default function ReportPage() {
               <button
                 type="button"
                 onClick={handleReset}
-                className="w-full bg-white text-black font-medium py-3.5 rounded-lg border border-white-stroke hover:bg-white-bg transition-colors"
+                className="w-full bg-white text-black font-semibold py-3.5 rounded-xl border border-[#d1d5db] hover:bg-[#f3f4f6] transition-colors"
               >
                 Request for another Clean up
               </button>
