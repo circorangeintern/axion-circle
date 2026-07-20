@@ -479,10 +479,13 @@ export default function HomePage() {
                         scrollWheelZoom={false}
                         className="w-full h-full z-0"
                         style={{ height: '100%', width: '100%' }}
+                        maxZoom={17}
                       >
+                        <MapBoundsFit reports={filteredReports.filter((r) => r.latitude && r.longitude)} />
                         <TileLayer
                           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                          maxZoom={17}
                         />
                         <MarkerClusterGroup
                           chunkedLoading
@@ -501,7 +504,12 @@ export default function HomePage() {
                               <Popup className="custom-popup rounded-xl">
                                 <div className="w-[200px]">
                                   {report.photoUrl && (
-                                    <img src={report.photoUrl} alt="Report evidence" className="w-full h-24 object-cover rounded-t-lg mb-2" />
+                                    <img 
+                                      src={report.photoUrl} 
+                                      alt="Report evidence" 
+                                      className="w-full h-24 object-cover rounded-t-lg mb-2" 
+                                      onError={(e) => { e.target.style.display = 'none'; }}
+                                    />
                                   )}
                                   <div className={`p-3 ${report.photoUrl ? 'pt-0' : ''}`}>
                                     <div className="flex items-center justify-between mb-1.5">
