@@ -27,11 +27,11 @@ const getMarkerIcon = (status) => {
   });
 };
 
-const getUrgencyStyles = (urgency) => {
+const getUrgencyIcon = (urgency) => {
   const u = (urgency || '').toLowerCase();
-  if (u.includes('critical') || u.includes('very urgent')) return { bg: 'bg-alert-errorLight', text: 'text-alert-error', icon: AlertCircle };
-  if (u.includes('moderate') || u.includes('urgent')) return { bg: 'bg-alert-warningLight', text: 'text-alert-warning', icon: AlertCircle };
-  return { bg: 'bg-alert-infoLight', text: 'text-alert-info', icon: AlertCircle };
+  if (u.includes('critical') || u.includes('very urgent')) return <AlertCircle className="w-4 h-4 text-alert-error" />;
+  if (u.includes('moderate') || u.includes('urgent')) return <AlertCircle className="w-4 h-4 text-alert-warning" />;
+  return <AlertCircle className="w-4 h-4 text-alert-info" />;
 };
 
 const timeAgo = (dateString) => {
@@ -275,8 +275,6 @@ export default function ReportDetailPage() {
   const lat = report.latitude ? parseFloat(report.latitude) : 6.5244;
   const lng = report.longitude ? parseFloat(report.longitude) : 3.3792;
   const thePhotoUrl = report.photoUrl || report.imageUrl || (report.images && report.images[0]) || null;
-  const uStyles = getUrgencyStyles(report.urgency || 'Critical Level');
-  const UrgencyIcon = uStyles.icon;
 
   return (
     <div className="min-h-screen bg-white-bg font-body flex flex-col">
@@ -303,8 +301,8 @@ export default function ReportDetailPage() {
             {/* Header Row */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-6 gap-4">
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <div className="text-sm font-medium text-black-placeholder">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="text-[13px] font-medium text-black-placeholder">
                     ID: #CR-{displayId.toString().slice(-4).toUpperCase()} / {formattedDateHeader}
                   </div>
                   {report.category && (
@@ -313,76 +311,74 @@ export default function ReportDetailPage() {
                     </span>
                   )}
                 </div>
-                <h1 className="font-heading text-3xl sm:text-4xl font-bold text-black mt-1">
+                <h1 className="font-heading text-3xl sm:text-4xl font-bold text-black">
                   {report.title || (report.category ? report.category.replace(/_/g, ' ') : 'Sanitation Issue')}
                 </h1>
               </div>
-              <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 shrink-0">
+              <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2.5 shrink-0 pt-1">
                 {/* Urgency Badge */}
-                <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full ${uStyles.bg}`}>
-                  <UrgencyIcon className={`w-3.5 h-3.5 ${uStyles.text}`} />
-                  <span className={`text-xs font-bold ${uStyles.text}`}>
+                <div className="flex items-center gap-2 bg-alert-errorLight/30 px-3 py-1.5 rounded-full border border-alert-error/10">
+                  {getUrgencyIcon(report.urgency)}
+                  <span className="text-[13px] font-bold text-black">
                     {report.urgency || 'Critical Level'}
                   </span>
                 </div>
                 {/* Rewards Badge */}
-                <div className="flex items-center gap-1.5 px-3 py-1">
-                  <Star className="w-4 h-4 text-accent fill-accent" />
-                  <span className="text-xs font-bold text-primary">50 Credits Reward</span>
+                <div className="flex items-center gap-2">
+                  <Star className="w-4 h-4 text-[#FEAA01] fill-[#FEAA01]" />
+                  <span className="text-[13px] font-bold text-[#127C2F]">50 Credits Reward</span>
                 </div>
               </div>
             </div>
 
             {/* Photo & Reporter Section */}
             <div className="mb-10">
-              {/* Photo with relative positioning for the avatar */}
-              <div className="relative">
-                <div className="w-full h-[300px] sm:h-[400px] rounded-2xl overflow-hidden bg-white-stroke shadow-sm">
-                  {thePhotoUrl ? (
-                    <img 
-                      src={thePhotoUrl} 
-                      alt="Report issue" 
-                      className="w-full h-full object-cover"
-                      onError={(e) => { e.target.style.display = 'none'; }}
-                    />
-                  ) : (
-                    <div className="w-full h-full flex items-center justify-center text-black-placeholder bg-white-bg2">
-                      No image provided
-                    </div>
-                  )}
-                </div>
-                
-                {/* Absolute Avatar overlapping bottom edge */}
-                <div className="absolute -bottom-10 sm:-bottom-12 left-4 sm:left-8 w-24 h-24 sm:w-[110px] sm:h-[110px] rounded-full bg-white border-4 border-white shadow-sm flex items-center justify-center overflow-hidden z-10">
-                  {report.reporter?.avatarUrl ? (
-                    <img src={report.reporter.avatarUrl} alt="Reporter" className="w-full h-full object-cover" />
-                  ) : (
-                    <User className="w-10 h-10 text-primary/50" />
-                  )}
-                </div>
+              {/* Photo Container */}
+              <div className="w-full h-[250px] sm:h-[360px] rounded-2xl overflow-hidden bg-white-stroke shadow-sm mb-4">
+                {thePhotoUrl ? (
+                  <img 
+                    src={thePhotoUrl} 
+                    alt="Report issue" 
+                    className="w-full h-full object-cover"
+                    onError={(e) => { e.target.style.display = 'none'; }}
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-black-placeholder bg-white-bg2">
+                    No image provided
+                  </div>
+                )}
               </div>
 
-              {/* Reporter Info Row (Flows normally below photo) */}
-              <div className="mt-3 sm:mt-4 pl-[120px] sm:pl-[160px] pr-2 sm:pr-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h3 className="font-heading font-bold text-black text-xl sm:text-2xl">
-                    {report.reporter?.displayName || report.reporter?.name || report.reporter?.fullName || report.reporter?.firstName || 'Anonymous'}
-                  </h3>
-                  <p className="text-sm text-black-placeholder font-medium mt-0.5">
-                    {report.reporter?.status || 'Top Contributor'}
-                  </p>
+              {/* Reporter Info Row (Negative margin to overlap photo, but stays in normal flow) */}
+              <div className="flex flex-col sm:flex-row sm:items-end justify-between px-4 sm:px-8 relative z-10">
+                <div className="flex items-end gap-4 sm:gap-5">
+                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white border-[5px] border-white shadow-sm flex items-center justify-center overflow-hidden shrink-0 -mt-12 sm:-mt-14">
+                    {report.reporter?.avatarUrl ? (
+                      <img src={report.reporter.avatarUrl} alt="Reporter" className="w-full h-full object-cover" />
+                    ) : (
+                      <User className="w-12 h-12 text-primary/50" />
+                    )}
+                  </div>
+                  <div className="pb-1 sm:pb-2">
+                    <h3 className="font-heading font-bold text-black text-xl sm:text-[26px] leading-tight">
+                      {report.reporter?.displayName || report.reporter?.name || report.reporter?.fullName || report.reporter?.firstName || 'Anonymous'}
+                    </h3>
+                    <p className="text-[13px] text-paragraph font-medium mt-1">
+                      {report.reporter?.status || 'Top Contributor'}
+                    </p>
+                  </div>
                 </div>
                 
-                <div className="flex items-center gap-1 sm:gap-2">
-                  <button className="p-2 text-black-icon hover:text-primary transition-colors" title="Save Report">
-                    <Star className="w-5 h-5" />
+                <div className="flex items-center gap-2 sm:gap-3 pb-1 sm:pb-2 mt-4 sm:mt-0 self-start sm:self-auto pl-28 sm:pl-0">
+                  <button className="text-black-icon hover:text-primary transition-colors p-1" title="Save Report">
+                    <Star className="w-[22px] h-[22px]" />
                   </button>
-                  <button className="p-2 text-black-icon hover:text-alert-error transition-colors" title="Flag Report">
-                    <Flag className="w-5 h-5" />
+                  <button className="text-black-icon hover:text-alert-error transition-colors p-1" title="Flag Report">
+                    <Flag className="w-[22px] h-[22px]" />
                   </button>
                   <button 
                     onClick={() => document.getElementById('commentInput')?.focus()}
-                    className="px-5 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors shadow-sm ml-1"
+                    className="px-5 py-2.5 bg-[#127C2F] text-white text-[13px] font-bold rounded-lg hover:bg-[#0e6325] transition-colors shadow-sm ml-2"
                   >
                     Add Comment
                   </button>
@@ -403,13 +399,13 @@ export default function ReportDetailPage() {
             {/* Category Badge removed from here and moved near title */}
 
             {/* Location */}
-            <div className="mb-8">
-              <div className="flex items-center gap-2 mb-3">
-                <MapPin className="w-5 h-5 text-black" />
-                <h2 className="font-heading text-lg font-bold text-black uppercase">Location</h2>
+            <div className="mb-10">
+              <div className="flex items-center gap-1.5 mb-3">
+                <MapPin className="w-[18px] h-[18px] text-black" />
+                <h2 className="font-heading text-[13px] font-bold text-black uppercase tracking-wide">Location</h2>
               </div>
               
-              <div className="w-full h-[200px] rounded-xl overflow-hidden border border-white-stroke z-0 relative mb-3">
+              <div className="w-full h-[180px] rounded-xl overflow-hidden border border-white-stroke z-0 relative mb-3">
                 <MapContainer
                   center={[lat, lng]}
                   zoom={15}
@@ -462,13 +458,13 @@ export default function ReportDetailPage() {
                         <div className="flex-1">
                           <div className="flex items-baseline justify-between mb-1">
                             <div className="flex items-baseline gap-2">
-                              <span className="font-bold text-black text-sm">
-                                {comment.user?.displayName || comment.user?.name || comment.user?.fullName || comment.user?.firstName || comment.authorName || 'User'}
+                              <span className="font-bold text-black text-[13px]">
+                                {comment.user?.displayName || comment.user?.name || comment.user?.fullName || comment.user?.firstName || comment.authorName || 'Anonymous'}
+                                {(comment.user?.role === 'admin' || comment.user?.role === 'moderator' || comment.user?.accountType === 'DISPATCH') && (
+                                  ' (Moderator)'
+                                )}
                               </span>
-                              {(comment.user?.role === 'admin' || comment.user?.role === 'moderator' || comment.user?.accountType === 'DISPATCH') && (
-                                <span className="text-xs font-bold text-primary ml-1">(Moderator)</span>
-                              )}
-                              <span className="text-[10px] text-black-placeholder flex items-center gap-1">
+                              <span className="text-[11px] text-black-placeholder flex items-center gap-1">
                                 • {timeAgo(comment.createdAt || comment.date)}
                               </span>
                             </div>
@@ -529,37 +525,47 @@ export default function ReportDetailPage() {
           <div className="w-full md:w-[35%] lg:w-[30%] flex flex-col gap-6">
             
             {/* Status Timeline Card */}
-            <div className="bg-white border border-white-stroke rounded-2xl p-6 shadow-sm">
+            <div className="bg-white border border-white-stroke rounded-2xl p-6 sm:p-7 shadow-sm">
               <div className="relative">
-                {/* Vertical Line */}
-                <div className="absolute left-[11px] top-2 bottom-6 w-0.5 bg-white-stroke z-0"></div>
+                {/* Vertical Line connecting the dots */}
+                <div className="absolute left-[11px] top-4 bottom-8 w-[2px] bg-white-stroke z-0">
+                  {/* Green line progress fill */}
+                  <div 
+                    className="absolute top-0 left-0 w-full bg-[#127C2F] transition-all duration-500" 
+                    style={{ height: activeStageIndex > 0 ? `${(activeStageIndex / 3) * 100}%` : '0%' }}
+                  ></div>
+                </div>
                 
-                <div className="space-y-6 relative z-10">
+                <div className="space-y-7 relative z-10">
                   {mappedStages.map((stage, idx) => {
                     let circleClasses = "w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 bg-white";
-                    let textClasses = "font-bold text-sm text-black";
+                    let textClasses = "font-bold text-[13px] text-black";
                     let innerIcon = null;
 
-                    if (stage.isCompleted) {
-                      circleClasses = "w-6 h-6 rounded-full bg-primary flex items-center justify-center shrink-0 border-2 border-primary";
-                      innerIcon = <Check className="w-3.5 h-3.5 text-white" />;
+                    if (stage.isCompleted && !stage.isActive) {
+                      circleClasses = "w-6 h-6 rounded-full bg-[#127C2F] flex items-center justify-center shrink-0 border-2 border-[#127C2F]";
+                      innerIcon = <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />;
+                      textClasses = "font-bold text-[13px] text-[#127C2F]";
                     } else if (stage.isActive) {
-                      circleClasses = "w-6 h-6 rounded-full bg-alert-info flex items-center justify-center shrink-0 border-2 border-alert-info";
+                      circleClasses = "w-6 h-6 rounded-full bg-[#006FED] flex items-center justify-center shrink-0 border-2 border-[#006FED]";
                       innerIcon = <div className="w-2 h-2 rounded-full bg-white"></div>;
+                      textClasses = "font-bold text-[13px] text-[#006FED]";
                     } else {
                       circleClasses = "w-6 h-6 rounded-full border-2 border-white-stroke bg-white flex items-center justify-center shrink-0";
-                      textClasses = "font-semibold text-sm text-black-placeholder";
+                      textClasses = "font-semibold text-[13px] text-black-placeholder";
                     }
 
                     return (
                       <div key={stage.name} className="flex gap-4 items-start">
-                        <div className={circleClasses}>
-                          {innerIcon}
+                        <div className="mt-0.5 relative z-10 bg-white">
+                          <div className={circleClasses}>
+                            {innerIcon}
+                          </div>
                         </div>
                         <div className="pt-0.5">
                           <h4 className={textClasses}>{stage.name}</h4>
                           {stage.note && (
-                            <p className="text-xs text-paragraph mt-1 leading-relaxed">
+                            <p className="text-[13px] text-paragraph mt-1 leading-relaxed">
                               {stage.note}
                             </p>
                           )}
