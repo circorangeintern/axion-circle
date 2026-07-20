@@ -82,12 +82,50 @@ export default function MyReportsPage() {
     };
   };
 
+  const getUserInfo = () => {
+    try {
+      const storedUser = localStorage.getItem('user');
+      if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
+        const parsed = JSON.parse(storedUser);
+        let dName = String(parsed?.displayName || parsed?.name || parsed?.fullName || parsed?.username || localStorage.getItem('user_name') || '');
+        const email = String(parsed?.email || localStorage.getItem('user_email') || '');
+        if (!dName || dName.trim() === '') {
+           if (email && email.includes('@')) {
+               dName = email.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim();
+           } else {
+               dName = 'there';
+           }
+        }
+        return { displayName: dName, email: email };
+      }
+    } catch (e) {}
+    let dName = String(localStorage.getItem('user_name') || '');
+    const email = String(localStorage.getItem('user_email') || '');
+    if (!dName || dName.trim() === '') {
+       if (email && email.includes('@')) {
+           dName = email.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim();
+       } else {
+           dName = 'there';
+       }
+    }
+    return { displayName: dName, email: email };
+  };
+
   useEffect(() => {
     const fetchReports = async () => {
       try {
         const response = await api.get(`/reports/my?t=${Date.now()}`);
         const data = response.data?.data;
         let backendReports = Array.isArray(data) ? data : (data?.content || []);
+        
+        // Filter out reports that do not belong to the current user, as a safeguard
+        const currentUser = getUserInfo();
+        if (currentUser.displayName && currentUser.displayName !== 'there') {
+          backendReports = backendReports.filter(report => 
+            report.reporterName && 
+            report.reporterName.toLowerCase() === currentUser.displayName.toLowerCase()
+          );
+        }
         
         try {
           const overrides = JSON.parse(localStorage.getItem('report_overrides') || '{}');
@@ -427,8 +465,8 @@ export default function MyReportsPage() {
                           <ChevronRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
                         </Link>
 
-                        {/* Optional badge for newly submitted reports */}
-                        {String(report.id).length > 10 && (
+                        {/* Optional badge for newly submitted reports (within last 1 hour) */}
+                        {Date.now() - report.rawDate < 3600000 && (
                           <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-alert-successLight px-2 py-0.5 rounded">
                             Just Added
                           </span>
