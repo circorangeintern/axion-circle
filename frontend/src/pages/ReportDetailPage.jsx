@@ -5,7 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { 
   MapPin, Star, Flag, Trash2, ArrowLeft, Gift, 
-  MessageSquare, User, Clock, Check, AlertCircle, Share2, Headset 
+  MessageSquare, User, Clock, Check, AlertCircle, Share2 
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
@@ -449,17 +449,12 @@ export default function ReportDetailPage() {
                     const cid = comment.id || comment._id;
                     const cAuthorId = comment.user?.id || comment.user?._id || comment.userId;
                     const canDelete = loggedInUserId && cAuthorId === loggedInUserId;
-                    const isModerator = comment.user?.role === 'admin' || comment.user?.role === 'moderator' || comment.user?.accountType === 'DISPATCH';
 
                     return (
                       <div key={cid} className="flex gap-4">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 overflow-hidden ${
-                          isModerator ? 'bg-primary/10 border-none' : 'bg-white-bg2 border border-white-stroke'
-                        }`}>
+                        <div className="w-10 h-10 rounded-full bg-white-bg2 border border-white-stroke flex items-center justify-center shrink-0 overflow-hidden">
                           {comment.user?.avatarUrl ? (
                             <img src={comment.user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                          ) : isModerator ? (
-                            <Headset className="w-5 h-5 text-primary" />
                           ) : (
                             <User className="w-5 h-5 text-black-placeholder" />
                           )}
@@ -470,7 +465,7 @@ export default function ReportDetailPage() {
                               <span className="font-bold text-black text-sm">
                                 {comment.user?.displayName || comment.user?.name || comment.user?.fullName || comment.user?.firstName || comment.authorName || 'User'}
                               </span>
-                              {isModerator && (
+                              {(comment.user?.role === 'admin' || comment.user?.role === 'moderator' || comment.user?.accountType === 'DISPATCH') && (
                                 <span className="text-xs font-bold text-primary ml-1">(Moderator)</span>
                               )}
                               <span className="text-[10px] text-black-placeholder flex items-center gap-1">
