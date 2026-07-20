@@ -1,0 +1,16 @@
+name: Keep Alive
+
+on:
+  schedule:
+    # Every 14 minutes - prevents Render free tier from sleeping
+    - cron: '*/14 * * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping health endpoint
+        run: |
+          curl -s -o /dev/null -w "Status: %{http_code}, Time: %{time_total}s\n" \
+            https://cleanreport-api.onrender.com/api/v1/health
