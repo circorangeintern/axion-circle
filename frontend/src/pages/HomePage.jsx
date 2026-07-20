@@ -22,7 +22,8 @@ import {
   Users,
   AlertCircle,
   MapPinned,
-  List
+  List,
+  RefreshCw
 } from 'lucide-react';
 import AppNavbar from '../components/AppNavbar';
 import mapBg from '../assets/map-bg.jpg';
@@ -80,38 +81,39 @@ export default function HomePage() {
   const [activeFilter, setActiveFilter] = useState('All');
   const [viewMode, setViewMode] = useState('map'); // 'map' | 'list'
 
-  useEffect(() => {
-    const fetchReports = async () => {
+  const fetchReports = async () => {
+    try {
+      setMapStatus('loading');
+
+      let apiReports = [];
       try {
-        setMapStatus('loading');
-
-        let apiReports = [];
-        try {
-          const res = await api.get('/reports');
-          const content = res.data?.data?.content || [];
-          apiReports = Array.isArray(content) ? content : [];
-        } catch (apiErr) {
-          console.error('Failed to fetch live reports:', apiErr);
-          setMapStatus('error');
-          return;
-        }
-
-        const lagosLat = 6.5244;
-        const lagosLng = 3.3792;
-        const allReports = [...apiReports].map((r, idx) => ({
-          ...r,
-          latitude: r.latitude || (lagosLat + (Math.sin(idx * 2.5) * 0.08)),
-          longitude: r.longitude || (lagosLng + (Math.cos(idx * 2.5) * 0.08)),
-          rawDate: r.createdAt ? new Date(r.createdAt).getTime() : (r.date ? 0 : Date.now())
-        }));
-        
-        allReports.sort((a, b) => (b.rawDate || 0) - (a.rawDate || 0));
-        setReports(allReports);
-        setMapStatus('success');
-      } catch (err) {
+        const res = await api.get('/reports');
+        const content = res.data?.data?.content || [];
+        apiReports = Array.isArray(content) ? content : [];
+      } catch (apiErr) {
+        console.error('Failed to fetch live reports:', apiErr);
         setMapStatus('error');
+        return;
       }
-    };
+
+      const lagosLat = 6.5244;
+      const lagosLng = 3.3792;
+      const allReports = [...apiReports].map((r, idx) => ({
+        ...r,
+        latitude: r.latitude || (lagosLat + (Math.sin(idx * 2.5) * 0.08)),
+        longitude: r.longitude || (lagosLng + (Math.cos(idx * 2.5) * 0.08)),
+        rawDate: r.createdAt ? new Date(r.createdAt).getTime() : (r.date ? 0 : Date.now())
+      }));
+      
+      allReports.sort((a, b) => (b.rawDate || 0) - (a.rawDate || 0));
+      setReports(allReports);
+      setMapStatus('success');
+    } catch (err) {
+      setMapStatus('error');
+    }
+  };
+
+  useEffect(() => {
     fetchReports();
   }, []);
 
@@ -438,7 +440,14 @@ export default function HomePage() {
                       <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                       </svg>
-                      Backend Disconnected
+                      <span>Backend Sleeping</span>
+                      <button 
+                        onClick={fetchReports} 
+                        className="ml-1 bg-alert-error/10 hover:bg-alert-error/20 text-alert-error p-1 rounded-full transition-colors"
+                        title="Retry"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   )}
 
@@ -589,7 +598,25 @@ export default function HomePage() {
 
                   {/* 6 Static Report Rows — evenly distributed across the entire card height to match Left Column perfectly */}
                   <div className="divide-y divide-white-stroke flex flex-col justify-between flex-1">
-                    {reports.length === 0 && (
+                    {reports.length === 0 && mapStatus === 'error' && (
+                      <div className="flex-1 flex flex-col items-center justify-center py-12 text-center px-4">
+                        <div className="w-16 h-16 bg-white-bg2 rounded-full flex items-center justify-center mb-4 border border-white-stroke">
+                          <AlertCircle className="w-8 h-8 text-paragraph" />
+                        </div>
+                        <h3 className="text-black font-bold text-sm mb-1">Servers Waking Up</h3>
+                        <p className="text-xs text-paragraph max-w-[240px] mx-auto mb-6 leading-relaxed">
+                          Our backend goes to sleep to save energy. It usually takes ~60 seconds to wake up!
+                        </p>
+                        <button
+                          onClick={fetchReports}
+                          className="flex items-center justify-center gap-2 w-full sm:w-auto px-6 py-2.5 bg-primary text-white text-xs font-bold rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
+                        >
+                          <RefreshCw className="w-4 h-4" />
+                          Retry Connection
+                        </button>
+                      </div>
+                    )}
+                    {reports.length === 0 && mapStatus !== 'error' && (
                       <div className="py-8 text-center text-sm text-paragraph">No recent reports found</div>
                     )}
                     {reports.slice(0, 6).map((report, idx) => {
