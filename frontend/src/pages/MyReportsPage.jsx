@@ -74,7 +74,7 @@ export default function MyReportsPage() {
       status: statusLabel,
       description: report.description || 'Sanitation issue report',
       date: dateStr,
-      address: report.address || report.areaName || 'Location unavailable — tap Edit Location to set manually',
+      address: (report.address || report.areaName || '').includes('Location unavailable') ? 'Location not automatically captured' : (report.address || report.areaName || 'Location not captured'),
       indicator: indicator,
       photoUrl: report.photoUrl,
       reporterName: report.reporterName || 'Anonymous',

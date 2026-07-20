@@ -652,7 +652,11 @@ export default function HomePage() {
                           <h3 className="text-xs sm:text-sm font-bold text-black">{report.title || report.category || 'Sanitation Issue'}</h3>
                           <div className="flex items-center gap-1 text-[11px] text-black-icon mt-0.5">
                             <MapPin className="w-3 h-3 shrink-0" />
-                            <span className="truncate">{report.address || report.areaName || 'Location unavailable'}</span>
+                            <span className="truncate">
+                              {(report.address || report.areaName || '').includes('Location unavailable') 
+                                ? 'Location not automatically captured' 
+                                : (report.address || report.areaName || 'Location not captured')}
+                            </span>
                           </div>
                         </div>
                       );
