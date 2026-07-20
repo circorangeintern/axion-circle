@@ -12,12 +12,27 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Schema(description = "User credit balance")
+@Schema(description = "User credit balance with level and streak info")
 public class CreditBalanceResponse {
 
     private UUID userId;
     private String displayName;
 
-    @Schema(description = "Current credit balance (₦1 per credit)", example = "85")
+    @Schema(description = "Current spendable credit balance", example = "85")
     private Integer balance;
+
+    @Schema(description = "Total credits earned all-time (never decreases)", example = "230")
+    private Integer lifetimeCredits;
+
+    @Schema(description = "Current user level", example = "GUARDIAN")
+    private String level;
+
+    @Schema(description = "Current daily streak count", example = "7")
+    private Integer streakCount;
+
+    @Schema(description = "Lifetime credits needed for next level (-1 if max)", example = "500")
+    private Integer nextLevelAt;
+
+    @Schema(description = "Current earning multiplier from level", example = "1.2")
+    private Double multiplier;
 }

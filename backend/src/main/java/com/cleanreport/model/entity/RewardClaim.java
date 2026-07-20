@@ -36,6 +36,9 @@ public class RewardClaim {
     @Column(name = "claimed_at", nullable = false, updatable = false)
     private Instant claimedAt;
 
+    @Column(name = "redemption_code", length = 50)
+    private String redemptionCode;
+
     @Column(name = "approved_at")
     private Instant approvedAt;
 

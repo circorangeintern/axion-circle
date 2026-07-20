@@ -80,10 +80,10 @@ sendgrid:
 # --- App Config ---
 app:
   credits:
-    report-submit: 10
+    report-submit: 2
     report-acknowledged: 5
-    report-resolved: 5
-    first-report-bonus: 20
+    report-resolved: 10
+    first-report-bonus: 5
   cors:
     allowed-origins: ${CORS_ORIGINS:http://localhost:3000}
   oauth:

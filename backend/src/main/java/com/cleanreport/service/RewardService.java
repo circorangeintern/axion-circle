@@ -65,11 +65,12 @@ public class RewardService {
         reward.setQuantityAvailable(reward.getQuantityAvailable() - 1);
         rewardRepository.save(reward);
 
-        // Create claim
+        // Create claim with generated redemption code
         RewardClaim claim = RewardClaim.builder()
                 .user(user)
                 .reward(reward)
                 .status(ClaimStatus.PENDING)
+                .redemptionCode(generateRedemptionCode())
                 .build();
 
         RewardClaim saved = rewardClaimRepository.save(claim);
@@ -85,5 +86,20 @@ public class RewardService {
         User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userEmail));
         return rewardClaimRepository.findByUserIdOrderByClaimedAtDesc(user.getId());
+    }
+
+    /**
+     * Generate a unique digital redemption code.
+     * Format: CR-XXXX-XXXX-XXXX (12 alphanumeric chars)
+     */
+    private String generateRedemptionCode() {
+        String chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; // No I/O/0/1 (avoid confusion)
+        StringBuilder code = new StringBuilder("CR-");
+        java.security.SecureRandom random = new java.security.SecureRandom();
+        for (int i = 0; i < 12; i++) {
+            if (i > 0 && i % 4 == 0) code.append("-");
+            code.append(chars.charAt(random.nextInt(chars.length())));
+        }
+        return code.toString();
     }
 }

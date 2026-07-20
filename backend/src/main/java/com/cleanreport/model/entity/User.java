@@ -39,6 +39,22 @@ public class User {
     @Builder.Default
     private Integer creditBalance = 0;
 
+    @Column(name = "lifetime_credits", nullable = false)
+    @Builder.Default
+    private Integer lifetimeCredits = 0;
+
+    @Column(name = "streak_count", nullable = false)
+    @Builder.Default
+    private Integer streakCount = 0;
+
+    @Column(name = "last_report_date")
+    private java.time.LocalDate lastReportDate;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20)
+    @Builder.Default
+    private com.cleanreport.model.enums.UserLevel level = com.cleanreport.model.enums.UserLevel.OBSERVER;
+
     @Column(name = "is_anonymous", nullable = false)
     @Builder.Default
     private Boolean isAnonymous = false;
