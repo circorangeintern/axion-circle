@@ -376,11 +376,11 @@ export default function ReportDetailPage() {
                 <MapContainer
                   center={[lat, lng]}
                   zoom={15}
-                  zoomControl={false}
-                  dragging={false}
-                  scrollWheelZoom={false}
-                  doubleClickZoom={false}
-                  touchZoom={false}
+                  zoomControl={true}
+                  dragging={true}
+                  scrollWheelZoom={true}
+                  doubleClickZoom={true}
+                  touchZoom={true}
                   className="w-full h-full z-0"
                 >
                   <TileLayer
