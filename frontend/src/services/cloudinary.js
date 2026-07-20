@@ -4,7 +4,7 @@ export const uploadToCloudinary = async (file) => {
   const formData = new FormData();
   formData.append('file', file);
   const uploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET || 'cleanreport_uploads';
-  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'duiemylcx';
+  const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME || 'fxwxretv';
 
   formData.append('upload_preset', uploadPreset);
 
