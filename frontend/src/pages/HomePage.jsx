@@ -504,7 +504,9 @@ export default function HomePage() {
                                       </span>
                                       <span className="text-[9px] font-medium text-black-placeholder">{timeAgo(report.createdAt || report.date)}</span>
                                     </div>
-                                    <h3 className="font-extrabold text-[13px] text-black uppercase mb-1 leading-tight">{report.title || report.category || 'Sanitation Issue'}</h3>
+                                    <h3 className="font-extrabold text-[13px] text-black uppercase mb-1 leading-tight">
+                                      {report.title || (report.category ? report.category.replace(/_/g, ' ') : 'Sanitation Issue')}
+                                    </h3>
                                     <p className="text-[10px] text-paragraph line-clamp-2 mb-3 leading-snug">
                                       {report.description || 'Sanitation issue report'}
                                     </p>
