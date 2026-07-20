@@ -182,10 +182,27 @@ export default function ReportPage() {
 
   // Auto-capture geolocation silently on mount and reverse-geocode via OpenStreetMap
   useEffect(() => {
-    if (!navigator.geolocation) {
+    const fallbackToIPLocation = async (errorMsg) => {
+      try {
+        const res = await fetch('https://get.geojs.io/v1/ip/geo.json');
+        const data = await res.json();
+        if (data && data.latitude && data.longitude) {
+          setLatitude(parseFloat(data.latitude));
+          setLongitude(parseFloat(data.longitude));
+          setAreaName(data.city || data.region || 'Approximate Location');
+          setAddressText(`${data.city ? data.city + ', ' : ''}${data.country || ''} (IP Based)`);
+          setLocationStatus('success');
+          return;
+        }
+      } catch (err) {
+        console.warn('IP Geolocation fallback failed:', err);
+      }
       setLocationStatus('error');
-      setAreaName('Location unavailable');
-      setAddressText('GPS access not supported by browser');
+      setAddressText(errorMsg);
+    };
+
+    if (!navigator.geolocation) {
+      fallbackToIPLocation('GPS access not supported by browser');
       return;
     }
 
@@ -231,11 +248,10 @@ export default function ReportPage() {
       },
       (error) => {
         console.warn('Silent geolocation error:', error);
-        setLocationStatus('error');
         if (error.code === 1) {
-          setAddressText('Location access denied — tap Edit Location to set manually');
+          fallbackToIPLocation('Location access denied — tap Edit Location to set manually');
         } else {
-          setAddressText('Location unavailable — tap Edit Location to set manually');
+          fallbackToIPLocation('Location unavailable — tap Edit Location to set manually');
         }
       },
       { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 }
