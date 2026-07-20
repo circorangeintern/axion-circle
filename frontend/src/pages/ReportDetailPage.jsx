@@ -27,6 +27,13 @@ const getMarkerIcon = (status) => {
   });
 };
 
+const getUrgencyStyles = (urgency) => {
+  const u = (urgency || '').toLowerCase();
+  if (u.includes('critical') || u.includes('very urgent')) return { bg: 'bg-alert-errorLight', text: 'text-alert-error', icon: AlertCircle };
+  if (u.includes('moderate') || u.includes('urgent')) return { bg: 'bg-alert-warningLight', text: 'text-alert-warning', icon: AlertCircle };
+  return { bg: 'bg-alert-infoLight', text: 'text-alert-info', icon: AlertCircle };
+};
+
 const timeAgo = (dateString) => {
   if (!dateString) return '';
   const date = new Date(dateString);
@@ -73,6 +80,10 @@ export default function ReportDetailPage() {
   const [newComment, setNewComment] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
 
+  // Reverse Geocoded Location
+  const [geoAddress, setGeoAddress] = useState(null);
+  const [geoDistrict, setGeoDistrict] = useState(null);
+
   useEffect(() => {
     try {
       const userStr = localStorage.getItem('user');
@@ -114,6 +125,23 @@ export default function ReportDetailPage() {
       fetchReportData();
     }
   }, [id]);
+
+  useEffect(() => {
+    if (report && report.latitude && report.longitude && !geoAddress) {
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${report.latitude}&lon=${report.longitude}&zoom=16`)
+        .then(res => res.json())
+        .then(data => {
+          if (data && data.address) {
+            const district = data.address.suburb || data.address.neighbourhood || data.address.city_district || data.address.city || data.address.town || 'Downtown District';
+            const street = data.address.road ? `${data.address.house_number || ''} ${data.address.road}`.trim() : (data.display_name?.split(',')[0] || '');
+            const postcode = data.address.postcode || '';
+            setGeoDistrict(district);
+            setGeoAddress(`${street}${postcode ? ', ' + postcode : ''}`);
+          }
+        })
+        .catch(err => console.warn('Reverse geocoding failed:', err));
+    }
+  }, [report]);
 
   const handleAddComment = async (e) => {
     e.preventDefault();
@@ -218,19 +246,23 @@ export default function ReportDetailPage() {
       return s === sn;
     });
 
+    let defaultNote = '';
+    if (index === 0) defaultNote = 'Report has been delivered to the district';
+    else if (index === 1) defaultNote = 'A few details about your company';
+    else if (index === 2) defaultNote = 'Team has been dispatched';
+    else if (index === 3) defaultNote = 'Issue has been successfully resolved';
+
+    let date = historyRecord?.date || historyRecord?.createdAt || null;
+    if (index === 0 && !date) date = report.createdAt || report.date;
+
     return {
       name: stageName,
       isCompleted: index < activeStageIndex || (index === activeStageIndex && currentStatusStr === 'resolved'),
       isActive: index === activeStageIndex && currentStatusStr !== 'resolved',
-      date: historyRecord?.date || historyRecord?.createdAt || null,
-      note: historyRecord?.note || null
+      date: date,
+      note: historyRecord?.note || defaultNote
     };
   });
-  
-  // If no history record exists for the 'Reported' stage, use the report creation date
-  if (!mappedStages[0].date) {
-    mappedStages[0].date = report.createdAt || report.date;
-  }
 
   const isAuthor = loggedInUserId && report.reporter && 
                    (report.reporter.id === loggedInUserId || report.reporter._id === loggedInUserId || report.reporterId === loggedInUserId);
@@ -242,12 +274,15 @@ export default function ReportDetailPage() {
   
   const lat = report.latitude ? parseFloat(report.latitude) : 6.5244;
   const lng = report.longitude ? parseFloat(report.longitude) : 3.3792;
+  const thePhotoUrl = report.photoUrl || report.imageUrl || (report.images && report.images[0]) || null;
+  const uStyles = getUrgencyStyles(report.urgency || 'Critical Level');
+  const UrgencyIcon = uStyles.icon;
 
   return (
     <div className="min-h-screen bg-white-bg font-body flex flex-col">
       <AppNavbar />
 
-      <main className="flex-1 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-[112px] py-8 lg:py-[72px]">
+      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
         {/* Breadcrumb */}
         <div className="flex items-center text-xs font-medium text-black-placeholder mb-6">
           <Link to="/" className="hover:text-primary transition-colors">Dashboard</Link>
@@ -257,16 +292,26 @@ export default function ReportDetailPage() {
           <span className="text-primary">Report Details</span>
         </div>
 
-        <div className="flex flex-col lg:flex-row gap-[31px] justify-between">
+        {/* Mobile layout placeholder comment: 
+            The layout below stacks on mobile (< md) and shows two columns on desktop (md+). 
+            Adjustments may be needed once mobile Figma designs are finalized. */}
+        <div className="flex flex-col md:flex-row gap-8">
           
           {/* Main Content Column */}
-          <div className="w-full lg:max-w-[776px] shrink-0">
+          <div className="w-full md:w-[65%] lg:w-[70%]">
             
             {/* Header Row */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-6 gap-4">
               <div>
-                <div className="text-sm font-medium text-black-placeholder mb-1">
-                  ID: #CR-{displayId.toString().slice(-4).toUpperCase()} / {formattedDateHeader}
+                <div className="flex items-center gap-2 mb-1">
+                  <div className="text-sm font-medium text-black-placeholder">
+                    ID: #CR-{displayId.toString().slice(-4).toUpperCase()} / {formattedDateHeader}
+                  </div>
+                  {report.category && (
+                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 bg-white-bg2 border border-white-stroke rounded-full text-paragraph">
+                      {report.category.replace(/_/g, ' ')}
+                    </span>
+                  )}
                 </div>
                 <h1 className="font-heading text-3xl sm:text-4xl font-bold text-black mt-1">
                   {report.title || (report.category ? report.category.replace(/_/g, ' ') : 'Sanitation Issue')}
@@ -274,9 +319,9 @@ export default function ReportDetailPage() {
               </div>
               <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 shrink-0">
                 {/* Urgency Badge */}
-                <div className="flex items-center gap-1.5 px-3 py-1 bg-alert-errorLight rounded-full">
-                  <AlertCircle className="w-3.5 h-3.5 text-alert-error" />
-                  <span className="text-xs font-bold text-alert-error">
+                <div className={`flex items-center gap-1.5 px-3 py-1 rounded-full ${uStyles.bg}`}>
+                  <UrgencyIcon className={`w-3.5 h-3.5 ${uStyles.text}`} />
+                  <span className={`text-xs font-bold ${uStyles.text}`}>
                     {report.urgency || 'Critical Level'}
                   </span>
                 </div>
@@ -293,9 +338,9 @@ export default function ReportDetailPage() {
               {/* Photo with relative positioning for the avatar */}
               <div className="relative">
                 <div className="w-full h-[300px] sm:h-[400px] rounded-2xl overflow-hidden bg-white-stroke shadow-sm">
-                  {report.photoUrl ? (
+                  {thePhotoUrl ? (
                     <img 
-                      src={report.photoUrl} 
+                      src={thePhotoUrl} 
                       alt="Report issue" 
                       className="w-full h-full object-cover"
                       onError={(e) => { e.target.style.display = 'none'; }}
@@ -355,14 +400,7 @@ export default function ReportDetailPage() {
               </div>
             )}
 
-            {/* Category Badge */}
-            {report.category && (
-              <div className="mb-8">
-                <span className="inline-block px-3 py-1 bg-white-bg2 text-paragraph text-xs font-bold uppercase rounded-full border border-white-stroke">
-                  {report.category.replace(/_/g, ' ')}
-                </span>
-              </div>
-            )}
+            {/* Category Badge removed from here and moved near title */}
 
             {/* Location */}
             <div className="mb-8">
@@ -383,8 +421,8 @@ export default function ReportDetailPage() {
                   className="w-full h-full z-0"
                 >
                   <TileLayer
-                    attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-                    url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+                    attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
+                    url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                     maxZoom={18}
                   />
                   <Marker position={[lat, lng]} icon={getMarkerIcon(report.status)} />
@@ -392,8 +430,8 @@ export default function ReportDetailPage() {
               </div>
               
               <div>
-                <h3 className="font-bold text-black text-sm">{report.areaName || 'Unknown District'}</h3>
-                <p className="text-xs text-paragraph mt-0.5">{report.address || 'Location details not provided'}</p>
+                <h3 className="font-bold text-black text-sm">{geoDistrict || report.areaName || 'Unknown District'}</h3>
+                <p className="text-xs text-paragraph mt-0.5">{geoAddress || report.address || 'Location details not provided'}</p>
               </div>
             </div>
 
@@ -427,6 +465,9 @@ export default function ReportDetailPage() {
                               <span className="font-bold text-black text-sm">
                                 {comment.user?.displayName || comment.user?.name || comment.user?.fullName || comment.user?.firstName || comment.authorName || 'User'}
                               </span>
+                              {(comment.user?.role === 'admin' || comment.user?.role === 'moderator' || comment.user?.accountType === 'DISPATCH') && (
+                                <span className="text-xs font-bold text-primary ml-1">(Moderator)</span>
+                              )}
                               <span className="text-[10px] text-black-placeholder flex items-center gap-1">
                                 • {timeAgo(comment.createdAt || comment.date)}
                               </span>
@@ -485,10 +526,10 @@ export default function ReportDetailPage() {
           </div>
 
           {/* Sidebar Column */}
-          <div className="w-full lg:max-w-[409px] shrink-0 flex flex-col gap-8">
+          <div className="w-full md:w-[35%] lg:w-[30%] flex flex-col gap-6">
             
             {/* Status Timeline Card */}
-            <div className="bg-white border border-white-stroke rounded-xl px-6 py-9 shadow-sm">
+            <div className="bg-white border border-white-stroke rounded-2xl p-6 shadow-sm">
               <div className="relative">
                 {/* Vertical Line */}
                 <div className="absolute left-[11px] top-2 bottom-6 w-0.5 bg-white-stroke z-0"></div>
@@ -536,23 +577,21 @@ export default function ReportDetailPage() {
             </div>
 
             {/* Sent a CleanReport? Rewards Card */}
-            {isAuthor && (
-              <div className="bg-white border border-white-stroke rounded-xl px-6 py-9 shadow-sm flex flex-col items-center text-center">
-                <div className="text-5xl mb-3">
-                  🎁
-                </div>
-                <h3 className="font-heading text-[18px] font-bold text-black mb-2">Sent a CleanReport?</h3>
-                <p className="text-[14px] text-paragraph mb-5 leading-relaxed">
-                  When you send a report, your reward appears here after the report has been resolved.
-                </p>
-                <Link
-                  to="/rewards"
-                  className="w-full py-3 bg-primary text-white text-[14px] font-semibold rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
-                >
-                  See Your Rewards
-                </Link>
+            <div className="bg-white border border-white-stroke rounded-2xl p-6 shadow-sm flex flex-col items-center text-center mt-2">
+              <div className="text-5xl mb-4">
+                🎁
               </div>
-            )}
+              <h3 className="font-heading text-lg font-bold text-black mb-2">Sent a CleanReport?</h3>
+              <p className="text-sm text-paragraph mb-5 leading-relaxed">
+                When you send a report, your reward appears here after the report has been resolved.
+              </p>
+              <Link
+                to="/rewards"
+                className="w-full py-2.5 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
+              >
+                See Your Rewards
+              </Link>
+            </div>
 
           </div>
 
