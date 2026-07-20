@@ -4,9 +4,9 @@
 
 /**
  * @typedef {'REPORTER' | 'ADMIN'} UserRole
- * @typedef {'OVERFLOW' | 'ILLEGAL_DUMPING' | 'BLOCKED_DRAIN'} ReportCategory
+ * @typedef {'OVERFLOW' | 'ILLEGAL_DUMPING' | 'BLOCKED_DRAIN' | 'STREET_LITTER' | 'RESIDENTIAL_DUMP' | 'COMMERCIAL_DUMP'} ReportCategory
  * @typedef {'REPORTED' | 'ACKNOWLEDGED' | 'IN_PROGRESS' | 'RESOLVED'} ReportStatus
- * @typedef {'ROUTINE' | 'URGENT' | 'CRITICAL'} ReportUrgency
+ * @typedef {'ROUTINE' | 'VERY_URGENT' | 'CRITICAL'} ReportUrgency
  * @typedef {'PENDING' | 'APPROVED' | 'COLLECTED'} ClaimStatus
  */
 
