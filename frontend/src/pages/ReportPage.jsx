@@ -341,6 +341,10 @@ export default function ReportPage() {
       if (urgency === 'Very Urgent') mappedUrgency = 'VERY_URGENT';
       else if (urgency === 'Critical') mappedUrgency = 'CRITICAL';
 
+      const finalAddress = addressText?.includes('Location unavailable') 
+        ? 'Location not automatically captured' 
+        : (addressText || areaName || 'Pin Location, Lagos');
+
       const payload = {
         title: `${category} report`,
         photoUrl: photoUrl,
@@ -348,7 +352,7 @@ export default function ReportPage() {
         longitude: longitude !== null ? longitude : 3.3792,
         category: mappedCategory,
         description: description.trim() || 'Sanitation issue report',
-        address: addressText || areaName || 'Pin Location, Lagos',
+        address: finalAddress,
         urgency: mappedUrgency,
         isAnonymous: Boolean(isAnonymous),
       };

@@ -98,12 +98,18 @@ export default function HomePage() {
 
       const lagosLat = 6.5244;
       const lagosLng = 3.3792;
-      const allReports = [...apiReports].map((r, idx) => ({
-        ...r,
-        latitude: r.latitude || (lagosLat + (Math.sin(idx * 2.5) * 0.08)),
-        longitude: r.longitude || (lagosLng + (Math.cos(idx * 2.5) * 0.08)),
-        rawDate: r.createdAt ? new Date(r.createdAt).getTime() : (r.date ? 0 : Date.now())
-      }));
+      const allReports = [...apiReports].map((r, idx) => {
+        // Add a micro-jitter (approx 10-20 meters) so exact duplicate coordinates don't hide each other
+        const jitterLat = Math.sin(idx * 1234) * 0.0003;
+        const jitterLng = Math.cos(idx * 1234) * 0.0003;
+        
+        return {
+          ...r,
+          latitude: r.latitude ? (parseFloat(r.latitude) + jitterLat) : (lagosLat + (Math.sin(idx * 2.5) * 0.08)),
+          longitude: r.longitude ? (parseFloat(r.longitude) + jitterLng) : (lagosLng + (Math.cos(idx * 2.5) * 0.08)),
+          rawDate: r.createdAt ? new Date(r.createdAt).getTime() : (r.date ? 0 : Date.now())
+        };
+      });
       
       allReports.sort((a, b) => (b.rawDate || 0) - (a.rawDate || 0));
       setReports(allReports);
