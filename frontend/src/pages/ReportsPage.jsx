@@ -22,193 +22,18 @@ import {
 import AppNavbar from '../components/AppNavbar';
 import ReportsFilterModal from '../components/ReportsFilterModal';
 
-import img1 from '../assets/reports/1.jpg';
-import img2 from '../assets/reports/2.jpg';
-import img3 from '../assets/reports/3.jpg';
-import img4 from '../assets/reports/4.jpg';
-import img5 from '../assets/reports/5.jpg';
-import img6 from '../assets/reports/6.jpg';
-import img7 from '../assets/reports/7.jpg';
-import img8 from '../assets/reports/8.jpg';
-import img9 from '../assets/reports/9.jpg';
-import img10 from '../assets/reports/10.jpg';
-import img11 from '../assets/reports/11.jpg';
-import img12 from '../assets/reports/12.jpg';
-
-// Curated list of high-resolution real authentic environmental, garden waste, overflow, and municipal sanitation photos
-const realFallbackPhotos = [
-  img1, img2, img3, img4, img5, img6, img7, img8, img9, img10, img11, img12
-];
-
 export const getCardPhotoUrl = (report) => {
   if (
     report &&
     report.photoUrl &&
     report.photoUrl !== 'null' &&
     report.photoUrl !== 'undefined' &&
-    report.photoUrl.trim() !== '' &&
-    report.photoUrl !== 'https://res.cloudinary.com/demo/image/upload/v1/evidence.jpg' &&
-    report.photoUrl !== 'https://res.cloudinary.com/demo/image/upload/sample.jpg'
+    report.photoUrl.trim() !== ''
   ) {
     return report.photoUrl;
   }
-  // Convert UUID or ID to a number to deterministically pick a beautiful fallback photo
-  const idStr = String(report?.id || '0');
-  let hash = 0;
-  for (let i = 0; i < idStr.length; i++) {
-    hash = idStr.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const idx = Math.abs(hash) % realFallbackPhotos.length;
-  return realFallbackPhotos[idx];
+  return 'https://placehold.co/600x400/eeeeee/999999?text=No+Image';
 };
-
-// Static cards covering all categories with exact real matching photography per item
-export const initialReportsData = [
-  {
-    id: 1,
-    title: 'Overflowing Bin',
-    category: 'Overflowing Bin',
-    urgency: 'Very Urgent',
-    status: 'In Progress',
-    description: 'Public refuse bins overflowing onto the sidewalk along Broad Road, causing sanitation issues and foul odor.',
-    date: '02/06 - 16:48',
-    address: '7 Silver Str, by Broad Road, Lagos',
-    indicator: 'alert',
-    photoUrl: img1,
-  },
-  {
-    id: 2,
-    title: 'Street Litter',
-    category: 'Street Litter',
-    urgency: 'Routine',
-    status: 'Reported',
-    description: 'Plastic bottles, food wrappers, and general litter scattered across the pedestrian walkway near Penchwood park entrance.',
-    date: '02/06 - 16:48',
-    address: '12 Admiralty Way, Lekki Phase 1, Lagos',
-    indicator: 'gauge',
-    photoUrl: img2,
-  },
-  {
-    id: 3,
-    title: 'Blocked Drainage',
-    category: 'Blocked Drainage',
-    urgency: 'Critical',
-    status: 'Resolved',
-    description: 'Heavy rain caused the storm drainage on Ozumba Mbadiwe to back up and flood the roadway with trapped debris.',
-    date: '02/06 - 16:48',
-    address: '44 Ozumba Mbadiwe Ave, Victoria Island, Lagos',
-    indicator: 'sun',
-    photoUrl: img3,
-  },
-  {
-    id: 4,
-    title: 'Illegal Dumping',
-    category: 'Illegal Dumping',
-    urgency: 'Critical',
-    status: 'Acknowledged',
-    description: 'Multiple large black refuse bags illegally dumped overnight in the open vacant lot beside the commercial plaza.',
-    date: '02/06 - 16:48',
-    address: '8 Allen Avenue, Ikeja, Lagos',
-    indicator: 'sun',
-    photoUrl: img4,
-  },
-  {
-    id: 5,
-    title: 'Garden Waste',
-    category: 'Garden Waste',
-    urgency: 'Routine',
-    status: 'In Progress',
-    description: 'Overgrown tree branches, cut grass clippings, and hedge trimmings left piled on the curb for over 3 weeks.',
-    date: '02/06 - 16:48',
-    address: '19 Bourdillon Road, Ikoyi, Lagos',
-    indicator: 'gauge',
-    photoUrl: img5,
-  },
-  {
-    id: 6,
-    title: 'Residential Dump',
-    category: 'Residential Dump',
-    urgency: 'Very Urgent',
-    status: 'Reported',
-    description: 'Household waste accumulation outside residential compound due to missed municipal collection schedules this week.',
-    date: '02/06 - 16:48',
-    address: '5 Bode Thomas St, Surulere, Lagos',
-    indicator: 'alert',
-    photoUrl: img6,
-  },
-  {
-    id: 7,
-    title: 'Commercial Dump',
-    category: 'Commercial Dump',
-    urgency: 'Very Urgent',
-    status: 'Reported',
-    description: 'Industrial and commercial packaging cardboard and wooden crates overflowing from warehouse alleyway container.',
-    date: '02/06 - 16:48',
-    address: '22 Warehouse Road, Apapa, Lagos',
-    indicator: 'sun',
-    photoUrl: img7,
-  },
-  {
-    id: 8,
-    title: 'Overflowing Bin',
-    category: 'Overflowing Bin',
-    urgency: 'Routine',
-    status: 'Resolved',
-    description: 'Community recycling and general refuse collection containers completely filled to capacity near the central bus stop.',
-    date: '02/06 - 16:48',
-    address: '10 Marina Street, Lagos Island, Lagos',
-    indicator: 'alert',
-    photoUrl: img8,
-  },
-  {
-    id: 9,
-    title: 'Street Litter',
-    category: 'Street Litter',
-    urgency: 'Routine',
-    status: 'Acknowledged',
-    description: 'Discarded paper cups, cans, and flyers littering the sidewalk along the commercial shopping strip.',
-    date: '02/06 - 16:48',
-    address: '35 Awolowo Way, Ikeja, Lagos',
-    indicator: 'gauge',
-    photoUrl: img9,
-  },
-  {
-    id: 10,
-    title: 'Hazardous Waste',
-    category: 'Hazardous Waste',
-    urgency: 'Critical',
-    status: 'Reported',
-    description: 'Unlabelled chemical drums and industrial solvent containers abandoned along the waterfront, posing an environmental and health hazard.',
-    date: '03/06 - 09:15',
-    address: '3 Creek Road, Apapa, Lagos',
-    indicator: 'alert',
-    photoUrl: 'https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    id: 11,
-    title: 'Water Pollution',
-    category: 'Water Pollution',
-    urgency: 'Critical',
-    status: 'In Progress',
-    description: 'Visible oil slick and refuse floating on the lagoon surface near the fish market, threatening local aquatic life and fishermen.',
-    date: '03/06 - 11:30',
-    address: '1 Ahmadu Bello Way, Victoria Island, Lagos',
-    indicator: 'alert',
-    photoUrl: 'https://images.unsplash.com/photo-1621451537084-482c73073e0f?auto=format&fit=crop&w=600&q=80',
-  },
-  {
-    id: 12,
-    title: 'Abandoned Waste',
-    category: 'Abandoned Waste',
-    urgency: 'Very Urgent',
-    status: 'Acknowledged',
-    description: 'Old mattresses, broken furniture, and construction rubble dumped beside a residential fence blocking the service road.',
-    date: '03/06 - 14:05',
-    address: '17 Obafemi Awolowo Road, Ikoyi, Lagos',
-    indicator: 'sun',
-    photoUrl: img12,
-  },
-];
 
 
 import api from '../services/api';
@@ -248,9 +73,14 @@ export default function ReportsPage() {
     if (report.urgency === 'CRITICAL' || report.urgency === 'VERY_URGENT') indicator = 'alert';
     else if (report.status === 'IN_PROGRESS') indicator = 'gauge';
 
+    let finalTitle = report.title;
+    if (finalTitle && /^[A-Z_]+$/.test(finalTitle)) {
+      finalTitle = formatEnum(finalTitle);
+    }
+
     return {
       id: report.id || Math.random().toString(),
-      title: report.title || categoryLabel || 'Sanitation Issue',
+      title: finalTitle || categoryLabel || 'Sanitation Issue',
       category: categoryLabel,
       urgency: urgencyLabel,
       status: statusLabel,

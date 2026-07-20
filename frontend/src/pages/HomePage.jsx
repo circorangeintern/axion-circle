@@ -30,7 +30,6 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import api from '../services/api';
-import { initialReportsData } from './ReportsPage';
 import ReportListView from '../components/ReportListView';
 import MapErrorBoundary from '../components/MapErrorBoundary';
 

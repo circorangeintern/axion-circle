@@ -17,82 +17,18 @@ import {
 } from 'lucide-react';
 import AppNavbar from '../components/AppNavbar';
 
-// Curated list of high-resolution real authentic environmental, garden waste, overflow, and municipal sanitation photos
-const realFallbackPhotos = [
-  'https://images.unsplash.com/photo-1611284446314-60a58ac0deb9?auto=format&fit=crop&q=80&w=600',
-  'https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?auto=format&fit=crop&q=80&w=600',
-  'https://images.unsplash.com/photo-1605600659908-0ef719419d41?auto=format&fit=crop&q=80&w=600',
-  'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?auto=format&fit=crop&q=80&w=600',
-  'https://images.unsplash.com/photo-1503596476-1c12a8ba09a9?auto=format&fit=crop&q=80&w=600',
-  'https://images.unsplash.com/photo-1542601906990-b4d3fb778b09?auto=format&fit=crop&q=80&w=600',
-  'https://images.unsplash.com/photo-1621451537084-482c73073a0f?auto=format&fit=crop&q=80&w=600',
-  'https://images.unsplash.com/photo-1510251197878-a2e6d2fc89d7?auto=format&fit=crop&q=80&w=600',
-  'https://images.unsplash.com/photo-1618477461853-cf6ed80faba5?auto=format&fit=crop&q=80&w=600',
-];
-
 const getCardPhotoUrl = (report) => {
   if (
     report &&
     report.photoUrl &&
     report.photoUrl !== 'null' &&
     report.photoUrl !== 'undefined' &&
-    report.photoUrl.trim() !== '' &&
-    report.photoUrl !== 'https://res.cloudinary.com/demo/image/upload/v1/evidence.jpg' &&
-    report.photoUrl !== 'https://res.cloudinary.com/demo/image/upload/sample.jpg'
+    report.photoUrl.trim() !== ''
   ) {
     return report.photoUrl;
   }
-  const idStr = String(report?.id || '0');
-  let hash = 0;
-  for (let i = 0; i < idStr.length; i++) {
-    hash = idStr.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const idx = Math.abs(hash) % realFallbackPhotos.length;
-  return realFallbackPhotos[idx];
+  return 'https://placehold.co/600x400/eeeeee/999999?text=No+Image';
 };
-
-// Initial default user reports so page looks rich right on first load
-const defaultMyReports = [
-  {
-    id: 101,
-    title: 'Garden Waste & Litter',
-    category: 'Garden Waste',
-    urgency: 'Routine',
-    status: 'In Progress',
-    description: 'Waste littered around the Penchwood garden for over 3 weeks and counting. Requires immediate municipal dispatch.',
-    date: '17/07 - 14:20',
-    rawDate: new Date('2026-07-17T14:20:00').getTime(),
-    address: '7 Silver Str, by Broad Road, Lagos',
-    indicator: 'alert',
-    photoUrl: 'https://images.unsplash.com/photo-1605600659908-0ef719419d41?auto=format&fit=crop&q=80&w=600',
-  },
-  {
-    id: 102,
-    title: 'Blocked Drainage & Overflow',
-    category: 'Blocked Drainage',
-    urgency: 'Critical',
-    status: 'Reported',
-    description: 'Heavy rain caused the drainage on Admiralty Way to overflow into pedestrian walkway and street.',
-    date: '15/07 - 09:15',
-    rawDate: new Date('2026-07-15T09:15:00').getTime(),
-    address: '14 Admiralty Way, Lekki Phase 1, Lagos',
-    indicator: 'gauge',
-    photoUrl: 'https://images.unsplash.com/photo-1510251197878-a2e6d2fc89d7?auto=format&fit=crop&q=80&w=600',
-  },
-  {
-    id: 103,
-    title: 'Illegal Dumping / Refuse Pile',
-    category: 'Illegal Dumping',
-    urgency: 'Very Urgent',
-    status: 'Resolved',
-    description: 'Large pile of household refuse dumped overnight beside the community playground gate.',
-    date: '10/07 - 16:48',
-    rawDate: new Date('2026-07-10T16:48:00').getTime(),
-    address: 'Plot 4, Allen Avenue, Ikeja, Lagos',
-    indicator: 'sun',
-    photoUrl: 'https://images.unsplash.com/photo-1583608205776-bfd35f0d9f83?auto=format&fit=crop&q=80&w=600',
-  },
-];
 
 const statusTabs = ['All', 'Reported', 'In Progress', 'Resolved', 'Acknowledged'];
 
@@ -125,9 +61,14 @@ export default function MyReportsPage() {
     if (report.urgency === 'CRITICAL' || report.urgency === 'VERY_URGENT') indicator = 'alert';
     else if (report.status === 'IN_PROGRESS') indicator = 'gauge';
 
+    let finalTitle = report.title;
+    if (finalTitle && /^[A-Z_]+$/.test(finalTitle)) {
+      finalTitle = formatEnum(finalTitle);
+    }
+
     return {
       id: report.id || Math.random().toString(),
-      title: report.title || categoryLabel || 'Sanitation Issue',
+      title: finalTitle || categoryLabel || 'Sanitation Issue',
       category: categoryLabel,
       urgency: urgencyLabel,
       status: statusLabel,
