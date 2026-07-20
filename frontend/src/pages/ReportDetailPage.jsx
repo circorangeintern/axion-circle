@@ -266,11 +266,16 @@ export default function ReportDetailPage() {
           <div className="w-full md:w-[65%] lg:w-[70%]">
             
             {/* Header Row */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 gap-3">
-              <div className="text-sm font-medium text-black-placeholder">
-                ID: #CR-{displayId.toString().slice(-4).toUpperCase()} / {formattedDateHeader}
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-6 gap-4">
+              <div>
+                <div className="text-sm font-medium text-black-placeholder mb-1">
+                  ID: #CR-{displayId.toString().slice(-4).toUpperCase()} / {formattedDateHeader}
+                </div>
+                <h1 className="font-heading text-3xl sm:text-4xl font-bold text-black mt-1">
+                  {report.title || (report.category ? report.category.replace(/_/g, ' ') : 'Sanitation Issue')}
+                </h1>
               </div>
-              <div className="flex items-center gap-3">
+              <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2 shrink-0">
                 {/* Urgency Badge */}
                 <div className="flex items-center gap-1.5 px-3 py-1 bg-alert-errorLight rounded-full">
                   <AlertCircle className="w-3.5 h-3.5 text-alert-error" />
@@ -279,66 +284,63 @@ export default function ReportDetailPage() {
                   </span>
                 </div>
                 {/* Rewards Badge */}
-                <div className="flex items-center gap-1.5">
+                <div className="flex items-center gap-1.5 px-3 py-1">
                   <Star className="w-4 h-4 text-accent fill-accent" />
                   <span className="text-xs font-bold text-primary">50 Credits Reward</span>
                 </div>
               </div>
             </div>
 
-            {/* Title */}
-            <h1 className="font-heading text-3xl font-bold text-black mb-6">
-              {report.title || (report.category ? report.category.replace(/_/g, ' ') : 'Sanitation Issue')}
-            </h1>
-
-            {/* Photo and Reporter Overlay */}
-            <div className="relative mb-20 sm:mb-24">
-              {/* Photo */}
-              <div className="w-full h-[300px] sm:h-[400px] rounded-2xl overflow-hidden bg-white-stroke shadow-sm">
-                {report.photoUrl ? (
-                  <img 
-                    src={report.photoUrl} 
-                    alt="Report issue" 
-                    className="w-full h-full object-cover"
-                    onError={(e) => { e.target.style.display = 'none'; }}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-black-placeholder bg-white-bg2">
-                    No image provided
-                  </div>
-                )}
-              </div>
-
-              {/* Reporter Info Row (Overlapping) */}
-              <div className="absolute left-0 -bottom-12 sm:-bottom-14 w-full flex flex-col sm:flex-row sm:items-end justify-between px-4 sm:px-8 gap-4">
-                <div className="flex items-end gap-4">
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white border-4 border-white shadow-md flex items-center justify-center overflow-hidden shrink-0 z-10">
-                    {report.reporter?.avatarUrl ? (
-                      <img src={report.reporter.avatarUrl} alt="Reporter" className="w-full h-full object-cover" />
-                    ) : (
-                      <User className="w-10 h-10 text-primary/50" />
-                    )}
-                  </div>
-                  <div className="pb-2">
-                    <h3 className="font-heading font-bold text-black text-xl sm:text-2xl">
-                      {report.reporter?.displayName || report.reporter?.name || report.reporter?.fullName || report.reporter?.firstName || 'Anonymous'}
-                    </h3>
-                    <p className="text-sm text-black-placeholder font-medium mt-0.5">
-                      {report.reporter?.status || 'Top Contributor'}
-                    </p>
-                  </div>
+            {/* Photo & Reporter Section */}
+            <div className="mb-10">
+              {/* Photo with relative positioning for the avatar */}
+              <div className="relative">
+                <div className="w-full h-[300px] sm:h-[400px] rounded-2xl overflow-hidden bg-white-stroke shadow-sm">
+                  {report.photoUrl ? (
+                    <img 
+                      src={report.photoUrl} 
+                      alt="Report issue" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                  ) : (
+                    <div className="w-full h-full flex items-center justify-center text-black-placeholder bg-white-bg2">
+                      No image provided
+                    </div>
+                  )}
                 </div>
                 
-                <div className="flex items-center gap-2 sm:gap-3 pb-2 self-start sm:self-auto pl-28 sm:pl-0">
-                  <button className="p-2 text-black-icon hover:text-primary transition-colors bg-white rounded-full shadow-sm" title="Save Report">
+                {/* Absolute Avatar overlapping bottom edge */}
+                <div className="absolute -bottom-10 sm:-bottom-12 left-4 sm:left-8 w-24 h-24 sm:w-[110px] sm:h-[110px] rounded-full bg-white border-4 border-white shadow-sm flex items-center justify-center overflow-hidden z-10">
+                  {report.reporter?.avatarUrl ? (
+                    <img src={report.reporter.avatarUrl} alt="Reporter" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-10 h-10 text-primary/50" />
+                  )}
+                </div>
+              </div>
+
+              {/* Reporter Info Row (Flows normally below photo) */}
+              <div className="mt-3 sm:mt-4 pl-[120px] sm:pl-[160px] pr-2 sm:pr-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div>
+                  <h3 className="font-heading font-bold text-black text-xl sm:text-2xl">
+                    {report.reporter?.displayName || report.reporter?.name || report.reporter?.fullName || report.reporter?.firstName || 'Anonymous'}
+                  </h3>
+                  <p className="text-sm text-black-placeholder font-medium mt-0.5">
+                    {report.reporter?.status || 'Top Contributor'}
+                  </p>
+                </div>
+                
+                <div className="flex items-center gap-1 sm:gap-2">
+                  <button className="p-2 text-black-icon hover:text-primary transition-colors" title="Save Report">
                     <Star className="w-5 h-5" />
                   </button>
-                  <button className="p-2 text-black-icon hover:text-alert-error transition-colors bg-white rounded-full shadow-sm" title="Flag Report">
+                  <button className="p-2 text-black-icon hover:text-alert-error transition-colors" title="Flag Report">
                     <Flag className="w-5 h-5" />
                   </button>
                   <button 
                     onClick={() => document.getElementById('commentInput')?.focus()}
-                    className="px-4 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors shadow-sm ml-2"
+                    className="px-5 py-2 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors shadow-sm ml-1"
                   >
                     Add Comment
                   </button>
@@ -524,7 +526,7 @@ export default function ReportDetailPage() {
                             </p>
                           )}
                           {stage.date && (
-                            <p className="text-[10px] text-black-placeholder mt-1 font-medium">
+                            <p className="text-xs text-black-placeholder mt-1 font-medium">
                               {formatDateTime(stage.date)}
                             </p>
                           )}
@@ -538,9 +540,9 @@ export default function ReportDetailPage() {
 
             {/* Sent a CleanReport? Rewards Card */}
             {isAuthor && (
-              <div className="bg-white border border-white-stroke rounded-2xl p-6 shadow-sm flex flex-col items-center text-center">
-                <div className="w-12 h-12 mb-3 bg-alert-warningLight rounded-xl flex items-center justify-center">
-                  <Gift className="w-6 h-6 text-accent" />
+              <div className="bg-white border border-white-stroke rounded-2xl p-6 shadow-sm flex flex-col items-center text-center mt-2">
+                <div className="text-5xl mb-4">
+                  🎁
                 </div>
                 <h3 className="font-heading text-lg font-bold text-black mb-2">Sent a CleanReport?</h3>
                 <p className="text-sm text-paragraph mb-5 leading-relaxed">
