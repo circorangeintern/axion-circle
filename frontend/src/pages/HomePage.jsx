@@ -622,7 +622,13 @@ export default function HomePage() {
                         </button>
                       </div>
                     )}
-                    {reports.length === 0 && mapStatus !== 'error' && (
+                    {reports.length === 0 && mapStatus === 'loading' && (
+                      <div className="flex-1 flex flex-col items-center justify-center py-12 text-center px-4">
+                        <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4"></div>
+                        <span className="text-sm font-semibold text-paragraph">Loading recent reports...</span>
+                      </div>
+                    )}
+                    {reports.length === 0 && mapStatus === 'success' && (
                       <div className="py-8 text-center text-sm text-paragraph">No recent reports found</div>
                     )}
                     {reports.slice(0, 6).map((report, idx) => {
