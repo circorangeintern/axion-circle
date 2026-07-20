@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import AppNavbar from '../components/AppNavbar';
 import mapBg from '../assets/map-bg.jpg';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import MarkerClusterGroup from '@changey/react-leaflet-markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
@@ -63,6 +63,17 @@ const getMarkerIcon = (status) => {
     iconSize: [20, 20],
     iconAnchor: [10, 10],
   });
+};
+
+const MapBoundsFit = ({ reports }) => {
+  const map = useMap();
+  useEffect(() => {
+    if (reports && reports.length > 0) {
+      const bounds = L.latLngBounds(reports.map(r => [r.latitude, r.longitude]));
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+    }
+  }, [reports, map]);
+  return null;
 };
 
 export default function HomePage() {
@@ -469,6 +480,7 @@ export default function HomePage() {
                         className="w-full h-full z-0"
                         style={{ height: '100%', width: '100%' }}
                       >
+                        <MapBoundsFit reports={filteredReports.filter((r) => r.latitude && r.longitude)} />
                         <TileLayer
                           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
