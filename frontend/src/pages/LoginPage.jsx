@@ -20,6 +20,7 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingText, setLoadingText] = useState('Log into Account');
+  const [serverError, setServerError] = useState('');
 
   useEffect(() => {
     if (isSubmitting) {
@@ -32,10 +33,11 @@ export default function LoginPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!email.trim() || !password) {
-      toast.error('Please enter your email and password.');
+      setServerError('Please enter your email and password.');
       return;
     }
 
+    setServerError('');
     setIsSubmitting(true);
     try {
       const response = await api.post('/auth/login', {
@@ -73,10 +75,10 @@ export default function LoginPage() {
 
       // Connection failure: timeout (ECONNABORTED) or no response from server
       if (error.isConnectionError || error.code === 'ECONNABORTED' || !error.response) {
-        toast.error('Connection failed. Please try again.');
+        setServerError('Connection failed. Please try again.');
         return;
       }
-      toast.error('Invalid email or password');
+      setServerError('Invalid email or password');
     } finally {
       setIsSubmitting(false);
     }
@@ -107,6 +109,11 @@ export default function LoginPage() {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-4 font-body" noValidate>
+            {serverError && (
+              <div className="p-3 bg-alert-errorLight border border-alert-error/20 rounded-lg text-alert-error text-sm font-medium mb-4">
+                {serverError}
+              </div>
+            )}
             <div>
               <label
                 htmlFor="email"

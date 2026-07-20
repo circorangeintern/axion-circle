@@ -30,6 +30,7 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingText, setLoadingText] = useState('Create Account');
 
@@ -71,8 +72,11 @@ export default function RegisterPage() {
 
     if (!password) {
       newErrors.password = 'Password is required.';
-    } else if (password.length < 8) {
-      newErrors.password = 'Password must be at least 8 characters.';
+    } else {
+      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_\-#])[A-Za-z\d@$!%*?&_\-#]{8,}$/;
+      if (!passwordRegex.test(password)) {
+        newErrors.password = 'Password must be at least 8 characters, with 1 uppercase, 1 lowercase, 1 number, and 1 special character.';
+      }
     }
 
     if (!confirmPassword) {
@@ -103,6 +107,7 @@ export default function RegisterPage() {
   // Step 2 submit handler
   const handleStep2Submit = async (e) => {
     e.preventDefault();
+    setServerError('');
     if (!validateStep2()) return;
 
     setIsSubmitting(true);
@@ -182,7 +187,7 @@ export default function RegisterPage() {
           ? error.response.data
           : null) ||
         'Registration failed. Please try again.';
-      toast.error(serverMessage);
+      setServerError(serverMessage);
     } finally {
       setIsSubmitting(false);
     }
@@ -342,6 +347,11 @@ export default function RegisterPage() {
               </div>
 
               <form onSubmit={handleStep2Submit} className="space-y-4 font-body" noValidate>
+                {serverError && (
+                  <div className="p-3 bg-alert-errorLight border border-alert-error/20 rounded-lg text-alert-error text-sm font-medium mb-4">
+                    {serverError}
+                  </div>
+                )}
                 <div>
                   <label
                     htmlFor="fullName"
