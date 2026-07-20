@@ -536,7 +536,7 @@ export default function HomePage() {
                     <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-white border border-white-stroke rounded-lg p-3 sm:p-4 w-[200px] sm:w-[240px] shadow-lg z-[400] pointer-events-none">
                       <h3 className="font-bold text-[11px] sm:text-xs text-black mb-1.5">District Overview</h3>
                       <p className="text-[9px] sm:text-[10px] text-paragraph leading-relaxed">
-                        Most reports currently localized in North Sector (Road Maintenance). 4 new reports in last hour.
+                        Displaying {filteredReports.length} total active reports across all locations. Zoom out to view reports outside of Lagos.
                       </p>
                     </div>
                   )}
