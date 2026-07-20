@@ -28,7 +28,7 @@ import {
 import AppNavbar from '../components/AppNavbar';
 import mapBg from '../assets/map-bg.jpg';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import MarkerClusterGroup from 'react-leaflet-cluster';
+import MarkerClusterGroup from '@changey/react-leaflet-markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet/dist/leaflet.css';
