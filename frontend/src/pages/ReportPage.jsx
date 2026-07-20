@@ -299,7 +299,7 @@ export default function ReportPage() {
     setLocationStatus('loading');
     
     try {
-      const query = encodeURIComponent(manualLocationInput.trim() + ', Lagos'); // bias towards Lagos
+      const query = encodeURIComponent(manualLocationInput.trim()); // search anywhere
       const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`);
       const data = await res.json();
       
