@@ -28,6 +28,9 @@ import {
 import AppNavbar from '../components/AppNavbar';
 import mapBg from '../assets/map-bg.jpg';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import MarkerClusterGroup from 'react-leaflet-cluster';
+import 'leaflet.markercluster/dist/MarkerCluster.css';
+import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import api from '../services/api';
@@ -470,44 +473,54 @@ export default function HomePage() {
                           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
                         />
-                        {filteredReports
-                          .filter((r) => r.latitude && r.longitude) // Ensure coordinates exist
-                          .map((report) => (
-                          <Marker
-                            key={report.id}
-                            position={[report.latitude, report.longitude]}
-                            icon={getMarkerIcon(report.status)}
-                          >
-                            <Popup className="custom-popup rounded-xl">
-                              <div className="w-[200px]">
-                                {report.photoUrl && (
-                                  <img src={report.photoUrl} alt="Report evidence" className="w-full h-24 object-cover rounded-t-lg mb-2" />
-                                )}
-                                <div className={`p-3 ${report.photoUrl ? 'pt-0' : ''}`}>
-                                  <div className="flex items-center justify-between mb-1.5">
-                                    <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-sm ${
-                                      (report.status || '').toLowerCase() === 'resolved' ? 'bg-alert-successLight text-primary' :
-                                      (report.status || '').toLowerCase() === 'inprogress' || (report.status || '').toLowerCase() === 'in progress' ? 'bg-alert-inprogressLight text-alert-inprogress' :
-                                      (report.status || '').toLowerCase() === 'acknowledged' ? 'bg-alert-infoLight text-alert-info' :
-                                      'bg-alert-warningLight text-accent'
-                                    }`}>
-                                      {report.status || 'Reported'}
-                                    </span>
-                                    <span className="text-[10px] text-paragraph font-medium">{timeAgo(report.createdAt || report.date)}</span>
+                        <MarkerClusterGroup
+                          chunkedLoading
+                          spiderfyOnMaxZoom={true}
+                          showCoverageOnHover={false}
+                          maxClusterRadius={40}
+                        >
+                          {filteredReports
+                            .filter((r) => r.latitude && r.longitude) // Ensure coordinates exist
+                            .map((report) => (
+                            <Marker
+                              key={report.id}
+                              position={[report.latitude, report.longitude]}
+                              icon={getMarkerIcon(report.status)}
+                            >
+                              <Popup className="custom-popup rounded-xl">
+                                <div className="w-[200px]">
+                                  {report.photoUrl && (
+                                    <img src={report.photoUrl} alt="Report evidence" className="w-full h-24 object-cover rounded-t-lg mb-2" />
+                                  )}
+                                  <div className={`p-3 ${report.photoUrl ? 'pt-0' : ''}`}>
+                                    <div className="flex items-center justify-between mb-1.5">
+                                      <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded-sm ${
+                                        (report.status || '').toLowerCase() === 'resolved' ? 'bg-alert-successLight text-primary' :
+                                        (report.status || '').toLowerCase() === 'inprogress' || (report.status || '').toLowerCase() === 'in progress' ? 'bg-alert-inprogressLight text-alert-inprogress' :
+                                        (report.status || '').toLowerCase() === 'acknowledged' ? 'bg-alert-infoLight text-alert-info' :
+                                        'bg-alert-warningLight text-accent'
+                                      }`}>
+                                        {report.status || 'Reported'}
+                                      </span>
+                                      <span className="text-[9px] font-medium text-black-placeholder">{timeAgo(report.createdAt || report.date)}</span>
+                                    </div>
+                                    <h3 className="font-extrabold text-[13px] text-black uppercase mb-1 leading-tight">{report.title || report.category || 'Sanitation Issue'}</h3>
+                                    <p className="text-[10px] text-paragraph line-clamp-2 mb-3 leading-snug">
+                                      {report.description || 'Sanitation issue report'}
+                                    </p>
+                                    
+                                    <Link 
+                                      to={`/reports/${report.id}`}
+                                      className="block w-full py-2 bg-primary/10 text-primary text-[10px] font-bold text-center rounded-lg hover:bg-primary/20 transition-colors"
+                                    >
+                                      View Report
+                                    </Link>
                                   </div>
-                                  <h4 className="text-xs font-bold text-black mb-0.5 leading-tight">{report.title || report.category || 'Sanitation Issue'}</h4>
-                                  <p className="text-[10px] text-paragraph line-clamp-2 mb-2 leading-relaxed">{report.description}</p>
-                                  <Link
-                                    to={`/reports/${report.id}`}
-                                    className="block w-full text-center py-1.5 bg-primary/10 hover:bg-primary/20 text-primary font-bold text-[10px] rounded transition-colors"
-                                  >
-                                    View Report
-                                  </Link>
                                 </div>
-                              </div>
-                            </Popup>
-                          </Marker>
-                        ))}
+                              </Popup>
+                            </Marker>
+                          ))}
+                        </MarkerClusterGroup>
                       </MapContainer>
                     </MapErrorBoundary>
                   ) : viewMode === 'list' ? (
