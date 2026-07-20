@@ -108,8 +108,8 @@ export default function HomePage() {
         
         return {
           ...r,
-          latitude: r.latitude ? (parseFloat(r.latitude) + jitterLat) : (lagosLat + (Math.sin(idx * 2.5) * 0.08)),
-          longitude: r.longitude ? (parseFloat(r.longitude) + jitterLng) : (lagosLng + (Math.cos(idx * 2.5) * 0.08)),
+          latitude: r.latitude ? (parseFloat(r.latitude) + jitterLat) : (lagosLat + jitterLat),
+          longitude: r.longitude ? (parseFloat(r.longitude) + jitterLng) : (lagosLng + jitterLng),
           rawDate: r.createdAt ? new Date(r.createdAt).getTime() : (r.date ? 0 : Date.now())
         };
       });
