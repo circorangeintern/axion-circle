@@ -247,7 +247,7 @@ export default function ReportDetailPage() {
     <div className="min-h-screen bg-white-bg font-body flex flex-col">
       <AppNavbar />
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
+      <main className="flex-1 w-full max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-[112px] py-8 lg:py-[72px]">
         {/* Breadcrumb */}
         <div className="flex items-center text-xs font-medium text-black-placeholder mb-6">
           <Link to="/" className="hover:text-primary transition-colors">Dashboard</Link>
@@ -257,13 +257,10 @@ export default function ReportDetailPage() {
           <span className="text-primary">Report Details</span>
         </div>
 
-        {/* Mobile layout placeholder comment: 
-            The layout below stacks on mobile (< md) and shows two columns on desktop (md+). 
-            Adjustments may be needed once mobile Figma designs are finalized. */}
-        <div className="flex flex-col md:flex-row gap-8">
+        <div className="flex flex-col lg:flex-row gap-[31px] justify-between">
           
           {/* Main Content Column */}
-          <div className="w-full md:w-[65%] lg:w-[70%]">
+          <div className="w-full lg:max-w-[776px] shrink-0">
             
             {/* Header Row */}
             <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-6 gap-4">
@@ -488,10 +485,10 @@ export default function ReportDetailPage() {
           </div>
 
           {/* Sidebar Column */}
-          <div className="w-full md:w-[35%] lg:w-[30%] flex flex-col gap-6">
+          <div className="w-full lg:max-w-[409px] shrink-0 flex flex-col gap-8">
             
             {/* Status Timeline Card */}
-            <div className="bg-white border border-white-stroke rounded-2xl p-6 shadow-sm">
+            <div className="bg-white border border-white-stroke rounded-xl px-6 py-9 shadow-sm">
               <div className="relative">
                 {/* Vertical Line */}
                 <div className="absolute left-[11px] top-2 bottom-6 w-0.5 bg-white-stroke z-0"></div>
@@ -540,17 +537,17 @@ export default function ReportDetailPage() {
 
             {/* Sent a CleanReport? Rewards Card */}
             {isAuthor && (
-              <div className="bg-white border border-white-stroke rounded-2xl p-6 shadow-sm flex flex-col items-center text-center mt-2">
-                <div className="text-5xl mb-4">
+              <div className="bg-white border border-white-stroke rounded-xl px-6 py-9 shadow-sm flex flex-col items-center text-center">
+                <div className="text-5xl mb-3">
                   🎁
                 </div>
-                <h3 className="font-heading text-lg font-bold text-black mb-2">Sent a CleanReport?</h3>
-                <p className="text-sm text-paragraph mb-5 leading-relaxed">
+                <h3 className="font-heading text-[18px] font-bold text-black mb-2">Sent a CleanReport?</h3>
+                <p className="text-[14px] text-paragraph mb-5 leading-relaxed">
                   When you send a report, your reward appears here after the report has been resolved.
                 </p>
                 <Link
                   to="/rewards"
-                  className="w-full py-2.5 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
+                  className="w-full py-3 bg-primary text-white text-[14px] font-semibold rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
                 >
                   See Your Rewards
                 </Link>
