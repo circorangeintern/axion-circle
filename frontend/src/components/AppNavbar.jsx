@@ -26,12 +26,12 @@ export default function AppNavbar({ activeTab = '' }) {
 
   const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    const token = (localStorage.getItem() || sessionStorage.getItem());
+    const token = (localStorage.getItem('access_token') || sessionStorage.getItem('access_token'));
     return Boolean(token && token !== 'undefined' && token !== 'null');
   });
 
   useEffect(() => {
-    const token = (localStorage.getItem() || sessionStorage.getItem());
+    const token = (localStorage.getItem('access_token') || sessionStorage.getItem('access_token'));
     setIsLoggedIn(Boolean(token && token !== 'undefined' && token !== 'null'));
   }, [location.pathname]);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -40,12 +40,12 @@ export default function AppNavbar({ activeTab = '' }) {
 
   const getUserInfo = () => {
     try {
-      const storedUser = (localStorage.getItem() || sessionStorage.getItem());
+      const storedUser = (localStorage.getItem('user') || sessionStorage.getItem('user'));
       if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
         const parsed = JSON.parse(storedUser);
         
-        let dName = String(parsed?.displayName || parsed?.name || parsed?.fullName || parsed?.username || (localStorage.getItem() || sessionStorage.getItem()) || '');
-        const email = String(parsed?.email || (localStorage.getItem() || sessionStorage.getItem()) || 'belrah@gmail.com');
+        let dName = String(parsed?.displayName || parsed?.name || parsed?.fullName || parsed?.username || (localStorage.getItem('user_name') || sessionStorage.getItem('user_name')) || '');
+        const email = String(parsed?.email || (localStorage.getItem('user_email') || sessionStorage.getItem('user_email')) || 'belrah@gmail.com');
         
         if (!dName || dName.trim() === '') {
            if (email && typeof email === 'string' && email.includes('@')) {
@@ -65,8 +65,8 @@ export default function AppNavbar({ activeTab = '' }) {
       // Ignore JSON parse errors
     }
     
-    let dName = String((localStorage.getItem() || sessionStorage.getItem()) || '');
-    const email = String((localStorage.getItem() || sessionStorage.getItem()) || 'belrah@gmail.com');
+    let dName = String((localStorage.getItem('user_name') || sessionStorage.getItem('user_name')) || '');
+    const email = String((localStorage.getItem('user_email') || sessionStorage.getItem('user_email')) || 'belrah@gmail.com');
     if (!dName || dName.trim() === '') {
        if (email && typeof email === 'string' && email.includes('@')) {
            dName = email.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim();
@@ -102,9 +102,9 @@ export default function AppNavbar({ activeTab = '' }) {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem(); sessionStorage.removeItem();
-    localStorage.removeItem(); sessionStorage.removeItem();
-    localStorage.removeItem(); sessionStorage.removeItem();
+    localStorage.removeItem('access_token'); sessionStorage.removeItem('access_token');
+    localStorage.removeItem('refresh_token'); sessionStorage.removeItem('refresh_token');
+    localStorage.removeItem('user'); sessionStorage.removeItem('user');
     setIsLoggedIn(false);
     setIsMenuOpen(false);
     setIsMobileMenuOpen(false);

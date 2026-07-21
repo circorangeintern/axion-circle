@@ -106,12 +106,12 @@ export default function HomePage() {
 
   const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    const token = (localStorage.getItem() || sessionStorage.getItem());
+    const token = (localStorage.getItem('access_token') || sessionStorage.getItem('access_token'));
     return Boolean(token && token !== 'undefined' && token !== 'null');
   });
 
   useEffect(() => {
-    const token = (localStorage.getItem() || sessionStorage.getItem());
+    const token = (localStorage.getItem('access_token') || sessionStorage.getItem('access_token'));
     setIsLoggedIn(Boolean(token && token !== 'undefined' && token !== 'null'));
   }, [location.pathname]);
   const [isBannerDismissed, setIsBannerDismissed] = useState(false);
@@ -176,7 +176,7 @@ export default function HomePage() {
   }, []);
 
   const handleViewAll = () => {
-    if ((localStorage.getItem() || sessionStorage.getItem())) {
+    if ((localStorage.getItem('access_token') || sessionStorage.getItem('access_token'))) {
       navigate('/reports');
     } else {
       navigate('/login');
@@ -185,23 +185,23 @@ export default function HomePage() {
 
   const getUserFirstName = () => {
     try {
-      const storedUser = (localStorage.getItem() || sessionStorage.getItem());
+      const storedUser = (localStorage.getItem('user') || sessionStorage.getItem('user'));
       if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
         const parsed = JSON.parse(storedUser);
-        const name = String(parsed?.displayName || parsed?.name || parsed?.fullName || parsed?.username || (localStorage.getItem() || sessionStorage.getItem()) || '');
+        const name = String(parsed?.displayName || parsed?.name || parsed?.fullName || parsed?.username || (localStorage.getItem('user_name') || sessionStorage.getItem('user_name')) || '');
         if (name && name.trim() !== '') {
           return name.split(' ')[0];
         }
         
         // Fallback to email
-        const emailStr = String(parsed?.email || (localStorage.getItem() || sessionStorage.getItem()) || '');
+        const emailStr = String(parsed?.email || (localStorage.getItem('user_email') || sessionStorage.getItem('user_email')) || '');
         if (emailStr && typeof emailStr === 'string' && emailStr.includes('@')) {
            return emailStr.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim().split(' ')[0];
         }
       }
     } catch (e) {}
     
-    const emailStr = (localStorage.getItem() || sessionStorage.getItem());
+    const emailStr = (localStorage.getItem('user_email') || sessionStorage.getItem('user_email'));
     if (emailStr && typeof emailStr === 'string' && emailStr.includes('@')) {
        return emailStr.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim().split(' ')[0];
     }

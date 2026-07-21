@@ -96,7 +96,7 @@ export default function ReportDetailPage() {
 
   useEffect(() => {
     try {
-      const userStr = (localStorage.getItem() || sessionStorage.getItem());
+      const userStr = (localStorage.getItem('user') || sessionStorage.getItem('user'));
       if (userStr) {
         const user = JSON.parse(userStr);
         setLoggedInUserId(user.id || user._id);
@@ -158,7 +158,7 @@ export default function ReportDetailPage() {
     if (!newComment.trim()) return;
 
     // Check if logged in first before attempting to comment
-    if (!(localStorage.getItem() || sessionStorage.getItem())) {
+    if (!(localStorage.getItem('access_token') || sessionStorage.getItem('access_token'))) {
       toast.error('Please log in to add a comment.');
       navigate('/login');
       return;

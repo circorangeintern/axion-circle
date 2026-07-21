@@ -231,8 +231,8 @@ export default function RegisterPage() {
           {step === 1 && (
             <div className="animate-in fade-in duration-200">
               <div className="text-center mb-6">
-                <h1 className="font-heading text-auth-heading text-primary mb-1">
-                  Create an account
+                <h1 className="font-heading text-auth-heading text-primary mb-1 whitespace-nowrap">
+                  Create Account
                 </h1>
                 <p className="font-body text-auth-subtext text-paragraph">
                   sign up to get started on cleanreport
