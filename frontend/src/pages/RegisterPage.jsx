@@ -73,9 +73,15 @@ export default function RegisterPage() {
     if (!password) {
       newErrors.password = 'Password is required.';
     } else {
-      const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_\-#])[A-Za-z\d@$!%*?&_\-#]{8,}$/;
-      if (!passwordRegex.test(password)) {
-        newErrors.password = 'Password must be at least 8 characters, with 1 uppercase, 1 lowercase, 1 number, and 1 special character.';
+      const missing = [];
+      if (password.length < 8) missing.push('8 characters');
+      if (!/[A-Z]/.test(password)) missing.push('1 uppercase letter');
+      if (!/[a-z]/.test(password)) missing.push('1 lowercase letter');
+      if (!/\d/.test(password)) missing.push('1 number');
+      if (!/[^A-Za-z0-9]/.test(password)) missing.push('1 special character');
+
+      if (missing.length > 0) {
+        newErrors.password = `Password needs: ${missing.join(', ')}.`;
       }
     }
 
