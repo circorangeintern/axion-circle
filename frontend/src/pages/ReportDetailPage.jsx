@@ -311,6 +311,21 @@ export default function ReportDetailPage() {
               <h1 className="font-heading text-[32px] sm:text-[40px] font-bold text-black leading-tight mt-1">
                 {report.title || (report.category ? report.category.replace(/_/g, ' ') : 'Sanitation Issue')}
               </h1>
+              <div className="flex items-center gap-2 mt-2">
+                {/* Status Badge */}
+                <span className={`text-[11px] font-bold uppercase px-2.5 py-0.5 rounded-sm border ${
+                  (report.status || '').toLowerCase().replace(' ', '') === 'resolved' ? 'bg-alert-successLight text-primary border-alert-successStroke' :
+                  (report.status || '').toLowerCase().replace(' ', '') === 'inprogress' ? 'bg-alert-inprogressLight text-alert-inprogress border-alert-inprogressStroke' :
+                  (report.status || '').toLowerCase().replace(' ', '') === 'acknowledged' ? 'bg-alert-infoLight text-alert-info border-alert-infoStroke' :
+                  'bg-alert-warningLight text-accent border-alert-warningStroke'
+                }`}>
+                  {report.status || 'Reported'}
+                </span>
+                {/* Category Badge */}
+                <span className="text-[11px] font-bold uppercase px-2.5 py-0.5 rounded-sm bg-white-bg2 text-paragraph border border-white-stroke">
+                  {report.category ? report.category.replace(/_/g, ' ') : 'Sanitation'}
+                </span>
+              </div>
             </div>
             <div className="flex flex-col items-end gap-[10px] shrink-0">
               {/* Urgency Badge */}
@@ -369,6 +384,9 @@ export default function ReportDetailPage() {
               </div>
               
               <div className="flex items-center gap-3 mt-4 sm:mt-3 pl-[128px] sm:pl-0">
+                <button onClick={handleShare} className="text-black-icon hover:text-primary transition-colors" title="Share Report">
+                  <Share2 className="w-[20px] h-[20px]" strokeWidth={1.5} />
+                </button>
                 <button className="text-black-icon hover:text-primary transition-colors" title="Save Report">
                   <Star className="w-[20px] h-[20px]" strokeWidth={1.5} />
                 </button>

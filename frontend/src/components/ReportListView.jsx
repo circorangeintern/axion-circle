@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { MapPin } from 'lucide-react';
 
 const timeAgo = (dateStr) => {
   if (!dateStr) return 'Just now';
@@ -44,7 +45,7 @@ export default function ReportListView({ reports }) {
                   className="w-full h-full object-cover" 
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = 'https://res.cloudinary.com/demo/image/upload/v1784551569/cam7heldii2kcrpay6zj.jpg';
+                    e.target.src = 'https://placehold.co/600x400/f0ede5/a0a0a0?text=No+Image';
                   }}
                 />
               </div>
@@ -63,6 +64,14 @@ export default function ReportListView({ reports }) {
                 <h4 className="text-sm font-bold text-black mb-1 leading-tight truncate">
                   {report.title || report.category || 'Sanitation Issue'}
                 </h4>
+                <div className="flex items-center gap-1 text-[11px] text-black-icon mb-2">
+                  <MapPin className="w-3 h-3 shrink-0" />
+                  <span className="truncate">
+                    {(report.address || report.areaName || '').includes('Location unavailable') 
+                      ? 'Location not automatically captured' 
+                      : (report.address || report.areaName || 'Location not captured')}
+                  </span>
+                </div>
                 <p className="text-xs text-paragraph line-clamp-2 leading-relaxed">
                   {report.description}
                 </p>

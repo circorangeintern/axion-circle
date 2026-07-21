@@ -481,7 +481,7 @@ export default function ReportsPage() {
                           loading="lazy"
                           onError={(e) => {
                             e.target.onerror = null;
-                            e.target.src = 'https://res.cloudinary.com/demo/image/upload/v1784551569/cam7heldii2kcrpay6zj.jpg';
+                            e.target.src = 'https://placehold.co/600x400/f0ede5/a0a0a0?text=No+Image';
                           }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
