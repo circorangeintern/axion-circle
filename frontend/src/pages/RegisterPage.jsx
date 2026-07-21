@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
+import ReactGA from 'react-ga4';
 import api from '../services/api';
 import AuthHeroPanel from '../components/AuthHeroPanel';
 import Logo from '../components/Logo';
@@ -36,6 +37,10 @@ export default function RegisterPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingText, setLoadingText] = useState('Create Account');
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    ReactGA.event({ category: 'Auth', action: 'register_page_view' });
+  }, []);
 
   useEffect(() => {
     if (isSubmitting) {
@@ -141,6 +146,7 @@ export default function RegisterPage() {
 
       // Show Account Created step inline to match Figma
       setStep(3);
+      ReactGA.event({ category: 'Auth', action: 'sign_up', label: 'email' });
     } catch (error) {
 
       // Connection failure: timeout (ECONNABORTED) or no response from server

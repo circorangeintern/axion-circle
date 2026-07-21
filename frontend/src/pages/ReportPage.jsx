@@ -18,6 +18,7 @@ import {
 import api from '../services/api';
 import { uploadToCloudinary } from '../services/cloudinary';
 import AppNavbar from '../components/AppNavbar';
+import ReactGA from 'react-ga4';
 import Footer from '../components/Footer';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -179,6 +180,10 @@ export default function ReportPage() {
     window.scrollTo(0, 0);
   };
 
+  useEffect(() => {
+    ReactGA.event({ category: 'Report', action: 'form_opened' });
+  }, []);
+
   // Location states
   const [latitude, setLatitude] = useState(null);
   const [longitude, setLongitude] = useState(null);
@@ -278,6 +283,7 @@ export default function ReportPage() {
 
     setPhoto(file);
     setPhotoPreviewUrl(URL.createObjectURL(file));
+    ReactGA.event({ category: 'Report', action: 'photo_uploaded' });
   };
 
   const handleDrop = (e) => {
@@ -292,6 +298,7 @@ export default function ReportPage() {
 
     setPhoto(file);
     setPhotoPreviewUrl(URL.createObjectURL(file));
+    ReactGA.event({ category: 'Report', action: 'photo_uploaded' });
   };
 
   const handleDragOver = (e) => {
@@ -390,6 +397,7 @@ export default function ReportPage() {
       // Override logic removed
 
       setShowSuccessModal(true);
+      ReactGA.event({ category: 'Report', action: 'report_submitted', label: mappedCategory });
     } catch (error) {
       console.error('Submission error:', error);
       let serverMsg = 'Failed to submit report. Please try again.';

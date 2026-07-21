@@ -1,5 +1,7 @@
-import { Routes, Route } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
+import ReactGA from 'react-ga4';
 import HomePage from './pages/HomePage';
 import ReportPage from './pages/ReportPage';
 import ReportsPage from './pages/ReportsPage';
@@ -17,6 +19,12 @@ import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 
 function App() {
+  const location = useLocation();
+
+  useEffect(() => {
+    ReactGA.send({ hitType: 'pageview', page: location.pathname + location.search });
+  }, [location]);
+
   return (
     <>
       <Toaster position="top-right" />
