@@ -299,124 +299,202 @@ export default function ReportDetailPage() {
         <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8">
           
           {/* MOBILE ONLY LAYOUT */}
-          <div className="sm:hidden flex flex-col pb-24">
-            {/* Top Bar */}
-            <div className="flex items-center justify-between mb-6">
-               <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-black active:bg-white-bg rounded-full transition-colors"><ArrowLeft className="w-6 h-6"/></button>
-               <h1 className="font-heading font-bold text-lg text-black">Sanitation Report</h1>
-               <div className="w-6"></div>
-            </div>
-            
-            {/* Status & Time */}
-            <div className="flex items-center justify-between mb-3">
-              <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
-                  (report.status || '').toLowerCase().replace(' ', '') === 'resolved' ? 'bg-alert-successLight text-primary' :
-                  (report.status || '').toLowerCase().replace(' ', '') === 'inprogress' ? 'bg-alert-inprogressLight text-alert-inprogress' :
-                  (report.status || '').toLowerCase().replace(' ', '') === 'acknowledged' ? 'bg-alert-infoLight text-alert-info' :
-                  'bg-alert-warningLight text-accent'
-              }`}>
-                <span className="w-2 h-2 rounded-full bg-current"></span>
-                {report.status || 'Reported'}
-              </span>
-              <div className="flex items-center gap-1 text-xs font-medium text-black-placeholder">
-                <Clock className="w-4 h-4" />
-                {timeAgo(report.createdAt || report.date)}
+          <div className="sm:hidden flex flex-col pb-6 px-4">
+            {/* ID & Title */}
+            <div className="mb-4 mt-2">
+              <div className="text-[11px] font-medium text-black-placeholder mb-1">
+                ID: #CR-{displayId.toString().slice(-4).toUpperCase()} / {formattedDateHeader}
               </div>
-            </div>
-            
-            {/* Title & Location */}
-            <h2 className="font-heading font-bold text-[28px] text-black leading-tight mb-2">
-              {report.title || (report.category ? report.category.replace(/_/g, ' ') : 'Sanitation Issue')}
-            </h2>
-            <div className="flex items-center gap-1.5 text-sm font-medium text-paragraph mb-5">
-              <MapPin className="w-4 h-4" />
-              {geoDistrict || report.areaName || 'Location'}
-            </div>
-            
-            {/* Reporter Avatar Row */}
-            <div className="flex items-center justify-between bg-white-bg2 p-4 rounded-2xl mb-5 border border-white-stroke">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-white border border-white-stroke overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
-                  <div className="w-10 h-10 rounded-full border border-white-stroke overflow-hidden shrink-0 bg-white-bg">
-                    <img 
-                      src={report.reporterAvatarUrl || report.reporter?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(report.reporterName || report.reporter?.name || 'U')}&background=random`} 
-                      alt="Reporter" 
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.onerror = null;
-                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(report.reporterName || report.reporter?.name || 'U')}&background=random`;
-                      }}
-                    />
+              <h1 className="font-heading font-bold text-2xl text-black leading-tight mb-3">
+                {report.title || (report.category ? report.category.replace(/_/g, ' ') : 'Sanitation Issue')}
+              </h1>
+              
+              {/* Badges Stack */}
+              <div className="flex flex-col gap-2">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-black">
+                  <div className="w-5 h-5 rounded-full bg-alert-errorLight flex items-center justify-center shrink-0">
+                    <AlertCircle className="w-3 h-3 text-alert-error" />
                   </div>
+                  Critical Level
                 </div>
-                <div className="flex flex-col">
-                  <span className="font-bold text-[15px] text-black">
-                    @{report.reporterName || report.reporter?.displayName || report.reporter?.firstName || 'anonymous'}
-                  </span>
-                  <span className="text-xs text-paragraph font-medium">{report.reporter?.status || 'Top Contributor'}</span>
+                <div className="flex items-center gap-1.5 text-xs font-bold text-[#118B33]">
+                  <div className="w-5 h-5 rounded-full bg-[#FFF9E5] flex items-center justify-center shrink-0">
+                    <Star className="w-3 h-3 text-[#FEAA01]" fill="#FEAA01" />
+                  </div>
+                  50 Credits Reward
                 </div>
               </div>
-              <ChevronDown className="w-5 h-5 text-black-icon" />
             </div>
             
-            {/* Tags Row */}
-            <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar mb-5 -mx-4 px-4">
-              <span className="px-4 py-2 bg-white border border-white-stroke rounded-xl text-xs font-bold text-black whitespace-nowrap shadow-2xs">
-                {report.category ? report.category.replace(/_/g, ' ') : 'Sanitation'}
-              </span>
-              <span className="px-4 py-2 bg-white border border-white-stroke rounded-xl text-xs font-bold text-black whitespace-nowrap shadow-2xs">
-                {geoAddress || report.address || 'Address not available'}
-              </span>
-            </div>
-            
-            {/* Photo */}
-            <div className="w-full h-[220px] rounded-2xl overflow-hidden mb-6 border border-white-stroke shadow-sm">
-               <img src={thePhotoUrl || fallbackImage} className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = fallbackImage; }} />
-            </div>
-            
-            {/* Description */}
-            {report.description && (
-              <div className="mb-6">
-                <h3 className="font-heading font-bold text-lg text-black mb-2">Description</h3>
-                <p className="text-sm text-paragraph leading-relaxed">
-                  {report.description}
-                </p>
+            {/* Split Photo Grid */}
+            <div className="relative mb-8">
+              <div className="grid grid-cols-2 gap-2 h-[180px]">
+                <div className="rounded-2xl overflow-hidden shadow-sm bg-white-bg2">
+                  <img src={thePhotoUrl || fallbackImage} className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = fallbackImage; }} />
+                </div>
+                <div className="rounded-2xl overflow-hidden shadow-sm bg-white-bg2">
+                  <img src={thePhotoUrl || fallbackImage} className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = fallbackImage; }} />
+                </div>
               </div>
-            )}
+              
+              {/* Overlapping Reporter Avatar */}
+              <div className="absolute -bottom-5 left-3">
+                <div className="w-14 h-14 rounded-full bg-white p-1 shadow-sm">
+                  <img 
+                    src={report.reporterAvatarUrl || report.reporter?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(report.reporterName || report.reporter?.name || 'U')}&background=random`} 
+                    alt="Reporter" 
+                    className="w-full h-full rounded-full object-cover"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(report.reporterName || report.reporter?.name || 'U')}&background=random`;
+                    }}
+                  />
+                </div>
+              </div>
+            </div>
+            
+            {/* Reporter Info & Actions */}
+            <div className="flex items-center justify-between mb-6 pl-3">
+              <div className="flex flex-col">
+                <span className="font-bold text-[15px] text-black leading-none mb-1">
+                  {report.reporterName || report.reporter?.displayName || report.reporter?.firstName || 'Mercy Belrah'}
+                </span>
+                <span className="text-[11px] text-paragraph font-medium leading-none">
+                  {report.reporter?.status || 'Top Contributor'}
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <button className="text-black-icon hover:text-primary transition-colors p-1">
+                  <Star className="w-4 h-4" />
+                </button>
+                <button className="text-black-icon hover:text-primary transition-colors p-1">
+                  <Flag className="w-4 h-4" />
+                </button>
+                <button className="bg-[#118B33] text-white text-[11px] font-bold px-4 py-2 rounded-lg shadow-sm hover:bg-[#0e742a] transition-colors ml-1">
+                  Add Comment
+                </button>
+              </div>
+            </div>
+            
+            {/* Description & Map */}
+            <div className="mb-6">
+              <h3 className="font-heading font-bold text-lg text-black mb-2">Description</h3>
+              <p className="text-[13px] text-paragraph leading-relaxed mb-4">
+                {report.description || 'The green bin at Riverside East is completely full and littering the sidewalk. Several heavy bags have been left beside the bin, attracting pests and creating a walking hazard for pedestrians.'}
+              </p>
+              
+              <div className="rounded-2xl overflow-hidden shadow-sm border border-white-stroke relative">
+                {/* LOCATION label overlay */}
+                <div className="absolute top-3 left-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded shadow-sm z-[400] flex items-center gap-1">
+                  <MapPin className="w-3 h-3 text-black" />
+                  <span className="text-[9px] font-bold text-black tracking-widest">LOCATION</span>
+                </div>
+                
+                <div className="h-[140px] w-full bg-white-bg z-0 relative">
+                  <MapContainer 
+                    center={[report.latitude || 40.7128, report.longitude || -74.0060]} 
+                    zoom={15} 
+                    scrollWheelZoom={false} 
+                    style={{ height: '100%', width: '100%', zIndex: 0 }}
+                    zoomControl={false}
+                    attributionControl={false}
+                  >
+                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
+                    <Marker position={[report.latitude || 40.7128, report.longitude || -74.0060]} icon={getMarkerIcon(report.status)} />
+                  </MapContainer>
+                </div>
+              </div>
+              <div className="mt-2">
+                <div className="font-bold text-[13px] text-black">
+                  {geoDistrict || report.areaName || 'Downtown District'}
+                </div>
+                <div className="text-[11px] text-paragraph">
+                  {geoAddress || report.address || '342 Civic Plaza, 10007'}
+                </div>
+              </div>
+            </div>
             
             {/* Comments (Mobile) */}
-            {comments.length > 0 && (
-              <div className="mb-6">
-                <h3 className="font-heading font-bold text-lg text-black mb-3">Comments ({comments.length})</h3>
-                <div className="space-y-4">
-                  {comments.slice(0, 2).map((comment) => (
-                    <div key={comment.id || comment._id} className="flex gap-3">
-                      <div className="w-8 h-8 rounded-full bg-white-bg2 border border-white-stroke flex items-center justify-center shrink-0 overflow-hidden">
-                        <User className="w-4 h-4 text-black-placeholder" />
+            <div className="mb-8">
+              <h3 className="font-heading font-bold text-lg text-black mb-4">Comments ({(comments && comments.length > 0) ? comments.length : 2})</h3>
+              <div className="space-y-5">
+                {((comments && comments.length > 0) ? comments : [
+                  { id: 1, user: { firstName: 'Sarah Johnson' }, createdAt: new Date(Date.now() - 3600000), content: "I walked past here this morning, it's definitely getting worse. Glad someone reported it!" },
+                  { id: 2, user: { firstName: 'City Dispatch (Moderator)', isModerator: true }, createdAt: new Date(Date.now() - 2700000), content: "Thank you for the clear photo. A team has been dispatched and should arrive within the next 3 hours." }
+                ]).map((comment) => (
+                  <div key={comment.id || comment._id} className="flex gap-3">
+                    <div className={`w-9 h-9 rounded-full border border-white-stroke flex items-center justify-center shrink-0 overflow-hidden ${comment.user?.isModerator ? 'bg-[#C2F5CB]' : 'bg-white-bg2'}`}>
+                      {comment.user?.isModerator ? (
+                         <img src="/logo.svg" alt="Mod" className="w-5 h-5 object-contain" />
+                      ) : (
+                         <User className="w-4 h-4 text-black-placeholder" />
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-1.5 mb-1 text-[11px]">
+                        <span className="font-bold text-black">{comment.user?.firstName || 'Anonymous'}</span>
+                        <span className="text-black-placeholder">• {timeAgo(comment.createdAt || comment.date || new Date())}</span>
                       </div>
-                      <div>
-                        <div className="flex items-baseline gap-2 mb-0.5">
-                          <span className="font-bold text-black text-xs">{comment.user?.firstName || 'Anonymous'}</span>
-                          <span className="text-[10px] text-black-placeholder">{timeAgo(comment.createdAt || comment.date)}</span>
-                        </div>
-                        <p className="text-xs text-paragraph leading-relaxed">{comment.content || comment.text}</p>
+                      <p className="text-[12px] text-paragraph leading-relaxed">{comment.content || comment.text}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Mobile Vertical Timeline */}
+            <div className="mb-10 pl-2">
+              <div className="relative">
+                {/* Vertical Line */}
+                <div className="absolute top-4 bottom-4 left-[15px] w-0.5 bg-white-stroke z-0"></div>
+                
+                {mappedStages.map((stage, i) => {
+                  const isCompleted = stage.isCompleted;
+                  const isActive = stage.isActive;
+                  
+                  return (
+                    <div key={i} className="flex gap-4 relative z-10 mb-6 last:mb-0">
+                      {/* Circle Icon */}
+                      <div className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 border-2 bg-white ${isCompleted ? 'border-[#118B33] bg-[#118B33]' : isActive ? 'border-primary' : 'border-white-stroke'}`}>
+                        {isCompleted ? (
+                          <Check className="w-4 h-4 text-white" strokeWidth={3} />
+                        ) : isActive ? (
+                          <div className="w-3 h-3 rounded-full bg-primary"></div>
+                        ) : (
+                          <div className="w-2 h-2 rounded-full bg-white-stroke"></div>
+                        )}
+                      </div>
+                      
+                      {/* Text */}
+                      <div className="flex flex-col pt-1">
+                        <span className={`font-bold text-[13px] ${isCompleted ? 'text-[#118B33]' : isActive ? 'text-black' : 'text-paragraph'}`}>
+                          {stage.name}
+                        </span>
+                        {stage.note && (
+                          <span className="text-[11px] text-paragraph mt-0.5">{stage.note}</span>
+                        )}
+                        {stage.date && (
+                          <span className="text-[10px] text-black-placeholder mt-0.5">
+                            {new Date(stage.date).toLocaleString()}
+                          </span>
+                        )}
                       </div>
                     </div>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
-            )}
+            </div>
             
-            {/* Sticky Bottom Bar */}
-            <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-white border-t border-white-stroke flex items-center gap-3 z-50">
-               <button onClick={() => toast.success('Report supported!')} className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-white border border-white-stroke rounded-xl text-black font-bold text-sm shadow-sm active:bg-white-bg transition-colors">
-                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
-                 Support Report
-               </button>
-               <button onClick={() => toast.success('Status update modal coming soon!')} className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-primary border border-primary text-white rounded-xl font-bold text-sm shadow-sm active:bg-primary/90 transition-colors">
-                 Update Status
-                 <ChevronDown className="w-4 h-4" />
-               </button>
+            {/* Rewards Banner */}
+            <div className="bg-[#F8F9FA] border border-white-stroke rounded-2xl p-6 flex flex-col items-center text-center shadow-sm">
+              <Gift className="w-10 h-10 text-[#FEAA01] mb-3" strokeWidth={1.5} />
+              <h3 className="font-heading font-bold text-lg text-black mb-2">Sent a CleanReport?</h3>
+              <p className="text-[12px] text-paragraph leading-relaxed mb-5 max-w-[240px]">
+                When you send a report, your reward appears here after the report have been resolved.
+              </p>
+              <button className="bg-[#118B33] text-white text-[12px] font-bold px-6 py-3 rounded-xl shadow-sm hover:bg-[#0e742a] transition-colors w-[200px]">
+                See Your Rewards
+              </button>
             </div>
           </div>
           
