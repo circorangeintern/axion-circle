@@ -22,6 +22,7 @@ import {
 import AppNavbar from '../components/AppNavbar';
 import Footer from '../components/Footer';
 import ReportsFilterModal from '../components/ReportsFilterModal';
+import fallbackImage from '../assets/fallback-image.svg';
 
 export const getCardPhotoUrl = (report) => {
   if (
@@ -33,7 +34,7 @@ export const getCardPhotoUrl = (report) => {
   ) {
     return report.photoUrl;
   }
-  return 'https://placehold.co/600x400/eeeeee/999999?text=No+Image';
+  return fallbackImage;
 };
 
 
@@ -457,7 +458,7 @@ export default function ReportsPage() {
                           loading="lazy"
                           onError={(e) => {
                             e.target.onerror = null;
-                            e.target.src = 'https://placehold.co/600x400/f0ede5/a0a0a0?text=No+Image';
+                            e.target.src = fallbackImage;
                           }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

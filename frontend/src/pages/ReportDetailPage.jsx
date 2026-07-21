@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 import api from '../services/api';
 import AppNavbar from '../components/AppNavbar';
 import Footer from '../components/Footer';
+import fallbackImage from '../assets/fallback-image.svg';
 
 const getMarkerIcon = (status) => {
   let color = '#006FED'; // default blue
@@ -137,7 +138,9 @@ export default function ReportDetailPage() {
 
   useEffect(() => {
     if (report && report.latitude && report.longitude && !geoAddress) {
-      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${report.latitude}&lon=${report.longitude}&zoom=16`)
+      fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${report.latitude}&lon=${report.longitude}&zoom=16`, {
+        headers: { "User-Agent": "CleanReport-App/1.0 (amoo-ayomikun)" }
+      })
         .then(res => res.json())
         .then(data => {
           if (data && data.address) {
@@ -353,7 +356,7 @@ export default function ReportDetailPage() {
                   src={thePhotoUrl} 
                   alt="Report issue" 
                   className="w-full h-full object-cover"
-                  onError={(e) => { e.target.style.display = 'none'; }}
+                  onError={(e) => { e.target.onerror = null; e.target.src = fallbackImage; }}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center text-black-placeholder bg-white-bg2">

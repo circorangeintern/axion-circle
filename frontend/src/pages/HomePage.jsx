@@ -37,6 +37,7 @@ import L from 'leaflet';
 import api from '../services/api';
 import ReportListView from '../components/ReportListView';
 import MapErrorBoundary from '../components/MapErrorBoundary';
+import fallbackImage from '../assets/fallback-image.svg';
 
 const timeAgo = (dateStr) => {
   if (!dateStr) return 'Just now';
@@ -113,15 +114,27 @@ export default function HomePage() {
 
       const lagosLat = 6.5244;
       const lagosLng = 3.3792;
+      const coordMap = new Map();
       const allReports = [...apiReports].map((r, idx) => {
-        // Add a micro-jitter (approx 10-20 meters) so exact duplicate coordinates don't hide each other
-        const jitterLat = Math.sin(idx * 1234) * 0.0003;
-        const jitterLng = Math.cos(idx * 1234) * 0.0003;
+        let lat = r.latitude ? parseFloat(r.latitude) : lagosLat;
+        let lng = r.longitude ? parseFloat(r.longitude) : lagosLng;
+        
+        const key = `${lat},${lng}`;
+        const count = coordMap.get(key) || 0;
+        coordMap.set(key, count + 1);
+
+        // Only apply jitter if there's a collision (count > 0)
+        let jitterLat = 0;
+        let jitterLng = 0;
+        if (count > 0) {
+          jitterLat = Math.sin(count * 1234) * 0.0003;
+          jitterLng = Math.cos(count * 1234) * 0.0003;
+        }
         
         return {
           ...r,
-          latitude: r.latitude ? (parseFloat(r.latitude) + jitterLat) : (lagosLat + jitterLat),
-          longitude: r.longitude ? (parseFloat(r.longitude) + jitterLng) : (lagosLng + jitterLng),
+          latitude: lat + jitterLat,
+          longitude: lng + jitterLng,
           rawDate: r.createdAt ? new Date(r.createdAt).getTime() : (r.date ? 0 : Date.now())
         };
       });
@@ -509,7 +522,7 @@ export default function HomePage() {
                                       src={report.photoUrl} 
                                       alt="Report evidence" 
                                       className="w-full h-24 object-cover rounded-t-lg mb-2" 
-                                      onError={(e) => { e.target.style.display = 'none'; }}
+                                        onError={(e) => { e.target.onerror = null; e.target.src = fallbackImage; }}
                                     />
                                   )}
                                   <div className={`p-3 ${report.photoUrl ? 'pt-0' : ''}`}>

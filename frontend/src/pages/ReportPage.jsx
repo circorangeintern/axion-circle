@@ -48,7 +48,9 @@ function MapClickHandler({ setLatitude, setLongitude, setLocationStatus, setArea
       setLongitude(lng);
       setLocationStatus('loading');
       try {
-        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16`);
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16`, {
+          headers: { "User-Agent": "CleanReport-App/1.0 (amoo-ayomikun)" }
+        });
         const data = await res.json();
         if (data && data.address) {
           const area = data.address.suburb || data.address.neighbourhood || data.address.city_district || data.address.city || data.address.town || data.address.county || 'Pinned Location';
@@ -224,7 +226,8 @@ export default function ReportPage() {
         try {
           // Free reverse geocoding via OpenStreetMap Nominatim API to get real user place name exactly as requested
           const res = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16`
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=16`,
+            { headers: { "User-Agent": "CleanReport-App/1.0 (amoo-ayomikun)" } }
           );
           const data = await res.json();
           if (data && data.address) {
@@ -306,7 +309,9 @@ export default function ReportPage() {
     
     try {
       const query = encodeURIComponent(manualLocationInput.trim()); // search anywhere
-      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`);
+      const res = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${query}&limit=1`, {
+        headers: { "User-Agent": "CleanReport-App/1.0 (amoo-ayomikun)" }
+      });
       const data = await res.json();
       
       if (data && data.length > 0) {

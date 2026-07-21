@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { MapPin } from 'lucide-react';
+import fallbackImage from '../assets/fallback-image.svg';
 
 const timeAgo = (dateStr) => {
   if (!dateStr) return 'Just now';
@@ -45,7 +46,7 @@ export default function ReportListView({ reports }) {
                   className="w-full h-full object-cover" 
                   onError={(e) => {
                     e.target.onerror = null;
-                    e.target.src = 'https://placehold.co/600x400/f0ede5/a0a0a0?text=No+Image';
+                    e.target.src = fallbackImage;
                   }}
                 />
               </div>
