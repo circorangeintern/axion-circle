@@ -382,26 +382,7 @@ export default function ReportPage() {
       const response = await api.post('/reports', payload);
       const createdReport = response.data?.data;
       
-      try {
-        const overrides = JSON.parse(localStorage.getItem('report_overrides') || '{}');
-        const newOverride = {
-          photoUrl: photoUrl,
-          category: mappedCategory,
-          title: `${category} report`,
-          timestamp: Date.now()
-        };
-        
-        if (createdReport && createdReport.id) {
-          overrides[createdReport.id] = newOverride;
-        } else {
-          const pending = JSON.parse(localStorage.getItem('pending_overrides') || '[]');
-          pending.push(newOverride);
-          localStorage.setItem('pending_overrides', JSON.stringify(pending));
-        }
-        localStorage.setItem('report_overrides', JSON.stringify(overrides));
-      } catch (e) {
-        console.error('Failed to save local override:', e);
-      }
+      // Override logic removed
 
       setShowSuccessModal(true);
     } catch (error) {

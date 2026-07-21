@@ -102,31 +102,7 @@ export default function ReportsPage() {
         const data = response.data?.data;
         let backendReports = Array.isArray(data) ? data : (data?.content || []);
         
-        try {
-          const overrides = JSON.parse(localStorage.getItem('report_overrides') || '{}');
-          let pending = JSON.parse(localStorage.getItem('pending_overrides') || '[]');
-          
-          backendReports = backendReports.map(report => {
-            let modified = { ...report };
-            if (overrides[report.id]) {
-              modified = { ...modified, ...overrides[report.id] };
-            } else if (pending.length > 0) {
-              const reportTime = new Date(report.createdAt).getTime();
-              const matchedIdx = pending.findIndex(p => Math.abs(p.timestamp - reportTime) < 120000);
-              if (matchedIdx !== -1) {
-                const matchedOverride = pending[matchedIdx];
-                modified = { ...modified, ...matchedOverride };
-                overrides[report.id] = matchedOverride;
-                pending.splice(matchedIdx, 1);
-                localStorage.setItem('report_overrides', JSON.stringify(overrides));
-                localStorage.setItem('pending_overrides', JSON.stringify(pending));
-              }
-            }
-            return modified;
-          });
-        } catch (e) {
-          console.error('Failed to apply overrides', e);
-        }
+        // Override logic removed to ensure strictly matching backend data
 
         const mappedReports = backendReports.map(mapBackendReportToFrontend);
         

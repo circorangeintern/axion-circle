@@ -385,14 +385,6 @@ export default function ReportDetailPage() {
               </div>
               
               <div className="flex flex-wrap items-center gap-3 mt-4 sm:mt-3 pl-[128px] sm:pl-0">
-                <button 
-                  onClick={handleShare} 
-                  className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#25D366] text-white text-[13px] font-bold rounded-lg hover:bg-[#1EBE5A] transition-colors shadow-sm"
-                  title="Share on WhatsApp"
-                >
-                  <Share2 className="w-[16px] h-[16px]" strokeWidth={2} />
-                  Share on WhatsApp
-                </button>
                 <div className="flex items-center gap-2">
                   <button className="text-black-icon hover:text-primary transition-colors p-1" title="Save Report">
                     <Star className="w-[20px] h-[20px]" strokeWidth={1.5} />
@@ -401,12 +393,22 @@ export default function ReportDetailPage() {
                     <Flag className="w-[20px] h-[20px]" strokeWidth={1.5} />
                   </button>
                 </div>
-                <button 
-                  onClick={() => document.getElementById('commentInput')?.focus()}
-                  className="px-4 py-2 bg-[#127C2F] text-white text-[13px] font-bold rounded-lg hover:bg-[#0e6325] transition-colors shadow-sm ml-auto sm:ml-1"
-                >
-                  Add Comment
-                </button>
+                <div className="flex items-center gap-2 ml-auto sm:ml-auto">
+                  <button 
+                    onClick={handleShare} 
+                    className="flex items-center gap-1.5 px-3.5 py-1.5 bg-white border border-primary text-primary text-[13px] font-bold rounded-lg hover:bg-primary/5 transition-colors shadow-sm"
+                    title="Share on WhatsApp"
+                  >
+                    <Share2 className="w-[16px] h-[16px]" strokeWidth={2} />
+                    Share
+                  </button>
+                  <button 
+                    onClick={() => document.getElementById('commentInput')?.focus()}
+                    className="px-4 py-1.5 bg-[#127C2F] text-white text-[13px] font-bold rounded-lg hover:bg-[#0e6325] transition-colors shadow-sm"
+                  >
+                    Add Comment
+                  </button>
+                </div>
               </div>
             </div>
           </div>
