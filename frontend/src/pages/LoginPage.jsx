@@ -116,7 +116,10 @@ export default function LoginPage() {
           {/* Heading & subtext */}
           <div className="text-center mb-6">
             <h1 className="font-heading text-auth-heading text-primary mb-1">
-              Welcome Back, {(localStorage.getItem('user_name') || sessionStorage.getItem('user_name'))?.split(' ')[0] || 'there'}
+              {(() => {
+                const name = localStorage.getItem('user_name') || sessionStorage.getItem('user_name');
+                return name ? `Welcome Back, ${name.split(' ')[0]}` : 'Welcome Back';
+              })()}
             </h1>
             <p className="font-body text-auth-subtext text-paragraph">
               Welcome back! Please enter your details.

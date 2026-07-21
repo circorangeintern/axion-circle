@@ -121,7 +121,9 @@ export default function ResetPasswordPage() {
                 </label>
                 <input
                   id="token"
+                  name="resetToken"
                   type="text"
+                  autoComplete="off"
                   value={token}
                   onChange={(e) => handleFieldChange('token', e.target.value)}
                   className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors ${
