@@ -44,8 +44,7 @@ dependencies {
     // Cloudinary
     implementation 'com.cloudinary:cloudinary-http45:1.37.0'
 
-    // Email via Gmail SMTP
-    implementation 'org.eclipse.angus:jakarta.mail:2.0.3'
+    // Email via Brevo API (verified domain: cleanreport.me)
 
     // API Documentation
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'

@@ -3,74 +3,65 @@ package com.cleanreport.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Properties;
-import jakarta.mail.*;
-import jakarta.mail.internet.*;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 
 /**
- * Email sending service using Gmail SMTP.
- * Sends FROM the project Gmail account through Google's own servers.
- * 100% deliverability — no shared IPs, no third-party rate limiting.
- * 500 emails/day limit.
- *
- * Requires:
- * - GMAIL_USER: cleanreport6@gmail.com
- * - GMAIL_APP_PASSWORD: 16-char app password (2FA required)
+ * Email sending via Brevo with verified domain cleanreport.me.
+ * Sends from noreply@cleanreport.me — verified domain = instant Gmail delivery.
+ * 300 emails/day free tier.
  */
 @Slf4j
 @Service
 public class EmailService {
 
-    private static final String SMTP_HOST = "smtp.gmail.com";
-    private static final int SMTP_PORT = 465;
+    private static final String BREVO_API_URL = "https://api.brevo.com/v3/smtp/email";
+    private static final String SENDER_EMAIL = "noreply@cleanreport.me";
+    private static final String SENDER_NAME = "CleanReport";
 
-    private String getGmailUser() {
-        String user = System.getenv("GMAIL_USER");
-        return (user != null && !user.isBlank()) ? user : null;
+    private final HttpClient httpClient = HttpClient.newHttpClient();
+
+    private String getApiKey() {
+        String key = System.getenv("BREVO_API_KEY");
+        return (key != null && !key.isBlank()) ? key : null;
     }
 
-    private String getGmailPassword() {
-        String pwd = System.getenv("GMAIL_APP_PASSWORD");
-        return (pwd != null && !pwd.isBlank()) ? pwd : null;
-    }
-
-    /**
-     * Send an email via Gmail SMTP. NEVER throws — email failure must not block business logic.
-     */
     public boolean sendEmail(String to, String subject, String htmlBody) {
-        String gmailUser = getGmailUser();
-        String gmailPassword = getGmailPassword();
+        String apiKey = getApiKey();
 
-        if (gmailUser == null || gmailPassword == null) {
-            log.info("[EMAIL-DEV] No GMAIL credentials set. To: {} | Subject: {}", to, subject);
+        if (apiKey == null) {
+            log.info("[EMAIL-DEV] No BREVO_API_KEY set. To: {} | Subject: {}", to, subject);
             return true;
         }
 
         try {
-            Properties props = new Properties();
-            props.put("mail.smtp.auth", "true");
-            props.put("mail.smtp.ssl.enable", "true");
-            props.put("mail.smtp.socketFactory.port", "465");
-            props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-            props.put("mail.smtp.host", SMTP_HOST);
-            props.put("mail.smtp.port", String.valueOf(SMTP_PORT));
+            String escapedHtml = htmlBody.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "");
+            String escapedSubject = subject.replace("\"", "\\\"");
 
-            Session session = Session.getInstance(props, new Authenticator() {
-                @Override
-                protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(gmailUser, gmailPassword);
-                }
-            });
+            String jsonBody = "{\"sender\":{\"name\":\"" + SENDER_NAME + "\",\"email\":\"" + SENDER_EMAIL + "\"},"
+                    + "\"to\":[{\"email\":\"" + to + "\"}],"
+                    + "\"subject\":\"" + escapedSubject + "\","
+                    + "\"htmlContent\":\"" + escapedHtml + "\"}";
 
-            Message message = new MimeMessage(session);
-            message.setFrom(new InternetAddress(gmailUser, "CleanReport"));
-            message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
-            message.setSubject(subject);
-            message.setContent(htmlBody, "text/html; charset=utf-8");
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create(BREVO_API_URL))
+                    .header("api-key", apiKey)
+                    .header("Content-Type", "application/json")
+                    .header("Accept", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(jsonBody))
+                    .build();
 
-            Transport.send(message);
-            log.info("Email sent to {} via Gmail SMTP", to);
-            return true;
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() >= 200 && response.statusCode() < 300) {
+                log.info("Email sent to {} via Brevo/cleanreport.me (status: {})", to, response.statusCode());
+                return true;
+            } else {
+                log.warn("Brevo returned {} for {}: {}", response.statusCode(), to, response.body());
+                return false;
+            }
         } catch (Exception e) {
             log.warn("Email send failed (non-blocking) to {}: {}", to, e.getMessage());
             return false;
@@ -89,7 +80,7 @@ public class EmailService {
                 + "<p>This code expires in <strong>10 minutes</strong>.</p>"
                 + "<p>If you didn't create an account, please ignore this email.</p>"
                 + "<hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>"
-                + "<p style='color: #999; font-size: 12px;'>CleanReport — Report It. Track It. Clean It.</p>"
+                + "<p style='color: #999; font-size: 12px;'>CleanReport - Report It. Track It. Clean It.</p>"
                 + "</div>";
         return sendEmail(to, subject, html);
     }
@@ -106,7 +97,7 @@ public class EmailService {
                 + "<p>This token expires in <strong>15 minutes</strong>.</p>"
                 + "<p>If you didn't request this, please ignore this email.</p>"
                 + "<hr style='border: none; border-top: 1px solid #eee; margin: 20px 0;'>"
-                + "<p style='color: #999; font-size: 12px;'>CleanReport — Report It. Track It. Clean It.</p>"
+                + "<p style='color: #999; font-size: 12px;'>CleanReport - Report It. Track It. Clean It.</p>"
                 + "</div>";
         return sendEmail(to, subject, html);
     }
