@@ -229,14 +229,41 @@ export default function HomePage() {
           {/* Conditional Hero Section based on Auth State */}
           {!isLoggedIn ? (
             /* Logged Out Hero Section: No action buttons below subtext */
-            <div className="mb-6 sm:mb-8">
-              <h1 className="font-heading text-[30px] font-semibold leading-[38px] text-black mb-1 sm:mb-1.5 tracking-tight">
-                Clean and Report Waste Dumps
-              </h1>
-              <p className="text-xs sm:text-sm text-paragraph font-medium">
-                Report, track and monitor waste collection in your community
-              </p>
-            </div>
+            <>
+              {/* Desktop Hero Section */}
+              <div className="hidden lg:block mb-6 sm:mb-8">
+                <h1 className="font-heading text-[30px] font-semibold leading-[38px] text-black mb-1 sm:mb-1.5 tracking-tight">
+                  Clean and Report Waste Dumps
+                </h1>
+                <p className="text-xs sm:text-sm text-paragraph font-medium">
+                  Report, track and monitor waste collection in your community
+                </p>
+              </div>
+
+              {/* Mobile Splash Screen */}
+              <div className="lg:hidden fixed inset-0 z-[100] bg-white flex flex-col p-6 pb-12 justify-between">
+                <div>
+                  <div className="flex flex-col items-start pt-4">
+                    <img src="/logo.svg" alt="CleanReport Logo" className="w-14 h-14 object-contain mb-1" onError={(e) => { e.target.style.display = 'none'; }} />
+                    <span className="font-heading font-bold text-xl text-primary mt-2">CleanReport</span>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-3">
+                  <Link 
+                    to="/register" 
+                    className="w-full px-4 py-3.5 bg-primary text-white font-bold rounded-xl text-center shadow-sm text-[15px] hover:bg-primary/90 transition-all active:scale-95"
+                  >
+                    Get Started
+                  </Link>
+                  <Link 
+                    to="/login"
+                    className="w-full px-4 py-3.5 bg-white text-paragraph font-bold rounded-xl text-center shadow-sm text-[15px] border border-white-stroke hover:bg-white-bg transition-all active:scale-95"
+                  >
+                    Use App on Mobile
+                  </Link>
+                </div>
+              </div>
+            </>
           ) : (
             /* Logged In Hero Section: Welcome back + Retrieve Reward & Add New Report buttons */
             <div className="mb-6 sm:mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
@@ -315,7 +342,7 @@ export default function HomePage() {
                   <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white shadow-sm shrink-0">
                     <CheckCircle2 className="w-5 h-5" />
                   </div>
-                  <span className="text-sm font-semibold text-black">Resolved Report</span>
+                  <span className="text-sm font-semibold text-black">Resolved Reports</span>
                 </div>
                 <button className="text-black-icon hover:text-black shrink-0" aria-label="More options">
                   <MoreVertical className="w-4 h-4" />
