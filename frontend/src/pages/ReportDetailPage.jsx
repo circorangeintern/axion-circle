@@ -336,12 +336,12 @@ export default function ReportDetailPage() {
               <div className="absolute -bottom-5 left-3">
                 <div className="w-14 h-14 rounded-full bg-white p-1 shadow-sm">
                   <img 
-                    src={report.reporterAvatarUrl || report.reporter?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(report.reporterName || report.reporter?.name || 'U')}&background=random`} 
+                    src={report.reporterAvatarUrl || report.reporterAvatar || report.reporter?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(report.reporterName || report.reporter?.displayName || report.reporter?.name || report.reporter?.fullName || report.reporter?.firstName || 'U')}&background=random`} 
                     alt="Reporter" 
                     className="w-full h-full rounded-full object-cover"
                     onError={(e) => {
                       e.target.onerror = null;
-                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(report.reporterName || report.reporter?.name || 'U')}&background=random`;
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(report.reporterName || report.reporter?.displayName || report.reporter?.name || report.reporter?.fullName || report.reporter?.firstName || 'U')}&background=random`;
                     }}
                   />
                 </div>
@@ -352,7 +352,7 @@ export default function ReportDetailPage() {
             <div className="flex items-center justify-between mb-6 pl-3">
               <div className="flex flex-col">
                 <span className="font-bold text-[15px] text-black leading-none mb-1">
-                  {report.reporterName || report.reporter?.displayName || report.reporter?.firstName || 'Anonymous'}
+                  {report.reporterName || report.reporter?.displayName || report.reporter?.name || report.reporter?.fullName || report.reporter?.firstName || 'Anonymous'}
                 </span>
                 <span className="text-[11px] text-paragraph font-medium leading-none">
                   {report.reporter?.status || 'Top Contributor'}
