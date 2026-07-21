@@ -386,17 +386,31 @@ export default function ReportDetailPage() {
                   <span className="text-[9px] font-bold text-black tracking-widest">LOCATION</span>
                 </div>
                 
-                <div className="h-[140px] w-full bg-white-bg z-0 relative">
+                <div className="h-[180px] w-full bg-white-bg z-0 relative">
                   <MapContainer 
                     center={[report.latitude || 40.7128, report.longitude || -74.0060]} 
                     zoom={15} 
-                    scrollWheelZoom={false} 
+                    scrollWheelZoom={false}
+                    dragging={true}
+                    touchZoom={true}
+                    zoomControl={true}
                     style={{ height: '100%', width: '100%', zIndex: 0 }}
-                    zoomControl={false}
-                    attributionControl={false}
                   >
-                    <TileLayer url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
-                    <Marker position={[report.latitude || 40.7128, report.longitude || -74.0060]} icon={getMarkerIcon(report.status)} />
+                    <TileLayer 
+                      attribution='&copy; <a href="https://carto.com/attributions">CARTO</a>'
+                      url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
+                      maxZoom={18}
+                    />
+                    <Marker position={[report.latitude || 40.7128, report.longitude || -74.0060]} icon={getMarkerIcon(report.status)}>
+                      <Popup>
+                        <div className="font-heading font-bold text-sm text-black">
+                          {geoDistrict || report.areaName || 'Location'}
+                        </div>
+                        <div className="text-xs text-paragraph mt-1">
+                          {geoAddress || report.address || 'Exact Location'}
+                        </div>
+                      </Popup>
+                    </Marker>
                   </MapContainer>
                 </div>
               </div>
