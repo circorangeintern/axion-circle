@@ -2,10 +2,10 @@ import { useState } from 'react';
 import { X, ChevronDown } from 'lucide-react';
 
 export default function ReportsFilterModal({ isOpen, onClose, onApply }) {
-  if (!isOpen) return null;
-
   const [selectedCategories, setSelectedCategories] = useState([]);
   const [selectedUrgencies, setSelectedUrgencies] = useState([]);
+
+  if (!isOpen) return null;
 
   const categories = [
     'Illegal Dumping',
@@ -40,7 +40,7 @@ export default function ReportsFilterModal({ isOpen, onClose, onApply }) {
       />
 
       {/* Modal */}
-      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-[380px] bg-white rounded-2xl shadow-xl z-50 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
+      <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[calc(100%-32px)] sm:w-full max-w-[380px] bg-white rounded-2xl shadow-xl z-50 flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200">
         {/* Header */}
         <div className="p-5 pb-3">
           <div className="flex items-center justify-between mb-1">

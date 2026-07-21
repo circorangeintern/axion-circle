@@ -424,7 +424,8 @@ export default function ReportsPage() {
                 onClick={() => {
                   setActiveTab('All');
                   setSearchQuery('');
-                  setSelectedCategory('All Categories');
+                  setActiveCategoryFilters([]);
+                  setActiveUrgencyFilters([]);
                 }}
                 className="px-4 py-2 bg-alert-success text-primary font-semibold text-xs sm:text-sm rounded-xl hover:bg-alert-success/80 transition-colors"
               >

@@ -311,12 +311,12 @@ export default function AppNavbar({ activeTab = '' }) {
           <button
             type="button"
             onClick={() => setIsMobileMenuOpen(false)}
-            className="absolute top-5 left-[calc(280px+16px)] sm:left-[calc(320px+16px)] text-white/90 hover:text-white p-1.5 cursor-pointer transition-colors z-50 animate-in fade-in duration-200"
+            className="absolute top-4 right-4 text-white/90 hover:text-white p-1.5 cursor-pointer transition-colors z-[60] animate-in fade-in duration-200"
             aria-label="Close menu"
           >
             <X className="w-6 h-6 stroke-[2]" />
           </button>
-          <div className="relative w-[280px] sm:w-80 bg-white h-full shadow-2xl flex flex-col justify-between z-10 animate-in slide-in-from-left duration-200">
+          <div className="relative w-[80vw] max-w-[280px] sm:max-w-xs bg-white h-full shadow-2xl flex flex-col justify-between z-10 animate-in slide-in-from-left duration-200">
             <div className="p-6 pb-6">
               <Link to="/" className="flex items-center shrink-0">
                 <NavbarLogo className="h-8 sm:h-9 w-auto object-contain" />
@@ -363,12 +363,12 @@ export default function AppNavbar({ activeTab = '' }) {
               setIsMobileMenuOpen(false);
               setShowMobileUserMenu(false);
             }}
-            className="absolute top-5 left-[calc(280px+16px)] sm:left-[calc(320px+16px)] text-white/90 hover:text-white p-1.5 cursor-pointer transition-colors z-50 animate-in fade-in duration-200"
+            className="absolute top-4 right-4 text-white/90 hover:text-white p-1.5 cursor-pointer transition-colors z-[60] animate-in fade-in duration-200"
             aria-label="Close menu"
           >
             <X className="w-6 h-6 stroke-[2]" />
           </button>
-          <div className="relative w-[280px] sm:w-80 bg-white h-full shadow-2xl flex flex-col justify-between z-10 overflow-y-auto animate-in slide-in-from-left duration-200">
+          <div className="relative w-[80vw] max-w-[280px] sm:max-w-xs bg-white h-full shadow-2xl flex flex-col justify-between z-10 overflow-y-auto animate-in slide-in-from-left duration-200">
             <div className="flex flex-col flex-1">
               <div className="p-6 pb-8">
                 <Link to="/" className="flex items-center shrink-0">

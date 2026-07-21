@@ -367,9 +367,9 @@ export default function ReportDetailPage() {
 
             {/* Reporter Info Row - Aligned precisely as in Figma */}
             <div className="flex flex-col sm:flex-row sm:items-start justify-between relative z-10 w-full px-4 sm:px-8">
-              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
-                {/* 112px avatar, shifted up 56px to overlap photo equally */}
-                <div className="w-[112px] h-[112px] rounded-full bg-white flex items-center justify-center overflow-hidden shrink-0 -mt-[56px] shadow-sm ring-4 ring-white">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 text-center sm:text-left">
+                {/* 80px avatar mobile, 112px desktop, shifted up to overlap photo equally */}
+                <div className="w-20 h-20 sm:w-[112px] sm:h-[112px] rounded-full bg-white flex items-center justify-center overflow-hidden shrink-0 -mt-10 sm:-mt-[56px] shadow-sm ring-4 ring-white">
                   {(report.reporterAvatarUrl || report.reporterAvatar || report.reporter?.avatarUrl) ? (
                     <img src={report.reporterAvatarUrl || report.reporterAvatar || report.reporter.avatarUrl} alt="Reporter" className="w-full h-full object-cover" />
                   ) : (
@@ -387,7 +387,7 @@ export default function ReportDetailPage() {
                 </div>
               </div>
               
-              <div className="flex flex-wrap items-center gap-3 mt-4 sm:mt-3 pl-[128px] sm:pl-0">
+              <div className="flex flex-wrap justify-center sm:justify-start items-center gap-3 mt-4 sm:mt-3">
                 <div className="flex items-center gap-2">
                   <button className="text-black-icon hover:text-primary transition-colors p-1" title="Save Report">
                     <Star className="w-[20px] h-[20px]" strokeWidth={1.5} />
