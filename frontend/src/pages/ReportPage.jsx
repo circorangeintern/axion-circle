@@ -746,9 +746,9 @@ export default function ReportPage() {
 
       {showSuccessModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="bg-white rounded-[24px] p-6 sm:p-10 w-full max-w-[440px] text-center shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="bg-white rounded-[24px] p-6 sm:p-8 w-full max-w-[400px] text-center shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="mx-auto flex justify-center mb-6">
-              <svg width="140" height="140" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg width="100" height="100" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg">
                 {/* Center Green Circle */}
                 <circle cx="60" cy="60" r="32" fill="#187A38" />
                 {/* White Checkmark */}
@@ -784,16 +784,16 @@ export default function ReportPage() {
             <h2 className="text-[28px] font-bold text-black mb-3 font-heading tracking-tight">
               Clean Request Sent
             </h2>
-            <p className="text-[15px] text-paragraph mb-8 leading-relaxed max-w-[340px] mx-auto">
+            <p className="text-[14px] text-paragraph mb-6 leading-relaxed max-w-[320px] mx-auto">
               Your request for a clean has been successfully sent. You will be updated with a reward if approved
             </p>
-            <div className="space-y-3">
+            <div className="space-y-2.5">
               {/* 1. View My Reports (Only show if user is logged in) */}
               {localStorage.getItem('access_token') && (
                 <button
                   type="button"
                   onClick={() => navigate('/my-reports')}
-                  className="w-full bg-[#187A38] text-white font-semibold py-3.5 rounded-xl hover:bg-[#14662E] transition-colors"
+                  className="w-full bg-[#187A38] text-white font-semibold py-3 rounded-xl hover:bg-[#14662E] transition-colors"
                 >
                   View My Reports
                 </button>
@@ -803,7 +803,7 @@ export default function ReportPage() {
               <button
                 type="button"
                 onClick={() => navigate('/reports')}
-                className={`w-full font-semibold py-3.5 rounded-xl transition-colors ${
+                className={`w-full font-semibold py-3 rounded-xl transition-colors ${
                   localStorage.getItem('access_token')
                     ? 'bg-white text-[#187A38] border-2 border-[#187A38] hover:bg-alert-successLight'
                     : 'bg-[#187A38] text-white hover:bg-[#14662E]'
@@ -816,7 +816,7 @@ export default function ReportPage() {
               <button
                 type="button"
                 onClick={handleReset}
-                className="w-full bg-white text-black font-semibold py-3.5 rounded-xl border border-[#d1d5db] hover:bg-[#f3f4f6] transition-colors"
+                className="w-full bg-white text-black font-semibold py-3 rounded-xl border border-[#d1d5db] hover:bg-[#f3f4f6] transition-colors"
               >
                 Request for another Clean up
               </button>
