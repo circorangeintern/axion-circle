@@ -326,15 +326,10 @@ export default function ReportDetailPage() {
               </div>
             </div>
             
-            {/* Split Photo Grid */}
-            <div className="relative mb-8">
-              <div className="grid grid-cols-2 gap-2 h-[180px]">
-                <div className="rounded-2xl overflow-hidden shadow-sm bg-white-bg2">
-                  <img src={thePhotoUrl || fallbackImage} className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = fallbackImage; }} />
-                </div>
-                <div className="rounded-2xl overflow-hidden shadow-sm bg-white-bg2">
-                  <img src={thePhotoUrl || fallbackImage} className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = fallbackImage; }} />
-                </div>
+            {/* Photo */}
+            <div className="relative mb-8 mt-2">
+              <div className="w-full h-[220px] rounded-2xl overflow-hidden shadow-sm bg-white-bg2 border border-white-stroke">
+                <img src={thePhotoUrl || fallbackImage} className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = fallbackImage; }} />
               </div>
               
               {/* Overlapping Reporter Avatar */}
@@ -357,21 +352,22 @@ export default function ReportDetailPage() {
             <div className="flex items-center justify-between mb-6 pl-3">
               <div className="flex flex-col">
                 <span className="font-bold text-[15px] text-black leading-none mb-1">
-                  {report.reporterName || report.reporter?.displayName || report.reporter?.firstName || 'Mercy Belrah'}
+                  {report.reporterName || report.reporter?.displayName || report.reporter?.firstName || 'Anonymous'}
                 </span>
                 <span className="text-[11px] text-paragraph font-medium leading-none">
                   {report.reporter?.status || 'Top Contributor'}
                 </span>
               </div>
-              <div className="flex items-center gap-3">
-                <button className="text-black-icon hover:text-primary transition-colors p-1">
+              <div className="flex items-center gap-2">
+                <button className="text-black-icon hover:text-primary transition-colors p-1.5">
                   <Star className="w-4 h-4" />
                 </button>
-                <button className="text-black-icon hover:text-primary transition-colors p-1">
+                <button className="text-black-icon hover:text-primary transition-colors p-1.5">
                   <Flag className="w-4 h-4" />
                 </button>
-                <button className="bg-[#118B33] text-white text-[11px] font-bold px-4 py-2 rounded-lg shadow-sm hover:bg-[#0e742a] transition-colors ml-1">
-                  Add Comment
+                <button onClick={handleShare} className="flex items-center gap-1.5 text-black hover:text-primary transition-colors px-3 py-1.5 border border-white-stroke rounded-lg text-[11px] font-bold bg-white shadow-sm ml-1">
+                  <Share2 className="w-3.5 h-3.5" />
+                  Share
                 </button>
               </div>
             </div>
@@ -416,30 +412,64 @@ export default function ReportDetailPage() {
             
             {/* Comments (Mobile) */}
             <div className="mb-8">
-              <h3 className="font-heading font-bold text-lg text-black mb-4">Comments ({(comments && comments.length > 0) ? comments.length : 2})</h3>
-              <div className="space-y-5">
-                {((comments && comments.length > 0) ? comments : [
-                  { id: 1, user: { firstName: 'Sarah Johnson' }, createdAt: new Date(Date.now() - 3600000), content: "I walked past here this morning, it's definitely getting worse. Glad someone reported it!" },
-                  { id: 2, user: { firstName: 'City Dispatch (Moderator)', isModerator: true }, createdAt: new Date(Date.now() - 2700000), content: "Thank you for the clear photo. A team has been dispatched and should arrive within the next 3 hours." }
-                ]).map((comment) => (
-                  <div key={comment.id || comment._id} className="flex gap-3">
-                    <div className={`w-9 h-9 rounded-full border border-white-stroke flex items-center justify-center shrink-0 overflow-hidden ${comment.user?.isModerator ? 'bg-[#C2F5CB]' : 'bg-white-bg2'}`}>
-                      {comment.user?.isModerator ? (
-                         <img src="/logo.svg" alt="Mod" className="w-5 h-5 object-contain" />
-                      ) : (
-                         <User className="w-4 h-4 text-black-placeholder" />
-                      )}
-                    </div>
-                    <div className="flex-1">
-                      <div className="flex items-center gap-1.5 mb-1 text-[11px]">
-                        <span className="font-bold text-black">{comment.user?.firstName || 'Anonymous'}</span>
-                        <span className="text-black-placeholder">• {timeAgo(comment.createdAt || comment.date || new Date())}</span>
+              <h3 className="font-heading font-bold text-lg text-black mb-4">Comments ({comments.length})</h3>
+              <div className="space-y-5 mb-5">
+                {comments.length === 0 ? (
+                  <p className="text-sm text-black-placeholder italic">No comments yet. Be the first to comment!</p>
+                ) : (
+                  comments.map((comment) => (
+                    <div key={comment.id || comment._id} className="flex gap-3">
+                      <div className={`w-9 h-9 rounded-full border border-white-stroke flex items-center justify-center shrink-0 overflow-hidden ${comment.user?.isModerator || comment.user?.role === 'admin' ? 'bg-[#C2F5CB]' : 'bg-white-bg2'}`}>
+                        {comment.user?.isModerator || comment.user?.role === 'admin' ? (
+                           <img src="/logo.svg" alt="Mod" className="w-5 h-5 object-contain" />
+                        ) : (
+                           <img 
+                             src={comment.user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user?.name || 'U')}&background=random`} 
+                             alt="Avatar" 
+                             className="w-full h-full object-cover"
+                             onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user?.name || 'U')}&background=random`; }}
+                           />
+                        )}
                       </div>
-                      <p className="text-[12px] text-paragraph leading-relaxed">{comment.content || comment.text}</p>
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between mb-1">
+                          <div className="flex items-center gap-1.5 text-[11px]">
+                            <span className="font-bold text-black">{comment.user?.displayName || comment.user?.name || comment.user?.firstName || 'Anonymous'}</span>
+                            <span className="text-black-placeholder">• {timeAgo(comment.createdAt || comment.date || new Date())}</span>
+                          </div>
+                          {loggedInUserId && (comment.user?.id || comment.user?._id || comment.userId) === loggedInUserId && (
+                            <button 
+                              onClick={() => handleDeleteComment(comment.id || comment._id)}
+                              className="text-black-placeholder hover:text-alert-error transition-colors p-1"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+                        <p className="text-[12px] text-paragraph leading-relaxed whitespace-pre-wrap">{comment.content || comment.text}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  ))
+                )}
               </div>
+              
+              {/* Add Comment Input (Mobile) */}
+              <form onSubmit={handleAddComment} className="flex gap-2">
+                <input
+                  type="text"
+                  value={newComment}
+                  onChange={(e) => setNewComment(e.target.value)}
+                  placeholder="Write a comment..."
+                  className="flex-1 px-3 py-2.5 border border-white-stroke rounded-lg text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors bg-white shadow-sm"
+                />
+                <button
+                  type="submit"
+                  disabled={!newComment.trim() || isSubmittingComment}
+                  className="px-4 py-2.5 bg-[#118B33] text-white text-xs font-bold rounded-lg shadow-sm hover:bg-[#0e742a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                >
+                  {isSubmittingComment ? '...' : 'Post'}
+                </button>
+              </form>
             </div>
             
             {/* Mobile Vertical Timeline */}
