@@ -5,7 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { 
   MapPin, Star, Flag, Trash2, ArrowLeft, Gift, 
-  MessageSquare, User, Clock, Check, AlertCircle, Share2 
+  MessageSquare, User, Clock, Check, AlertCircle, Share2, ChevronDown 
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
