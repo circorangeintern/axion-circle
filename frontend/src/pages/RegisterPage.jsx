@@ -61,8 +61,9 @@ export default function RegisterPage() {
     setIsSubmitting(true);
     setLoadingText('Sending Code...');
     try {
-      // Placeholder endpoint for sending OTP for registration
-      await api.post('/auth/send-registration-otp', { email: email.trim() });
+      // Trying /auth/register to send the OTP per your suggestion. 
+      // If the backend requires a different endpoint for the initial OTP email, update this URL.
+      await api.post('/auth/register', { email: email.trim() });
       navigate('/verify-email', { state: { email: email.trim() } });
     } catch (error) {
       if (error.isConnectionError || error.code === 'ECONNABORTED' || !error.response) {
@@ -333,7 +334,7 @@ export default function RegisterPage() {
                       <p className={`mt-1.5 text-xs font-medium ${!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ? 'text-alert-error' : 'text-alert-success'}`}>
                         {!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
                           ? 'The email format you entered is incorrect. Please ensure it follows the format: mymail@example.com.'
-                          : 'Email format corrected.'}
+                          : 'Email format correct.'}
                       </p>
                     )}
                   </div>
