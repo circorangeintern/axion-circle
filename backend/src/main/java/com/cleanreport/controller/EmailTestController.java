@@ -20,18 +20,18 @@ public class EmailTestController {
         String gmailPassword = System.getenv("GMAIL_APP_PASSWORD");
 
         if (gmailUser == null || gmailPassword == null) {
-            return ResponseEntity.ok(Map.of("status", "no_credentials", 
-                "gmail_user", String.valueOf(gmailUser),
-                "gmail_pass_length", String.valueOf(gmailPassword != null ? gmailPassword.length() : 0)));
+            return ResponseEntity.ok(Map.of("status", "no_credentials"));
         }
 
         try {
+            // Use port 465 with SSL (port 587 STARTTLS is blocked on Render)
             Properties props = new Properties();
             props.put("mail.smtp.auth", "true");
-            props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.ssl.enable", "true");
             props.put("mail.smtp.host", "smtp.gmail.com");
-            props.put("mail.smtp.port", "587");
-            props.put("mail.smtp.ssl.protocols", "TLSv1.2");
+            props.put("mail.smtp.port", "465");
+            props.put("mail.smtp.socketFactory.port", "465");
+            props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
 
             Session session = Session.getInstance(props, new Authenticator() {
                 @Override
@@ -43,18 +43,17 @@ public class EmailTestController {
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(gmailUser, "CleanReport"));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(to));
-            message.setSubject("CleanReport SMTP Test");
-            message.setContent("<h2>Gmail SMTP works!</h2><p>This email confirms delivery.</p>", "text/html; charset=utf-8");
+            message.setSubject("CleanReport SMTP Test (Port 465)");
+            message.setContent("<h2 style='color:#1B5E20'>CleanReport</h2><p>Gmail SMTP via port 465 works!</p>", "text/html; charset=utf-8");
 
             Transport.send(message);
-            return ResponseEntity.ok(Map.of("status", "SUCCESS", "to", to, "from", gmailUser));
+            return ResponseEntity.ok(Map.of("status", "SUCCESS", "to", to, "port", "465"));
         } catch (Exception e) {
             return ResponseEntity.ok(Map.of(
                 "status", "SMTP_ERROR",
                 "error_class", e.getClass().getSimpleName(),
                 "error_message", e.getMessage() != null ? e.getMessage() : "null",
-                "gmail_user", gmailUser,
-                "gmail_pass_length", String.valueOf(gmailPassword.length())
+                "port", "465"
             ));
         }
     }

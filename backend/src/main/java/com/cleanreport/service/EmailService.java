@@ -22,7 +22,7 @@ import jakarta.mail.internet.*;
 public class EmailService {
 
     private static final String SMTP_HOST = "smtp.gmail.com";
-    private static final int SMTP_PORT = 587;
+    private static final int SMTP_PORT = 465;
 
     private String getGmailUser() {
         String user = System.getenv("GMAIL_USER");
@@ -49,10 +49,11 @@ public class EmailService {
         try {
             Properties props = new Properties();
             props.put("mail.smtp.auth", "true");
-            props.put("mail.smtp.starttls.enable", "true");
+            props.put("mail.smtp.ssl.enable", "true");
+            props.put("mail.smtp.socketFactory.port", "465");
+            props.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
             props.put("mail.smtp.host", SMTP_HOST);
             props.put("mail.smtp.port", String.valueOf(SMTP_PORT));
-            props.put("mail.smtp.ssl.protocols", "TLSv1.2");
 
             Session session = Session.getInstance(props, new Authenticator() {
                 @Override
