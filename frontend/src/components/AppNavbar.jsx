@@ -201,7 +201,15 @@ export default function AppNavbar({ activeTab = '' }) {
                 className="flex items-center gap-2 cursor-pointer p-1 rounded-xl hover:bg-white-bg transition-colors border border-transparent hover:border-white-stroke"
               >
                 {avatarUrl ? (
-                  <img src={avatarUrl} alt={displayName} className="w-9 h-9 rounded-full object-cover shadow-sm ring-2 ring-alert-success" />
+                  <img 
+                    src={avatarUrl} 
+                    alt={displayName} 
+                    className="w-9 h-9 rounded-full object-cover shadow-sm ring-2 ring-alert-success"
+                    onError={(e) => {
+                      e.target.onerror = null;
+                      e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName || 'U')}&background=random`;
+                    }}
+                  />
                 ) : (
                   <div className="w-9 h-9 rounded-full bg-primary text-white font-bold flex items-center justify-center text-sm shadow-sm ring-2 ring-alert-success">
                     {displayName.charAt(0).toUpperCase()}
@@ -215,7 +223,15 @@ export default function AppNavbar({ activeTab = '' }) {
                 <div className="absolute right-0 top-12 w-60 bg-white border border-white-stroke rounded-2xl shadow-xl py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
                   <div className="px-4 py-3 border-b border-white-stroke flex items-center gap-3">
                     {avatarUrl ? (
-                      <img src={avatarUrl} alt={displayName} className="w-10 h-10 rounded-full object-cover shrink-0 shadow-sm" />
+                      <img 
+                        src={avatarUrl} 
+                        alt={displayName} 
+                        className="w-10 h-10 rounded-full object-cover shrink-0 shadow-sm"
+                        onError={(e) => {
+                          e.target.onerror = null;
+                          e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName || 'U')}&background=random`;
+                        }}
+                      />
                     ) : (
                       <div className="w-10 h-10 rounded-full bg-primary text-white font-bold flex items-center justify-center shrink-0 shadow-sm">
                         {displayName.charAt(0).toUpperCase()}
@@ -511,7 +527,15 @@ export default function AppNavbar({ activeTab = '' }) {
               >
                 <div className="flex items-center gap-3 overflow-hidden">
                   {avatarUrl ? (
-                    <img src={avatarUrl} alt={displayName} className="w-10 h-10 rounded-full object-cover shrink-0 shadow-xs ring-1 ring-white-stroke" />
+                    <img 
+                      src={avatarUrl} 
+                      alt={displayName} 
+                      className="w-10 h-10 rounded-full object-cover shrink-0 shadow-xs ring-1 ring-white-stroke"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName || 'U')}&background=random`;
+                      }}
+                    />
                   ) : (
                     <div className="w-10 h-10 rounded-full bg-primary text-white font-bold flex items-center justify-center shrink-0 shadow-xs text-sm ring-1 ring-white-stroke">
                       {displayName.charAt(0).toUpperCase()}
