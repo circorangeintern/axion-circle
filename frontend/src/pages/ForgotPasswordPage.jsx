@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
+import toast from 'react-hot-toast';
 import api from '../services/api';
 import AuthHeroPanel from '../components/AuthHeroPanel';
 import Logo from '../components/Logo';
 
 export default function ForgotPasswordPage() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -17,12 +19,15 @@ export default function ForgotPasswordPage() {
     setIsSubmitting(true);
     try {
       await api.post('/auth/forgot-password', { email: email.trim() });
+      toast.success('Reset token sent to your email!');
+      navigate('/reset-password');
     } catch (error) {
       // Always show success regardless of whether email exists for security
       console.error(error);
+      toast.success('Reset token sent to your email!');
+      navigate('/reset-password');
     } finally {
       setIsSubmitting(false);
-      setIsSuccess(true);
     }
   };
 
@@ -44,41 +49,7 @@ export default function ForgotPasswordPage() {
     return `${local.slice(0, 3)}***@${domain}`;
   };
 
-  if (isSuccess) {
-    return (
-      <div className="min-h-screen flex lg:flex font-body bg-white-bg">
-        <AuthHeroPanel />
-        <div className="w-full lg:w-1/2 min-h-screen flex flex-col items-center justify-center p-6 sm:p-12">
-          <div className="w-full max-w-md px-8 my-auto flex flex-col items-center">
-            
-            <div className="w-full bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] p-10 flex flex-col items-center text-center border border-white-stroke/50">
-              <div className="w-16 h-16 bg-alert-success rounded-full flex items-center justify-center mb-6 shadow-sm">
-                <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                </svg>
-              </div>
-              
-              <h1 className="font-heading text-xl font-bold text-black mb-3">
-                Check Your Email
-              </h1>
-              <p className="text-paragraph text-sm mb-8 leading-relaxed">
-                Please check the email address <span className="text-alert-success font-semibold">{maskEmail(email)}</span> for instructions to reset your password.
-              </p>
-              
-              <button
-                onClick={handleResend}
-                disabled={isSubmitting}
-                className="w-full px-4 py-3 bg-white border border-white-stroke text-black font-semibold rounded-lg hover:bg-white-bg active:scale-[0.99] transition-all shadow-sm"
-              >
-                {isSubmitting ? 'Sending...' : 'Resend Email'}
-              </button>
-            </div>
-            
-          </div>
-        </div>
-      </div>
-    );
-  }
+  // Removed isSuccess block since we now navigate immediately to /reset-password
 
   return (
     <div className="min-h-screen flex lg:flex font-body bg-white-bg">
