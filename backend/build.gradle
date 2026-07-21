@@ -45,7 +45,7 @@ dependencies {
     implementation 'com.cloudinary:cloudinary-http45:1.37.0'
 
     // Email - SendGrid
-    implementation 'com.sendgrid:sendgrid-java:4.10.2'
+    // Email via Brevo REST API (no SDK needed — uses java.net.http)
 
     // API Documentation
     implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.5.0'
