@@ -295,10 +295,10 @@ export default function HomePage() {
           )}
 
           {/* Three Stat Cards — exact Figma structure */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+          <div className="flex overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-3 gap-4 mb-8 pb-2 hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
 
             {/* 1. Total Reports */}
-            <div className="bg-white border border-white-stroke rounded-2xl p-5 shadow-sm relative overflow-hidden flex flex-col min-h-[140px]">
+            <div className="bg-white border border-white-stroke rounded-2xl p-5 shadow-sm relative overflow-hidden flex flex-col min-h-[140px] w-[85vw] sm:w-[280px] md:w-auto shrink-0 snap-center">
               {/* Sparkline — full-width absolute background, bottom half */}
               <div className="absolute bottom-0 right-0 w-2/3 h-16 pointer-events-none opacity-60">
                 <svg viewBox="0 0 120 48" preserveAspectRatio="none" className="w-full h-full">
@@ -328,7 +328,7 @@ export default function HomePage() {
             </div>
 
             {/* 2. Resolved Report */}
-            <div className="bg-white border border-white-stroke rounded-2xl p-5 shadow-sm relative overflow-hidden flex flex-col min-h-[140px]">
+            <div className="bg-white border border-white-stroke rounded-2xl p-5 shadow-sm relative overflow-hidden flex flex-col min-h-[140px] w-[85vw] sm:w-[280px] md:w-auto shrink-0 snap-center">
               {/* Sparkline — full-width absolute background */}
               <div className="absolute bottom-0 right-0 w-2/3 h-16 pointer-events-none opacity-60">
                 <svg viewBox="0 0 120 48" preserveAspectRatio="none" className="w-full h-full">
@@ -358,7 +358,7 @@ export default function HomePage() {
             </div>
 
             {/* 3. Community Points */}
-            <div className="bg-white border border-white-stroke rounded-2xl p-5 shadow-sm relative overflow-hidden flex flex-col min-h-[140px]">
+            <div className="bg-white border border-white-stroke rounded-2xl p-5 shadow-sm relative overflow-hidden flex flex-col min-h-[140px] w-[85vw] sm:w-[280px] md:w-auto shrink-0 snap-center">
               {/* Sparkline — full-width absolute background */}
               <div className="absolute bottom-0 right-0 w-2/3 h-16 pointer-events-none opacity-60">
                 <svg viewBox="0 0 120 48" preserveAspectRatio="none" className="w-full h-full">

@@ -5,6 +5,7 @@ import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import api from '../services/api';
 import AuthHeroPanel from '../components/AuthHeroPanel';
 import Logo from '../components/Logo';
+import AccountCreatedModal from '../components/AccountCreatedModal';
 
 const SharedLogo = () => (
   <div className="flex flex-col items-center justify-center">
@@ -33,6 +34,7 @@ export default function RegisterPage() {
   const [serverError, setServerError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [loadingText, setLoadingText] = useState('Create Account');
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     if (isSubmitting) {
@@ -86,9 +88,9 @@ export default function RegisterPage() {
     }
 
     if (!confirmPassword) {
-      newErrors.confirmPassword = 'Confirm Password is required.';
+      newErrors.confirmPassword = 'Confirm password is required.';
     } else if (password !== confirmPassword) {
-      newErrors.confirmPassword = 'Passwords do not match.';
+      newErrors.confirmPassword = 'Passwords do not match. Please re-enter both fields correctly.';
     }
 
     if (!agreedToTerms) {
@@ -146,16 +148,14 @@ export default function RegisterPage() {
           refreshToken = loginData?.refresh_token || loginData?.refreshToken;
           userObj = loginData?.user || userObj;
         } catch (loginErr) {
-          toast.success('Account created successfully! Please log in.');
-          navigate('/login');
+          setIsModalOpen(true);
           return;
         }
       }
 
       // If token is STILL missing (e.g., backend returned 200 OK but with an error payload due to DB replica delay)
       if (!token) {
-        toast.success('Account created successfully! Please log in.');
-        navigate('/login');
+        setIsModalOpen(true);
         return;
       }
 
@@ -176,8 +176,7 @@ export default function RegisterPage() {
       localStorage.setItem('user_name', userObj.fullName || userObj.name || userObj.displayName || fullName.trim());
       localStorage.setItem('user_email', email.trim());
 
-      toast.success('Account created successfully!');
-      navigate('/');
+      setIsModalOpen(true);
     } catch (error) {
 
       // Connection failure: timeout (ECONNABORTED) or no response from server
@@ -231,38 +230,25 @@ export default function RegisterPage() {
           {step === 1 && (
             <div className="animate-in fade-in duration-200">
               <div className="text-center mb-6">
-                <h1 className="font-heading text-auth-heading text-primary mb-1 whitespace-nowrap">
-                  Create Account
+                <h1 className="font-heading text-2xl font-bold text-black mb-2">
+                  Create an account
                 </h1>
-                <p className="font-body text-auth-subtext text-paragraph">
-                  sign up to get started on cleanreport
+                <p className="text-paragraph text-sm">
+                  Start your 30-day free trial.
                 </p>
               </div>
 
-              {/* Social Login Buttons and Email Input section with tight 6px gap-1.5 specifically per design */}
-              <div className="flex flex-col gap-1.5">
+              <div className="flex flex-col gap-3">
                 <button
                   type="button"
                   onClick={() => handleSocialClick('Google')}
-                  className="w-full px-4 py-2.5 bg-white border border-white-stroke text-black font-medium rounded-lg hover:bg-white-bg active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm shadow-sm cursor-pointer"
+                  className="w-full px-4 py-3 bg-white border border-white-stroke text-black font-semibold rounded-xl hover:bg-white-bg transition-all flex items-center justify-center gap-3 text-sm shadow-sm"
                 >
                   <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
-                    <path
-                      d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-                      fill="#4285F4"
-                    />
-                    <path
-                      d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-                      fill="#34A853"
-                    />
-                    <path
-                      d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"
-                      fill="#FBBC05"
-                    />
-                    <path
-                      d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"
-                      fill="#EA4335"
-                    />
+                    <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                    <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                    <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                    <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
                   </svg>
                   Sign up with Google
                 </button>
@@ -270,7 +256,7 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => handleSocialClick('Facebook')}
-                  className="w-full px-4 py-2.5 bg-white border border-white-stroke text-black font-medium rounded-lg hover:bg-white-bg active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm shadow-sm cursor-pointer"
+                  className="w-full px-4 py-3 bg-white border border-white-stroke text-black font-semibold rounded-xl hover:bg-white-bg transition-all flex items-center justify-center gap-3 text-sm shadow-sm"
                 >
                   <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="#1877F2">
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
@@ -281,7 +267,7 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => handleSocialClick('Apple')}
-                  className="w-full px-4 py-2.5 bg-white border border-white-stroke text-black font-medium rounded-lg hover:bg-white-bg active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm shadow-sm cursor-pointer"
+                  className="w-full px-4 py-3 bg-white border border-white-stroke text-black font-semibold rounded-xl hover:bg-white-bg transition-all flex items-center justify-center gap-3 text-sm shadow-sm"
                 >
                   <svg className="w-5 h-5 shrink-0 fill-black" viewBox="0 0 24 24">
                     <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
@@ -290,15 +276,20 @@ export default function RegisterPage() {
                 </button>
 
                 {/* OR Divider */}
-                <div className="flex items-center my-3">
+                <div className="flex items-center my-2">
                   <div className="flex-1 border-t border-white-stroke" />
-                  <span className="px-3 text-xs text-black-placeholder font-medium tracking-wider">OR</span>
+                  <span className="px-3 text-xs text-paragraph uppercase font-medium tracking-wider">OR</span>
                   <div className="flex-1 border-t border-white-stroke" />
                 </div>
 
                 {/* Email Form */}
-                <form onSubmit={handleStep1Submit} className="flex flex-col gap-1.5 font-body" noValidate>
+                <form onSubmit={handleStep1Submit} className="flex flex-col gap-4 font-body" noValidate>
                   <div>
+                    {email.length > 0 && (
+                      <label htmlFor="step1-email" className={`block text-sm font-medium mb-1 ${!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ? 'text-alert-error' : 'text-black'}`}>
+                        {(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) ? 'Email Address*' : <><span className="text-black">Email </span><span className="text-alert-error">*</span></>}
+                      </label>
+                    )}
                     <input
                       id="step1-email"
                       type="email"
@@ -307,32 +298,43 @@ export default function RegisterPage() {
                         setEmail(e.target.value);
                         if (step1Error) setStep1Error('');
                       }}
-                      className={`w-full px-4 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors ${
-                        step1Error
-                          ? 'border-alert-error focus:ring-alert-errorLight'
-                          : 'border-white-stroke focus:border-primary focus:ring-primary/20'
+                      className={`w-full px-4 py-3 border rounded-xl text-sm focus:outline-none focus:ring-2 transition-colors ${
+                        email.length > 0
+                          ? !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+                            ? 'border-alert-error focus:ring-alert-errorLight text-black'
+                            : 'border-alert-success text-black focus:ring-alert-successLight'
+                          : 'border-white-stroke focus:border-primary focus:ring-primary/20 text-black'
                       }`}
-                      placeholder="Enter your email"
+                      placeholder={email.length === 0 ? "Enter your email" : ""}
                     />
-                    {step1Error && (
-                      <p className="mt-1 text-xs text-alert-error font-medium">{step1Error}</p>
+                    {email.length > 0 && (
+                      <p className={`mt-1.5 text-xs font-medium ${!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ? 'text-alert-error' : 'text-alert-success'}`}>
+                        {!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())
+                          ? 'The email format you entered is incorrect. Please ensure it follows the format: mymail@example.com.'
+                          : 'Email format corrected.'}
+                      </p>
                     )}
                   </div>
 
                   <button
                     type="submit"
-                    className="w-full px-4 py-2.5 bg-primary text-white font-semibold rounded-lg hover:bg-primary/90 active:scale-[0.99] transition-all shadow-sm cursor-pointer"
+                    disabled={email.length === 0}
+                    className={`w-full px-4 py-3 font-semibold rounded-xl transition-all shadow-sm ${
+                      email.length === 0 
+                        ? 'bg-[#d0d3d9] text-white cursor-not-allowed'
+                        : 'bg-primary text-white hover:bg-primary/90 active:scale-[0.99]'
+                    }`}
                   >
                     Get Started
                   </button>
                 </form>
               </div>
 
-              <div className="mt-6 text-center text-sm text-paragraph font-body">
+              <div className="mt-8 text-center text-sm text-paragraph font-body">
                 Already have an account?{' '}
                 <Link
                   to="/login"
-                  className="text-primary font-semibold hover:underline"
+                  className="text-primary font-bold hover:underline"
                 >
                   Log in
                 </Link>
@@ -413,7 +415,7 @@ export default function RegisterPage() {
                     htmlFor="password"
                     className="block text-sm font-medium text-black mb-1"
                   >
-                    Create Password
+                    Create Password <span className="text-alert-error">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -425,7 +427,7 @@ export default function RegisterPage() {
                       className={`w-full pl-4 pr-10 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors ${
                         errors.password
                           ? 'border-alert-error focus:ring-alert-errorLight'
-                          : 'border-white-stroke focus:border-primary focus:ring-primary/20'
+                          : (password && !errors.password) ? 'border-alert-success focus:ring-alert-successLight' : 'border-white-stroke focus:border-primary focus:ring-primary/20'
                       }`}
                       placeholder="*************"
                     />
@@ -442,9 +444,11 @@ export default function RegisterPage() {
                       )}
                     </button>
                   </div>
-                  {errors.password && (
+                  {errors.password ? (
                     <p className="mt-1 text-xs text-alert-error font-medium">{errors.password}</p>
-                  )}
+                  ) : (password.length >= 8 && !errors.password) ? (
+                    <p className="mt-1 text-xs text-alert-success font-medium">Strong password</p>
+                  ) : null}
                 </div>
 
                 <div>
@@ -452,7 +456,7 @@ export default function RegisterPage() {
                     htmlFor="confirmPassword"
                     className="block text-sm font-medium text-black mb-1"
                   >
-                    Confirm password
+                    Confirm password <span className="text-alert-error">*</span>
                   </label>
                   <div className="relative">
                     <input
@@ -460,13 +464,16 @@ export default function RegisterPage() {
                       name="confirmPassword"
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={confirmPassword}
-                      onChange={(e) =>
-                        handleFieldChange('confirmPassword', e.target.value)
-                      }
+                      onChange={(e) => {
+                        handleFieldChange('confirmPassword', e.target.value);
+                        if (errors.confirmPassword) {
+                          setErrors(prev => ({...prev, confirmPassword: undefined}));
+                        }
+                      }}
                       className={`w-full pl-4 pr-10 py-2.5 border rounded-lg text-sm focus:outline-none focus:ring-2 transition-colors ${
                         errors.confirmPassword
-                          ? 'border-alert-error focus:ring-alert-errorLight'
-                          : 'border-white-stroke focus:border-primary focus:ring-primary/20'
+                          ? 'border-alert-warning text-alert-warning focus:ring-alert-warning/20'
+                          : (confirmPassword && confirmPassword === password) ? 'border-alert-success focus:ring-alert-successLight' : 'border-white-stroke focus:border-primary focus:ring-primary/20'
                       }`}
                       placeholder="*************"
                     />
@@ -485,11 +492,15 @@ export default function RegisterPage() {
                       )}
                     </button>
                   </div>
-                  {errors.confirmPassword && (
-                    <p className="mt-1 text-xs text-alert-error font-medium">
+                  {errors.confirmPassword ? (
+                    <p className="mt-1 text-xs text-alert-warning font-medium">
                       {errors.confirmPassword}
                     </p>
-                  )}
+                  ) : (confirmPassword.length > 0 && confirmPassword === password) ? (
+                    <p className="mt-1 text-xs text-alert-success font-medium">
+                      Password match! You can proceed.
+                    </p>
+                  ) : null}
                 </div>
 
                 <div>
@@ -576,6 +587,7 @@ export default function RegisterPage() {
           )}
         </div>
       </div>
+      <AccountCreatedModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
     </div>
   );
 }

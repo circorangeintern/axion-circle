@@ -513,8 +513,17 @@ export default function ReportPage() {
 
               {/* Map Card */}
               <div className="bg-white border border-white-stroke rounded-xl p-4 shadow-sm">
-                <div className="text-xs font-bold uppercase tracking-wider text-black flex items-center gap-1.5 mb-3">
-                  <MapPin className="w-3.5 h-3.5 text-black shrink-0" /> LOCATION
+                <div className="flex items-center justify-between mb-3">
+                  <div className="text-xs font-bold uppercase tracking-wider text-black flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 text-black shrink-0" /> LOCATION
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingLocation((prev) => !prev)}
+                    className="text-xs font-semibold text-primary hover:underline shrink-0"
+                  >
+                    {isEditingLocation ? 'Cancel Edit' : 'Edit Location'}
+                  </button>
                 </div>
 
                 <div className="w-full h-48 rounded-xl overflow-hidden relative mb-3 border border-white-stroke shadow-sm z-0 bg-[#e5e3df]">
@@ -554,33 +563,24 @@ export default function ReportPage() {
                   )}
                 </div>
 
-                <div className="flex items-center justify-between gap-4 pt-1">
-                  <div>
-                    <div className="text-sm font-semibold text-black">
-                      {locationStatus === 'loading'
-                        ? 'Fetching location...'
-                        : locationStatus === 'error'
-                        ? (addressText.includes('denied') ? 'Location access denied' : 'Location unavailable')
-                        : areaName || 'Pin Location, Lagos'}
-                    </div>
-                    <div className="text-xs text-black-icon flex items-center gap-1 mt-0.5">
-                      {locationStatus === 'error' && <XCircle className="w-3.5 h-3.5 text-alert-error shrink-0" />}
-                      <span className={locationStatus === 'error' ? 'text-alert-error font-medium' : ''}>
-                        {locationStatus === 'loading'
-                          ? 'Acquiring high-accuracy GPS coordinates...'
-                          : locationStatus === 'error'
-                          ? 'Click the map to drop a pin, or tap Edit Location to type'
-                          : addressText}
-                      </span>
-                    </div>
+                <div className="pt-1">
+                  <div className="text-sm font-semibold text-black">
+                    {locationStatus === 'loading'
+                      ? 'Fetching location...'
+                      : locationStatus === 'error'
+                      ? (addressText.includes('denied') ? 'Location access denied' : 'Location unavailable')
+                      : areaName || 'Pin Location, Lagos'}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsEditingLocation((prev) => !prev)}
-                    className="text-xs sm:text-sm font-semibold text-primary hover:underline shrink-0"
-                  >
-                    Edit Location
-                  </button>
+                  <div className="text-xs text-black-icon flex items-center gap-1 mt-0.5">
+                    {locationStatus === 'error' && <XCircle className="w-3.5 h-3.5 text-alert-error shrink-0" />}
+                    <span className={locationStatus === 'error' ? 'text-alert-error font-medium' : ''}>
+                      {locationStatus === 'loading'
+                        ? 'Acquiring high-accuracy GPS coordinates...'
+                        : locationStatus === 'error'
+                        ? 'Click the map to drop a pin, or tap Edit Location to type'
+                        : addressText}
+                    </span>
+                  </div>
                 </div>
 
                 {isEditingLocation && (

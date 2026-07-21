@@ -333,77 +333,54 @@ export default function ReportsPage() {
           </div>
 
           {/* Filter Bar — Mobile / Tablet View */}
-          <div className="lg:hidden mb-6">
-            <div className="flex items-center justify-between gap-2.5">
-              {/* Status Dropdown */}
-              <div className="relative flex-1 max-w-[200px]">
-                <button
-                  type="button"
-                  onClick={() => setIsStatusDropdownOpen(!isStatusDropdownOpen)}
-                  className="w-full px-3.5 py-2.5 border border-white-stroke rounded-xl text-xs font-semibold bg-white text-black flex items-center justify-between shadow-2xs"
-                >
-                  <span>{activeTab === 'All' ? 'All Status' : activeTab}</span>
-                  <ChevronDown className={`w-4 h-4 text-black-icon transition-transform ${isStatusDropdownOpen ? 'rotate-180' : ''}`} />
-                </button>
-
-                {isStatusDropdownOpen && (
-                  <div className="absolute left-0 top-full mt-1.5 w-full bg-white border border-white-stroke rounded-xl shadow-xl py-1.5 z-40 animate-in fade-in zoom-in-95 duration-100">
-                    {statusTabs.map((tab) => (
-                      <button
-                        key={tab}
-                        type="button"
-                        onClick={() => {
-                          setActiveTab(tab);
-                          setIsStatusDropdownOpen(false);
-                        }}
-                        className={`w-full px-3.5 py-2 text-left text-xs font-medium flex items-center justify-between ${
-                          activeTab === tab ? 'bg-alert-success text-primary font-bold' : 'text-paragraph hover:bg-white-bg'
-                        }`}
-                      >
-                        {tab === 'All' ? 'All Status' : tab}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              {/* Right Icons: Search + Filter */}
-              <div className="flex items-center gap-2 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => setIsMobileSearchOpen(!isMobileSearchOpen)}
-                  className={`p-2.5 border border-white-stroke rounded-xl bg-white text-black-icon shadow-2xs active:bg-white-bg transition-colors ${
-                    isMobileSearchOpen ? 'border-primary text-primary bg-alert-success' : ''
-                  }`}
-                  aria-label="Search"
-                >
-                  <Search className="w-4 h-4" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsFilterModalOpen(true)}
-                  className="p-2.5 border border-white-stroke rounded-xl bg-white text-black-icon shadow-2xs active:bg-white-bg transition-colors"
-                  aria-label="Filter"
-                >
-                  <Filter className="w-4 h-4" />
-                </button>
-              </div>
-            </div>
-
-            {/* Expandable Mobile Search Box */}
-            {isMobileSearchOpen && (
-              <div className="mt-3 relative animate-in slide-in-from-top duration-150">
+          <div className="lg:hidden mb-6 flex flex-col gap-4">
+            <div className="flex items-center gap-2">
+              <div className="relative flex-1">
                 <Search className="w-4 h-4 text-black-icon absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none" />
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="search for a report..."
-                  className="w-full pl-9 pr-4 py-2.5 border border-primary/40 rounded-xl text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 text-black font-medium placeholder:text-black-placeholder shadow-xs"
-                  autoFocus
+                  className="w-full pl-9 pr-4 py-2.5 border border-white-stroke rounded-xl text-xs sm:text-sm bg-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 text-black font-medium placeholder:text-black-placeholder shadow-xs"
                 />
               </div>
-            )}
+              <button
+                type="button"
+                onClick={() => setIsFilterModalOpen(true)}
+                className={`relative p-2.5 border border-white-stroke rounded-xl bg-white text-black-icon shadow-2xs active:bg-white-bg transition-colors shrink-0 flex items-center justify-center ${
+                  activeCategoryFilters.length + activeUrgencyFilters.length > 0 ? 'border-primary text-primary bg-alert-successLight' : ''
+                }`}
+                aria-label="Filter"
+              >
+                <Filter className="w-4 h-4" />
+                {activeCategoryFilters.length + activeUrgencyFilters.length > 0 && (
+                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-primary text-white text-[9px] font-bold flex items-center justify-center">
+                    {activeCategoryFilters.length + activeUrgencyFilters.length}
+                  </span>
+                )}
+              </button>
+            </div>
+            
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
+              {statusTabs.map((tab) => {
+                const isActive = activeTab === tab;
+                return (
+                  <button
+                    key={tab}
+                    type="button"
+                    onClick={() => setActiveTab(tab)}
+                    className={`px-4 py-2 rounded-xl text-xs transition-all whitespace-nowrap shrink-0 border ${
+                      isActive
+                        ? 'bg-alert-success border-transparent text-primary font-bold'
+                        : 'bg-white border-white-stroke text-paragraph font-medium hover:bg-white-bg'
+                    }`}
+                  >
+                    {tab}
+                  </button>
+                );
+              })}
+            </div>
           </div>
 
           {/* Report Cards Grid */}

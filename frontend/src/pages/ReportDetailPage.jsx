@@ -296,7 +296,126 @@ export default function ReportDetailPage() {
       <AppNavbar />
 
       <main className="flex-1 w-full pb-8">
-        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4 sm:pt-8">
+          
+          {/* MOBILE ONLY LAYOUT */}
+          <div className="sm:hidden flex flex-col pb-24">
+            {/* Top Bar */}
+            <div className="flex items-center justify-between mb-6">
+               <button onClick={() => navigate(-1)} className="p-2 -ml-2 text-black active:bg-white-bg rounded-full transition-colors"><ArrowLeft className="w-6 h-6"/></button>
+               <h1 className="font-heading font-bold text-lg text-black">Sanitation Report</h1>
+               <div className="w-6"></div>
+            </div>
+            
+            {/* Status & Time */}
+            <div className="flex items-center justify-between mb-3">
+              <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
+                  (report.status || '').toLowerCase().replace(' ', '') === 'resolved' ? 'bg-alert-successLight text-primary' :
+                  (report.status || '').toLowerCase().replace(' ', '') === 'inprogress' ? 'bg-alert-inprogressLight text-alert-inprogress' :
+                  (report.status || '').toLowerCase().replace(' ', '') === 'acknowledged' ? 'bg-alert-infoLight text-alert-info' :
+                  'bg-alert-warningLight text-accent'
+              }`}>
+                <span className="w-2 h-2 rounded-full bg-current"></span>
+                {report.status || 'Reported'}
+              </span>
+              <div className="flex items-center gap-1 text-xs font-medium text-black-placeholder">
+                <Clock className="w-4 h-4" />
+                {timeAgo(report.createdAt || report.date)}
+              </div>
+            </div>
+            
+            {/* Title & Location */}
+            <h2 className="font-heading font-bold text-[28px] text-black leading-tight mb-2">
+              {report.title || (report.category ? report.category.replace(/_/g, ' ') : 'Sanitation Issue')}
+            </h2>
+            <div className="flex items-center gap-1.5 text-sm font-medium text-paragraph mb-5">
+              <MapPin className="w-4 h-4" />
+              {geoDistrict || report.areaName || 'Location'}
+            </div>
+            
+            {/* Reporter Avatar Row */}
+            <div className="flex items-center justify-between bg-white-bg2 p-4 rounded-2xl mb-5 border border-white-stroke">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-white border border-white-stroke overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
+                  {report.reporterAvatarUrl || report.reporter?.avatarUrl ? (
+                    <img src={report.reporterAvatarUrl || report.reporter.avatarUrl} alt="Reporter" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-6 h-6 text-primary/50" />
+                  )}
+                </div>
+                <div className="flex flex-col">
+                  <span className="font-bold text-[15px] text-black">
+                    @{report.reporterName || report.reporter?.displayName || report.reporter?.firstName || 'anonymous'}
+                  </span>
+                  <span className="text-xs text-paragraph font-medium">{report.reporter?.status || 'Top Contributor'}</span>
+                </div>
+              </div>
+              <ChevronDown className="w-5 h-5 text-black-icon" />
+            </div>
+            
+            {/* Tags Row */}
+            <div className="flex items-center gap-2 overflow-x-auto hide-scrollbar mb-5 -mx-4 px-4">
+              <span className="px-4 py-2 bg-white border border-white-stroke rounded-xl text-xs font-bold text-black whitespace-nowrap shadow-2xs">
+                {report.category ? report.category.replace(/_/g, ' ') : 'Sanitation'}
+              </span>
+              <span className="px-4 py-2 bg-white border border-white-stroke rounded-xl text-xs font-bold text-black whitespace-nowrap shadow-2xs">
+                {geoAddress || report.address || 'Address not available'}
+              </span>
+            </div>
+            
+            {/* Photo */}
+            <div className="w-full h-[220px] rounded-2xl overflow-hidden mb-6 border border-white-stroke shadow-sm">
+               <img src={thePhotoUrl || fallbackImage} className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = fallbackImage; }} />
+            </div>
+            
+            {/* Description */}
+            {report.description && (
+              <div className="mb-6">
+                <h3 className="font-heading font-bold text-lg text-black mb-2">Description</h3>
+                <p className="text-sm text-paragraph leading-relaxed">
+                  {report.description}
+                </p>
+              </div>
+            )}
+            
+            {/* Comments (Mobile) */}
+            {comments.length > 0 && (
+              <div className="mb-6">
+                <h3 className="font-heading font-bold text-lg text-black mb-3">Comments ({comments.length})</h3>
+                <div className="space-y-4">
+                  {comments.slice(0, 2).map((comment) => (
+                    <div key={comment.id || comment._id} className="flex gap-3">
+                      <div className="w-8 h-8 rounded-full bg-white-bg2 border border-white-stroke flex items-center justify-center shrink-0 overflow-hidden">
+                        <User className="w-4 h-4 text-black-placeholder" />
+                      </div>
+                      <div>
+                        <div className="flex items-baseline gap-2 mb-0.5">
+                          <span className="font-bold text-black text-xs">{comment.user?.firstName || 'Anonymous'}</span>
+                          <span className="text-[10px] text-black-placeholder">{timeAgo(comment.createdAt || comment.date)}</span>
+                        </div>
+                        <p className="text-xs text-paragraph leading-relaxed">{comment.content || comment.text}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Sticky Bottom Bar */}
+            <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-white border-t border-white-stroke flex items-center gap-3 z-50">
+               <button onClick={() => toast.success('Report supported!')} className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-white border border-white-stroke rounded-xl text-black font-bold text-sm shadow-sm active:bg-white-bg transition-colors">
+                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+                 Support Report
+               </button>
+               <button onClick={() => toast.success('Status update modal coming soon!')} className="flex-1 flex items-center justify-center gap-2 py-3.5 bg-primary border border-primary text-white rounded-xl font-bold text-sm shadow-sm active:bg-primary/90 transition-colors">
+                 Update Status
+                 <ChevronDown className="w-4 h-4" />
+               </button>
+            </div>
+          </div>
+          
+          {/* DESKTOP ONLY LAYOUT */}
+          <div className="hidden sm:block">
           {/* Header Row */}
           <div className="flex flex-col md:flex-row md:items-center justify-between min-h-[124px] py-6 w-full mb-6 gap-4">
             <div className="flex flex-col items-start gap-1">
@@ -628,6 +747,7 @@ export default function ReportDetailPage() {
             </div>
           </div>
         </div>
+          </div>
         </div>
       </main>
       <Footer />
