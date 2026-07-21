@@ -43,6 +43,7 @@ export default function LoginPage() {
       const response = await api.post('/auth/login', {
         email: email.trim(),
         password: password,
+        rememberMe: rememberMe,
       });
 
 
@@ -190,13 +191,12 @@ export default function LoginPage() {
                 />
                 <span>Remember for 30 days</span>
               </label>
-              <a
-                href="#"
-                onClick={(e) => { e.preventDefault(); toast.success('Password reset link sent to your email!'); }}
+              <Link
+                to="/forgot-password"
                 className="text-primary hover:underline font-semibold"
               >
                 Forgot password?
-              </a>
+              </Link>
             </div>
 
             {/* Log into Account button */}

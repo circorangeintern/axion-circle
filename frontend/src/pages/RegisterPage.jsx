@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Eye, EyeOff, ArrowLeft } from 'lucide-react';
 import api from '../services/api';
@@ -15,10 +15,11 @@ const SharedLogo = () => (
 
 export default function RegisterPage() {
   const navigate = useNavigate();
+  const location = useLocation();
 
   // Lifted state
-  const [step, setStep] = useState(1);
-  const [email, setEmail] = useState('');
+  const [step, setStep] = useState(location.state?.step || 1);
+  const [email, setEmail] = useState(location.state?.email || '');
 
   // Step 1 state
   const [step1Error, setStep1Error] = useState('');
@@ -45,7 +46,7 @@ export default function RegisterPage() {
   }, [isSubmitting]);
 
   // Step 1 handler
-  const handleStep1Submit = (e) => {
+  const handleStep1Submit = async (e) => {
     e.preventDefault();
     if (!email.trim()) {
       setStep1Error('Email is required to continue.');
@@ -57,7 +58,22 @@ export default function RegisterPage() {
       return;
     }
     setStep1Error('');
-    setStep(2);
+    setIsSubmitting(true);
+    setLoadingText('Sending Code...');
+    try {
+      // Placeholder endpoint for sending OTP for registration
+      await api.post('/auth/send-registration-otp', { email: email.trim() });
+      navigate('/verify-email', { state: { email: email.trim() } });
+    } catch (error) {
+      if (error.isConnectionError || error.code === 'ECONNABORTED' || !error.response) {
+        toast.error('Connection failed. Please try again.');
+      } else {
+        const serverMessage = error.response?.data?.message || error.response?.data?.error || 'Failed to send verification code.';
+        setStep1Error(serverMessage);
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   // Step 2 validation
@@ -176,7 +192,8 @@ export default function RegisterPage() {
       localStorage.setItem('user_name', userObj.fullName || userObj.name || userObj.displayName || fullName.trim());
       localStorage.setItem('user_email', email.trim());
 
-      setIsModalOpen(true);
+      toast.success('Account created successfully!');
+      navigate('/');
     } catch (error) {
 
       // Connection failure: timeout (ECONNABORTED) or no response from server
@@ -284,6 +301,11 @@ export default function RegisterPage() {
 
                 {/* Email Form */}
                 <form onSubmit={handleStep1Submit} className="flex flex-col gap-4 font-body" noValidate>
+                  {step1Error && (
+                    <div className="p-3 bg-alert-errorLight border border-alert-error/20 rounded-lg text-alert-error text-sm font-medium">
+                      {step1Error}
+                    </div>
+                  )}
                   <div>
                     {email.length > 0 && (
                       <label htmlFor="step1-email" className={`block text-sm font-medium mb-1 ${!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim()) ? 'text-alert-error' : 'text-black'}`}>
@@ -318,14 +340,14 @@ export default function RegisterPage() {
 
                   <button
                     type="submit"
-                    disabled={email.length === 0}
+                    disabled={email.length === 0 || isSubmitting}
                     className={`w-full px-4 py-3 font-semibold rounded-xl transition-all shadow-sm ${
-                      email.length === 0 
+                      email.length === 0 || isSubmitting
                         ? 'bg-[#d0d3d9] text-white cursor-not-allowed'
                         : 'bg-primary text-white hover:bg-primary/90 active:scale-[0.99]'
                     }`}
                   >
-                    Get Started
+                    {isSubmitting ? loadingText : 'Get Started'}
                   </button>
                 </form>
               </div>
