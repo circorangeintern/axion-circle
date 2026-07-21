@@ -76,8 +76,7 @@ export default function ResetPasswordPage() {
         token: token.trim(),
         newPassword: password
       });
-      toast.success('Password reset! You can now log in');
-      navigate('/login');
+      setIsSuccess(true);
     } catch (error) {
       const serverMessage = error.response?.data?.message || error.response?.data?.error || 'Invalid or expired reset token.';
       setServerError(serverMessage);
@@ -86,7 +85,47 @@ export default function ResetPasswordPage() {
     }
   };
 
-  // Removed isSuccess block to redirect immediately
+  if (isSuccess) {
+    return (
+      <div className="min-h-screen flex lg:flex font-body bg-white-bg">
+        <AuthHeroPanel />
+        <div className="w-full lg:w-1/2 min-h-screen flex flex-col items-center justify-center p-6 sm:p-12">
+          <div className="w-full max-w-auth-form px-4 sm:px-8 my-auto flex flex-col items-center text-center animate-in fade-in duration-300">
+            <div className="w-24 h-24 bg-alert-success/10 rounded-full flex items-center justify-center mb-6 relative">
+              <div className="absolute inset-0 flex items-center justify-center">
+                 {/* Decorative confetti pieces */}
+                 <div className="absolute w-2 h-4 bg-blue-500 rounded-full -top-4 left-4 transform rotate-45"></div>
+                 <div className="absolute w-3 h-3 bg-yellow-400 rounded-full -top-2 right-2"></div>
+                 <div className="absolute w-4 h-2 bg-red-500 rounded-full top-8 -right-6 transform -rotate-45"></div>
+                 <div className="absolute w-3 h-3 bg-purple-400 rounded-full bottom-4 -left-4"></div>
+                 <div className="absolute w-2 h-4 bg-green-500 rounded-full -bottom-6 left-8 transform rotate-12"></div>
+                 <div className="absolute w-4 h-4 bg-orange-400 rounded-full -bottom-2 right-8 clip-star"></div>
+              </div>
+              <div className="w-20 h-20 bg-alert-success rounded-full flex items-center justify-center relative z-10">
+                <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+            
+            <h1 className="font-heading text-2xl sm:text-3xl font-bold text-black mb-3">
+              Password Changed
+            </h1>
+            <p className="text-paragraph text-sm sm:text-base mb-8 max-w-xs">
+              Your password have been changed successfully.
+            </p>
+            
+            <button
+              onClick={() => navigate('/login')}
+              className="w-full px-4 py-3 bg-alert-success text-white font-semibold rounded-lg hover:bg-alert-success/90 active:scale-[0.99] transition-all shadow-sm"
+            >
+              Back to Login
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex lg:flex font-body bg-white-bg">

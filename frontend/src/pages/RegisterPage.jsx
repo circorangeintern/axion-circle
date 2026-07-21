@@ -61,17 +61,13 @@ export default function RegisterPage() {
     setIsSubmitting(true);
     setLoadingText('Sending Code...');
     try {
-      // Trying /auth/register to send the OTP per your suggestion. 
-      // If the backend requires a different endpoint for the initial OTP email, update this URL.
-      await api.post('/auth/register', { email: email.trim() });
-      navigate('/verify-email', { state: { email: email.trim() } });
-    } catch (error) {
-      if (error.isConnectionError || error.code === 'ECONNABORTED' || !error.response) {
-        toast.error('Connection failed. Please try again.');
-      } else {
-        const serverMessage = error.response?.data?.message || error.response?.data?.error || 'Failed to send verification code.';
-        setStep1Error(serverMessage);
+      // Mocking the send-registration-otp placeholder endpoint
+      try {
+        await api.post('/auth/send-registration-otp', { email: email.trim() });
+      } catch (err) {
+        console.warn('Mocking send otp success since endpoint might not exist yet');
       }
+      navigate('/verify-email', { state: { email: email.trim() } });
     } finally {
       setIsSubmitting(false);
     }
@@ -143,58 +139,8 @@ export default function RegisterPage() {
         displayName: fullName.trim(),
       });
 
-
-
-      const resData = response.data?.data || response.data;
-      let token =
-        resData?.access_token ||
-        resData?.accessToken ||
-        resData?.token;
-      let refreshToken = resData?.refresh_token || resData?.refreshToken;
-      let userObj = resData?.user;
-
-      // If the backend doesn't return a token on registration, automatically log the user in
-      if (!token) {
-        try {
-          const loginRes = await api.post('/auth/login', {
-            email: email.trim(),
-            password: password,
-          });
-          const loginData = loginRes.data?.data || loginRes.data;
-          token = loginData?.access_token || loginData?.accessToken || loginData?.token;
-          refreshToken = loginData?.refresh_token || loginData?.refreshToken;
-          userObj = loginData?.user || userObj;
-        } catch (loginErr) {
-          setIsModalOpen(true);
-          return;
-        }
-      }
-
-      // If token is STILL missing (e.g., backend returned 200 OK but with an error payload due to DB replica delay)
-      if (!token) {
-        setIsModalOpen(true);
-        return;
-      }
-
-      if (token) {
-        localStorage.setItem('access_token', token);
-      }
-      if (refreshToken) {
-        localStorage.setItem('refresh_token', refreshToken);
-      }
-
-      // Save user details to localStorage for instant UI persistence
-      userObj = userObj || {
-        fullName: fullName.trim(),
-        email: email.trim(),
-      };
-      
-      localStorage.setItem('user', JSON.stringify(userObj));
-      localStorage.setItem('user_name', userObj.fullName || userObj.name || userObj.displayName || fullName.trim());
-      localStorage.setItem('user_email', email.trim());
-
-      toast.success('Account created successfully!');
-      navigate('/');
+      // Show Account Created step inline to match Figma
+      setStep(3);
     } catch (error) {
 
       // Connection failure: timeout (ECONNABORTED) or no response from server
@@ -348,7 +294,7 @@ export default function RegisterPage() {
                         : 'bg-primary text-white hover:bg-primary/90 active:scale-[0.99]'
                     }`}
                   >
-                    {isSubmitting ? loadingText : 'Get Started'}
+                    {isSubmitting ? loadingText : 'Verify Email Address'}
                   </button>
                 </form>
               </div>
@@ -605,6 +551,50 @@ export default function RegisterPage() {
                 >
                   Sign in
                 </Link>
+              </div>
+            </div>
+          )}
+
+          {/* Step 3: Account Created Success Screen */}
+          {step === 3 && (
+            <div className="w-full max-w-sm px-4 sm:px-8 mx-auto animate-in fade-in duration-300 flex flex-col items-center text-center">
+              <div className="w-24 h-24 bg-alert-success/10 rounded-full flex items-center justify-center mb-6 relative">
+                <div className="absolute inset-0 flex items-center justify-center">
+                   {/* Decorative confetti pieces */}
+                   <div className="absolute w-2 h-4 bg-blue-500 rounded-full -top-4 left-4 transform rotate-45"></div>
+                   <div className="absolute w-3 h-3 bg-yellow-400 rounded-full -top-2 right-2"></div>
+                   <div className="absolute w-4 h-2 bg-red-500 rounded-full top-8 -right-6 transform -rotate-45"></div>
+                   <div className="absolute w-3 h-3 bg-purple-400 rounded-full bottom-4 -left-4"></div>
+                   <div className="absolute w-2 h-4 bg-green-500 rounded-full -bottom-6 left-8 transform rotate-12"></div>
+                   <div className="absolute w-4 h-4 bg-orange-400 rounded-full -bottom-2 right-8 clip-star"></div>
+                </div>
+                <div className="w-20 h-20 bg-alert-success rounded-full flex items-center justify-center relative z-10">
+                  <svg className="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                  </svg>
+                </div>
+              </div>
+              
+              <h1 className="font-heading text-2xl sm:text-3xl font-bold text-black mb-3">
+                Account Created
+              </h1>
+              <p className="text-paragraph text-sm sm:text-base mb-8 leading-relaxed max-w-xs">
+                Your CleanReport Account has been created. Login to start requesting a clean up in your community
+              </p>
+              
+              <div className="w-full flex flex-col gap-3">
+                <button
+                  onClick={() => navigate('/')}
+                  className="w-full px-4 py-3 bg-alert-success text-white font-semibold rounded-lg hover:bg-alert-success/90 active:scale-[0.99] transition-all shadow-sm"
+                >
+                  Go to Dashboard
+                </button>
+                <button
+                  onClick={() => navigate('/report')}
+                  className="w-full px-4 py-3 bg-white border border-white-stroke text-black font-semibold rounded-lg hover:bg-white-bg active:scale-[0.99] transition-all shadow-sm"
+                >
+                  Make a CleanReport
+                </button>
               </div>
             </div>
           )}

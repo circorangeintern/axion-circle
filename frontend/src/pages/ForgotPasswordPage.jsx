@@ -19,13 +19,11 @@ export default function ForgotPasswordPage() {
     setIsSubmitting(true);
     try {
       await api.post('/auth/forgot-password', { email: email.trim() });
-      toast.success('Reset token sent to your email!');
-      navigate('/reset-password');
+      setIsSuccess(true);
     } catch (error) {
       // Always show success regardless of whether email exists for security
       console.error(error);
-      toast.success('Reset token sent to your email!');
-      navigate('/reset-password');
+      setIsSuccess(true);
     } finally {
       setIsSubmitting(false);
     }
@@ -49,7 +47,47 @@ export default function ForgotPasswordPage() {
     return `${local.slice(0, 3)}***@${domain}`;
   };
 
-  // Removed isSuccess block since we now navigate immediately to /reset-password
+  if (isSuccess) {
+    return (
+      <div className="min-h-screen flex lg:flex font-body bg-white-bg">
+        <AuthHeroPanel />
+        <div className="w-full lg:w-1/2 min-h-screen flex flex-col items-center justify-center p-6 sm:p-12">
+          <div className="w-full max-w-auth-form px-4 sm:px-8 my-auto flex flex-col items-center text-center animate-in fade-in duration-300">
+            <div className="w-20 h-20 sm:w-24 sm:h-24 bg-alert-success/10 rounded-full flex items-center justify-center mb-6">
+              <div className="w-12 h-12 sm:w-14 sm:h-14 bg-alert-success rounded-full flex items-center justify-center">
+                <svg className="w-6 h-6 sm:w-7 sm:h-7 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                </svg>
+              </div>
+            </div>
+            
+            <h1 className="font-heading text-2xl sm:text-3xl font-bold text-black mb-3">
+              Check Your Email
+            </h1>
+            <p className="text-paragraph text-sm sm:text-base mb-8 max-w-sm leading-relaxed">
+              Please check the email address <span className="text-alert-success font-semibold">{maskEmail(email)}</span> for instructions to reset your password.
+            </p>
+            
+            <button
+              onClick={handleResend}
+              disabled={isSubmitting}
+              className="w-full px-4 py-3 bg-white border border-white-stroke text-black font-semibold rounded-lg hover:bg-white-bg active:scale-[0.99] transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isSubmitting ? 'Sending...' : 'Resend mail'}
+            </button>
+            <div className="mt-8 text-center w-full">
+              <Link
+                to="/login"
+                className="inline-flex items-center justify-center gap-2 text-sm font-semibold text-alert-success hover:text-alert-success/80 transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" /> Back to Login
+              </Link>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex lg:flex font-body bg-white-bg">
