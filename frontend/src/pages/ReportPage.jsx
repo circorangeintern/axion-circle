@@ -18,18 +18,24 @@ import {
 import api from '../services/api';
 import { uploadToCloudinary } from '../services/cloudinary';
 import AppNavbar from '../components/AppNavbar';
+import Footer from '../components/Footer';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 import { MapContainer, TileLayer, Marker, useMap, useMapEvents } from 'react-leaflet';
 
 // Custom red pin icon for Leaflet map marker
 const customPinIcon = L.divIcon({
-  className: 'custom-leaflet-pin',
-  html: `<div style="background-color: #F04438; width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; border: 3px solid white; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);">
-    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
-  </div>`,
-  iconSize: [32, 32],
-  iconAnchor: [16, 32],
+  className: 'custom-leaflet-pin bg-transparent border-none',
+  html: `
+    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 40px; height: 40px; position: relative;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="#F04438" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 40px; height: 40px; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.4));">
+        <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+        <circle cx="12" cy="10" r="3.5" fill="white" stroke="none"></circle>
+      </svg>
+    </div>
+  `,
+  iconSize: [40, 40],
+  iconAnchor: [20, 40],
 });
 
 // Component to handle map clicks for manual pinning
@@ -749,21 +755,8 @@ export default function ReportPage() {
         </main>
       </div>
 
-      {/* Desktop Footer */}
-      <footer className="hidden md:flex items-center justify-between max-w-4xl mx-auto w-full px-8 py-6 border-t border-white-stroke text-xs text-black-icon mt-12">
-        <div>Copyright © CleanReport</div>
-        <div className="flex items-center gap-4">
-          <Link to="#" className="hover:underline">
-            Privacy
-          </Link>
-          <Link to="#" className="hover:underline">
-            Terms
-          </Link>
-          <Link to="#" className="hover:underline">
-            Cookies
-          </Link>
-        </div>
-      </footer>
+      {/* Footer */}
+      <Footer />
 
       {showSuccessModal && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { MapContainer, TileLayer, Marker } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { 
@@ -10,6 +10,7 @@ import {
 import toast from 'react-hot-toast';
 import api from '../services/api';
 import AppNavbar from '../components/AppNavbar';
+import Footer from '../components/Footer';
 
 const getMarkerIcon = (status) => {
   let color = '#006FED'; // default blue
@@ -20,10 +21,18 @@ const getMarkerIcon = (status) => {
   else if (s === 'resolved') color = '#127C2F'; // green
 
   return L.divIcon({
-    className: 'custom-leaflet-pin',
-    html: `<div style="background-color: ${color}; width: 20px; height: 20px; border-radius: 50%; border: 2px solid white; box-shadow: 0 2px 4px rgba(0,0,0,0.3);"></div>`,
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
+    className: 'custom-leaflet-pin bg-transparent border-none',
+    html: `
+      <div style="display: flex; flex-direction: column; items-center; justify-content: center; width: 36px; height: 36px; position: relative;">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width: 36px; height: 36px; filter: drop-shadow(0px 2px 4px rgba(0,0,0,0.4));">
+          <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+          <circle cx="12" cy="10" r="3" fill="white" stroke="none"></circle>
+        </svg>
+      </div>
+    `,
+    iconSize: [36, 36],
+    iconAnchor: [18, 36],
+    popupAnchor: [0, -36]
   });
 };
 
@@ -132,16 +141,14 @@ export default function ReportDetailPage() {
         .then(res => res.json())
         .then(data => {
           if (data && data.address) {
-            const district = data.address.suburb || data.address.neighbourhood || data.address.city_district || data.address.city || data.address.town || 'Downtown District';
-            const street = data.address.road ? `${data.address.house_number || ''} ${data.address.road}`.trim() : (data.display_name?.split(',')[0] || '');
-            const postcode = data.address.postcode || '';
+            const district = data.address.suburb || data.address.neighbourhood || data.address.city_district || data.address.village || data.address.city || data.address.town || data.address.county || 'Downtown District';
             setGeoDistrict(district);
-            setGeoAddress(`${street}${postcode ? ', ' + postcode : ''}`);
+            setGeoAddress(data.display_name || report.address);
           }
         })
         .catch(err => console.warn('Reverse geocoding failed:', err));
     }
-  }, [report]);
+  }, [report, geoAddress]);
 
   const handleAddComment = async (e) => {
     e.preventDefault();
@@ -272,141 +279,136 @@ export default function ReportDetailPage() {
   
   const displayId = report.id || report._id || 'UNKNOWN';
   
-  const lat = report.latitude ? parseFloat(report.latitude) : 6.5244;
-  const lng = report.longitude ? parseFloat(report.longitude) : 3.3792;
+  // Robust extraction of coordinates to ensure the map shows the exact location
+  const extractCoord = (val) => val !== undefined && val !== null && val !== '' ? parseFloat(val) : null;
+  const dbLat = extractCoord(report.latitude) ?? extractCoord(report.lat) ?? extractCoord(report.location?.latitude) ?? extractCoord(report.location?.coordinates?.[1]);
+  const dbLng = extractCoord(report.longitude) ?? extractCoord(report.lng) ?? extractCoord(report.location?.longitude) ?? extractCoord(report.location?.coordinates?.[0]);
+  
+  const lat = dbLat !== null ? dbLat : 6.5244;
+  const lng = dbLng !== null ? dbLng : 3.3792;
   const thePhotoUrl = report.photoUrl || report.imageUrl || (report.images && report.images[0]) || null;
 
   return (
     <div className="min-h-screen bg-white-bg font-body flex flex-col">
       <AppNavbar />
 
-      <main className="flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8">
-        {/* Breadcrumb */}
-        <div className="flex items-center text-xs font-medium text-black-placeholder mb-6">
-          <Link to="/" className="hover:text-primary transition-colors">Dashboard</Link>
-          <span className="mx-2">›</span>
-          <Link to="/reports" className="hover:text-primary transition-colors">All Reports</Link>
-          <span className="mx-2">›</span>
-          <span className="text-primary">Report Details</span>
-        </div>
+      <main className="flex-1 w-full pb-8">
+        <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
+          {/* Header Row */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between min-h-[124px] py-6 w-full mb-6 gap-4">
+            <div className="flex flex-col items-start gap-1">
+              {/* Breadcrumb inside Header left block */}
+              <div className="flex items-center text-[14px] font-medium text-black-placeholder mb-[18px]">
+                <Link to="/" className="hover:text-primary transition-colors">Dashboard</Link>
+                <span className="mx-2">›</span>
+                <Link to="/reports" className="hover:text-primary transition-colors">All Reports</Link>
+                <span className="mx-2">›</span>
+                <span className="text-primary font-semibold">Report Details</span>
+              </div>
+              <div className="text-[13px] font-medium text-black-placeholder">
+                ID: #CR-{displayId.toString().slice(-4).toUpperCase()} / {formattedDateHeader}
+              </div>
+              <h1 className="font-heading text-[32px] sm:text-[40px] font-bold text-black leading-tight mt-1">
+                {report.title || (report.category ? report.category.replace(/_/g, ' ') : 'Sanitation Issue')}
+              </h1>
+            </div>
+            <div className="flex flex-col items-end gap-[10px] shrink-0">
+              {/* Urgency Badge */}
+              <div className="flex items-center gap-[6px]">
+                {getUrgencyIcon(report.urgency)}
+                <span className="text-[13px] font-bold text-black">
+                  {report.urgency || 'Critical Level'}
+                </span>
+              </div>
+              {/* Rewards Badge */}
+              <div className="flex items-center gap-[6px]">
+                <Star className="w-[14px] h-[14px] text-[#FEAA01] fill-[#FEAA01]" />
+                <span className="text-[13px] font-bold text-[#127C2F]">50 Credits Reward</span>
+              </div>
+            </div>
+          </div>
 
-        {/* Mobile layout placeholder comment: 
-            The layout below stacks on mobile (< md) and shows two columns on desktop (md+). 
-            Adjustments may be needed once mobile Figma designs are finalized. */}
-        <div className="flex flex-col md:flex-row gap-8">
-          
-          {/* Main Content Column */}
-          <div className="w-full md:w-[65%] lg:w-[70%]">
-            
-            {/* Header Row */}
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start mb-6 gap-4">
-              <div>
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="text-[13px] font-medium text-black-placeholder">
-                    ID: #CR-{displayId.toString().slice(-4).toUpperCase()} / {formattedDateHeader}
-                  </div>
-                  {report.category && (
-                    <span className="text-[10px] font-bold uppercase px-2 py-0.5 bg-white-bg2 border border-white-stroke rounded-full text-paragraph">
-                      {report.category.replace(/_/g, ' ')}
-                    </span>
+          {/* Photo & Reporter Section */}
+          <div className="mb-10 w-full relative">
+            {/* Photo Container */}
+            <div className="w-full h-[250px] sm:h-[360px] rounded-2xl overflow-hidden bg-white-stroke shadow-sm relative z-0">
+              {thePhotoUrl ? (
+                <img 
+                  src={thePhotoUrl} 
+                  alt="Report issue" 
+                  className="w-full h-full object-cover"
+                  onError={(e) => { e.target.style.display = 'none'; }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-black-placeholder bg-white-bg2">
+                  No image provided
+                </div>
+              )}
+            </div>
+
+            {/* Reporter Info Row - Aligned precisely as in Figma */}
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between relative z-10 w-full px-4 sm:px-8">
+              <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4">
+                {/* 112px avatar, shifted up 56px to overlap photo equally */}
+                <div className="w-[112px] h-[112px] rounded-full bg-white flex items-center justify-center overflow-hidden shrink-0 -mt-[56px] shadow-sm ring-4 ring-white">
+                  {(report.reporterAvatarUrl || report.reporterAvatar || report.reporter?.avatarUrl) ? (
+                    <img src={report.reporterAvatarUrl || report.reporterAvatar || report.reporter.avatarUrl} alt="Reporter" className="w-full h-full object-cover" />
+                  ) : (
+                    <User className="w-12 h-12 text-primary/50" />
                   )}
                 </div>
-                <h1 className="font-heading text-3xl sm:text-4xl font-bold text-black">
-                  {report.title || (report.category ? report.category.replace(/_/g, ' ') : 'Sanitation Issue')}
-                </h1>
+                {/* Text aligned to the middle of the bottom half of the avatar */}
+                <div className="mt-3">
+                  <h3 className="font-heading font-bold text-black text-xl sm:text-[28px] leading-none mb-1">
+                    {report.reporterName || report.reporter?.displayName || report.reporter?.name || report.reporter?.fullName || report.reporter?.firstName || 'Anonymous'}
+                  </h3>
+                  <p className="text-sm text-paragraph font-medium">
+                    {report.reporter?.status || 'Top Contributor'}
+                  </p>
+                </div>
               </div>
-              <div className="flex flex-row sm:flex-col items-center sm:items-end gap-2.5 shrink-0 pt-1">
-                {/* Urgency Badge */}
-                <div className="flex items-center gap-2 bg-alert-errorLight/30 px-3 py-1.5 rounded-full border border-alert-error/10">
-                  {getUrgencyIcon(report.urgency)}
-                  <span className="text-[13px] font-bold text-black">
-                    {report.urgency || 'Critical Level'}
-                  </span>
-                </div>
-                {/* Rewards Badge */}
-                <div className="flex items-center gap-2">
-                  <Star className="w-4 h-4 text-[#FEAA01] fill-[#FEAA01]" />
-                  <span className="text-[13px] font-bold text-[#127C2F]">50 Credits Reward</span>
-                </div>
+              
+              <div className="flex items-center gap-3 mt-4 sm:mt-3 pl-[128px] sm:pl-0">
+                <button className="text-black-icon hover:text-primary transition-colors" title="Save Report">
+                  <Star className="w-[20px] h-[20px]" strokeWidth={1.5} />
+                </button>
+                <button className="text-black-icon hover:text-alert-error transition-colors px-2" title="Flag Report">
+                  <Flag className="w-[20px] h-[20px]" strokeWidth={1.5} />
+                </button>
+                <button 
+                  onClick={() => document.getElementById('commentInput')?.focus()}
+                  className="px-4 py-2 bg-[#127C2F] text-white text-[13px] font-bold rounded-lg hover:bg-[#0e6325] transition-colors shadow-sm ml-1"
+                >
+                  Add Comment
+                </button>
               </div>
             </div>
+          </div>
 
-            {/* Photo & Reporter Section */}
-            <div className="mb-10">
-              {/* Photo Container */}
-              <div className="w-full h-[250px] sm:h-[360px] rounded-2xl overflow-hidden bg-white-stroke shadow-sm mb-4">
-                {thePhotoUrl ? (
-                  <img 
-                    src={thePhotoUrl} 
-                    alt="Report issue" 
-                    className="w-full h-full object-cover"
-                    onError={(e) => { e.target.style.display = 'none'; }}
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-black-placeholder bg-white-bg2">
-                    No image provided
-                  </div>
-                )}
-              </div>
-
-              {/* Reporter Info Row (Negative margin to overlap photo, but stays in normal flow) */}
-              <div className="flex flex-col sm:flex-row sm:items-end justify-between px-4 sm:px-8 relative z-10">
-                <div className="flex items-end gap-4 sm:gap-5">
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-white border-[5px] border-white shadow-sm flex items-center justify-center overflow-hidden shrink-0 -mt-12 sm:-mt-14">
-                    {report.reporter?.avatarUrl ? (
-                      <img src={report.reporter.avatarUrl} alt="Reporter" className="w-full h-full object-cover" />
-                    ) : (
-                      <User className="w-12 h-12 text-primary/50" />
-                    )}
-                  </div>
-                  <div className="pb-1 sm:pb-2">
-                    <h3 className="font-heading font-bold text-black text-xl sm:text-[26px] leading-tight">
-                      {report.reporter?.displayName || report.reporter?.name || report.reporter?.fullName || report.reporter?.firstName || 'Anonymous'}
-                    </h3>
-                    <p className="text-[13px] text-paragraph font-medium mt-1">
-                      {report.reporter?.status || 'Top Contributor'}
-                    </p>
-                  </div>
+          {/* Container for two-column content */}
+          <div className="flex flex-col lg:flex-row justify-between items-start gap-8 lg:gap-[31px] self-stretch w-full">
+            {/* Main Content Column */}
+            <div className="w-full flex-1 max-w-full lg:max-w-[650px] xl:max-w-[700px]">
+              {/* Description */}
+              {report.description && (
+                <div className="mb-10">
+                  <h2 className="font-heading text-2xl font-bold text-black mb-2">Description</h2>
+                  <p className="text-paragraph text-[15px] leading-relaxed whitespace-pre-wrap max-w-[600px]">
+                    {report.description}
+                  </p>
                 </div>
-                
-                <div className="flex items-center gap-2 sm:gap-3 pb-1 sm:pb-2 mt-4 sm:mt-0 self-start sm:self-auto pl-28 sm:pl-0">
-                  <button className="text-black-icon hover:text-primary transition-colors p-1" title="Save Report">
-                    <Star className="w-[22px] h-[22px]" />
-                  </button>
-                  <button className="text-black-icon hover:text-alert-error transition-colors p-1" title="Flag Report">
-                    <Flag className="w-[22px] h-[22px]" />
-                  </button>
-                  <button 
-                    onClick={() => document.getElementById('commentInput')?.focus()}
-                    className="px-5 py-2.5 bg-[#127C2F] text-white text-[13px] font-bold rounded-lg hover:bg-[#0e6325] transition-colors shadow-sm ml-2"
-                  >
-                    Add Comment
-                  </button>
+              )}
+
+              {/* Location */}
+              <div className="mb-10">
+                <div className="flex items-center gap-1.5 mb-3">
+                  <MapPin className="w-5 h-5 text-black" />
+                  <h2 className="font-heading text-sm font-bold text-black uppercase tracking-widest">Location</h2>
                 </div>
-              </div>
-            </div>
-
-            {/* Description */}
-            {report.description && (
-              <div className="mb-8">
-                <h2 className="font-heading text-xl font-bold text-black mb-3">Description</h2>
-                <p className="text-paragraph text-sm leading-relaxed whitespace-pre-wrap">
-                  {report.description}
-                </p>
-              </div>
-            )}
-
-            {/* Category Badge removed from here and moved near title */}
-
-            {/* Location */}
-            <div className="mb-10">
-              <div className="flex items-center gap-1.5 mb-3">
-                <MapPin className="w-[18px] h-[18px] text-black" />
-                <h2 className="font-heading text-[13px] font-bold text-black uppercase tracking-wide">Location</h2>
-              </div>
               
               <div className="w-full h-[180px] rounded-xl overflow-hidden border border-white-stroke z-0 relative mb-3">
                 <MapContainer
+                  key={`map-${lat}-${lng}`}
                   center={[lat, lng]}
                   zoom={15}
                   zoomControl={true}
@@ -421,7 +423,16 @@ export default function ReportDetailPage() {
                     url="https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png"
                     maxZoom={18}
                   />
-                  <Marker position={[lat, lng]} icon={getMarkerIcon(report.status)} />
+                  <Marker position={[lat, lng]} icon={getMarkerIcon(report.status)}>
+                    <Popup>
+                      <div className="font-heading font-bold text-sm text-black">
+                        {geoDistrict || report.areaName || 'Location'}
+                      </div>
+                      <div className="text-xs text-paragraph mt-1">
+                        {geoAddress || report.address || 'Exact Location'}
+                      </div>
+                    </Popup>
+                  </Marker>
                 </MapContainer>
               </div>
               
@@ -431,11 +442,11 @@ export default function ReportDetailPage() {
               </div>
             </div>
 
-            {/* Comments Section */}
-            <div className="mb-10">
-              <h2 className="font-heading text-xl font-bold text-black mb-6">
-                Comments ({comments.length})
-              </h2>
+              {/* Comments Section */}
+              <div className="mb-10">
+                <h2 className="font-heading text-2xl font-bold text-black mb-4">
+                  Comments ({comments.length})
+                </h2>
 
               <div className="space-y-6 mb-8">
                 {comments.length === 0 ? (
@@ -508,101 +519,87 @@ export default function ReportDetailPage() {
               </form>
             </div>
 
-            {/* Share Button */}
-            <div>
-              <button 
-                onClick={handleShare}
-                className="flex items-center gap-2 px-5 py-2.5 border border-white-stroke bg-white text-black text-sm font-semibold rounded-lg hover:bg-white-bg transition-colors shadow-sm"
-              >
-                <Share2 className="w-4 h-4 text-primary" />
-                Share on WhatsApp
-              </button>
             </div>
 
-          </div>
-
-          {/* Sidebar Column */}
-          <div className="w-full md:w-[35%] lg:w-[30%] flex flex-col gap-6">
-            
-            {/* Status Timeline Card */}
-            <div className="bg-white border border-white-stroke rounded-2xl p-6 sm:p-7 shadow-sm">
-              <div className="relative">
+            {/* Sidebar Column */}
+            <div className="w-full lg:w-[409px] shrink-0 flex flex-col gap-[31px]">
+              
+              {/* Status Timeline Card */}
+              <div className="flex flex-col items-start gap-[12px] p-[36px_24px] rounded-[12px] bg-white backdrop-blur-[32.5px] border border-white-stroke shadow-sm w-full relative">
                 {/* Vertical Line connecting the dots */}
-                <div className="absolute left-[11px] top-4 bottom-8 w-[2px] bg-white-stroke z-0">
+                <div className="absolute left-[39px] top-[56px] bottom-[56px] w-[2px] bg-white-stroke z-0">
                   {/* Green line progress fill */}
-                  <div 
-                    className="absolute top-0 left-0 w-full bg-[#127C2F] transition-all duration-500" 
-                    style={{ height: activeStageIndex > 0 ? `${(activeStageIndex / 3) * 100}%` : '0%' }}
-                  ></div>
-                </div>
-                
-                <div className="space-y-7 relative z-10">
-                  {mappedStages.map((stage, idx) => {
-                    let circleClasses = "w-6 h-6 rounded-full border-2 flex items-center justify-center shrink-0 bg-white";
-                    let textClasses = "font-bold text-[13px] text-black";
-                    let innerIcon = null;
-
-                    if (stage.isCompleted && !stage.isActive) {
-                      circleClasses = "w-6 h-6 rounded-full bg-[#127C2F] flex items-center justify-center shrink-0 border-2 border-[#127C2F]";
-                      innerIcon = <Check className="w-3.5 h-3.5 text-white" strokeWidth={3} />;
-                      textClasses = "font-bold text-[13px] text-[#127C2F]";
-                    } else if (stage.isActive) {
-                      circleClasses = "w-6 h-6 rounded-full bg-[#006FED] flex items-center justify-center shrink-0 border-2 border-[#006FED]";
-                      innerIcon = <div className="w-2 h-2 rounded-full bg-white"></div>;
-                      textClasses = "font-bold text-[13px] text-[#006FED]";
-                    } else {
-                      circleClasses = "w-6 h-6 rounded-full border-2 border-white-stroke bg-white flex items-center justify-center shrink-0";
-                      textClasses = "font-semibold text-[13px] text-black-placeholder";
-                    }
-
-                    return (
-                      <div key={stage.name} className="flex gap-4 items-start">
-                        <div className="mt-0.5 relative z-10 bg-white">
-                          <div className={circleClasses}>
-                            {innerIcon}
-                          </div>
-                        </div>
-                        <div className="pt-0.5">
-                          <h4 className={textClasses}>{stage.name}</h4>
-                          {stage.note && (
-                            <p className="text-[13px] text-paragraph mt-1 leading-relaxed">
-                              {stage.note}
-                            </p>
-                          )}
-                          {stage.date && (
-                            <p className="text-xs text-black-placeholder mt-1 font-medium">
-                              {formatDateTime(stage.date)}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                <div 
+                  className="absolute top-0 left-0 w-full bg-[#127C2F] transition-all duration-500" 
+                  style={{ height: activeStageIndex > 0 ? `${(activeStageIndex / 3) * 100}%` : '0%' }}
+                ></div>
               </div>
+              
+              {mappedStages.map((stage, idx) => {
+                let circleClasses = "w-[32px] h-[32px] rounded-full flex items-center justify-center shrink-0 bg-white";
+                let textClasses = "font-bold text-[13px] text-black";
+                let innerIcon = null;
+
+                if (stage.isCompleted && !stage.isActive) {
+                  circleClasses = "w-[32px] h-[32px] rounded-full bg-[#127C2F] flex items-center justify-center shrink-0";
+                  innerIcon = <Check className="w-[16px] h-[16px] text-white" strokeWidth={3} />;
+                  textClasses = "font-bold text-[14px] text-[#127C2F]";
+                } else if (stage.isActive) {
+                  circleClasses = "w-[32px] h-[32px] rounded-full bg-[#006FED] flex items-center justify-center shrink-0";
+                  innerIcon = <div className="w-[12px] h-[12px] rounded-full bg-white"></div>;
+                  textClasses = "font-bold text-[14px] text-[#006FED]";
+                } else {
+                  circleClasses = "w-[32px] h-[32px] rounded-full border border-white-stroke bg-white flex items-center justify-center shrink-0";
+                  innerIcon = <div className="w-[8px] h-[8px] rounded-full bg-white-stroke"></div>;
+                  textClasses = "font-semibold text-[14px] text-black-placeholder";
+                }
+
+                return (
+                  <div key={stage.name} className="flex gap-4 items-start relative z-10 w-full mb-2">
+                    <div className="bg-white rounded-full p-1 -ml-1">
+                      <div className={circleClasses}>
+                        {innerIcon}
+                      </div>
+                    </div>
+                    <div className="pt-1.5">
+                      <h4 className={textClasses}>{stage.name}</h4>
+                      {stage.note && (
+                        <p className="text-[13px] text-paragraph mt-1 leading-relaxed">
+                          {stage.note}
+                        </p>
+                      )}
+                      {stage.date && (
+                        <p className="text-xs text-black-placeholder mt-1 font-medium">
+                          {formatDateTime(stage.date)}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Sent a CleanReport? Rewards Card */}
-            <div className="bg-white border border-white-stroke rounded-2xl p-6 shadow-sm flex flex-col items-center text-center mt-2">
-              <div className="text-5xl mb-4">
+            <div className="flex flex-col items-center text-center gap-3 p-[36px_24px] rounded-[12px] bg-white border border-white-stroke w-full">
+              <div className="text-[40px] leading-none mb-1">
                 🎁
               </div>
-              <h3 className="font-heading text-lg font-bold text-black mb-2">Sent a CleanReport?</h3>
-              <p className="text-sm text-paragraph mb-5 leading-relaxed">
+              <h3 className="font-heading text-[18px] font-bold text-black">Sent a CleanReport?</h3>
+              <p className="text-[13px] text-paragraph leading-relaxed px-4">
                 When you send a report, your reward appears here after the report has been resolved.
               </p>
               <Link
                 to="/rewards"
-                className="w-full py-2.5 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors shadow-sm"
+                className="mt-3 px-6 py-2.5 bg-[#127C2F] text-white text-[13px] font-bold rounded-lg hover:bg-[#0e6325] transition-colors"
               >
                 See Your Rewards
               </Link>
             </div>
-
           </div>
-
+        </div>
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

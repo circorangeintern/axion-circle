@@ -20,6 +20,7 @@ import {
   ChevronRight,
 } from 'lucide-react';
 import AppNavbar from '../components/AppNavbar';
+import Footer from '../components/Footer';
 import ReportsFilterModal from '../components/ReportsFilterModal';
 
 export const getCardPhotoUrl = (report) => {
@@ -474,9 +475,14 @@ export default function ReportsPage() {
                       {/* Uniform h-44 Real Photo Image Box */}
                       <div className="mb-4 rounded-xl overflow-hidden border border-white-stroke h-44 bg-white-bg relative group/banner shrink-0">
                         <img
-                          src={getCardPhotoUrl(report)}
+                          src={report.photoUrl}
                           alt={report.title}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                          loading="lazy"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.src = 'https://res.cloudinary.com/demo/image/upload/v1784551569/cam7heldii2kcrpay6zj.jpg';
+                          }}
                         />
                         <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                       </div>
@@ -631,20 +637,7 @@ export default function ReportsPage() {
       </div>
 
       {/* Desktop & Mobile Footer */}
-      <footer className="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 border-t border-white-stroke text-xs text-black-placeholder mt-16 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div>Copyright © CleanReport</div>
-        <div className="flex items-center gap-4">
-          <Link to="#" className="hover:underline">
-            Privacy
-          </Link>
-          <Link to="#" className="hover:underline">
-            Terms
-          </Link>
-          <Link to="#" className="hover:underline">
-            Cookies
-          </Link>
-        </div>
-      </footer>
+      <Footer />
       <ReportsFilterModal
         isOpen={isFilterModalOpen}
         onClose={() => setIsFilterModalOpen(false)}

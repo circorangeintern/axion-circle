@@ -38,7 +38,15 @@ export default function ReportListView({ reports }) {
           <div key={report.id} className="bg-white rounded-xl p-4 shadow-sm border border-white-stroke flex flex-col sm:flex-row gap-4 relative">
             {report.photoUrl && (
               <div className="w-full sm:w-24 h-32 sm:h-24 rounded-lg overflow-hidden shrink-0">
-                <img src={report.photoUrl} alt="Report evidence" className="w-full h-full object-cover" />
+                <img 
+                  src={report.photoUrl} 
+                  alt="Report evidence" 
+                  className="w-full h-full object-cover" 
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = 'https://res.cloudinary.com/demo/image/upload/v1784551569/cam7heldii2kcrpay6zj.jpg';
+                  }}
+                />
               </div>
             )}
             

@@ -26,6 +26,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import AppNavbar from '../components/AppNavbar';
+import Footer from '../components/Footer';
 import mapBg from '../assets/map-bg.jpg';
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
 import MarkerClusterGroup from '@changey/react-leaflet-markercluster';
@@ -704,22 +705,7 @@ export default function HomePage() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t border-white-stroke bg-white py-6 px-4 sm:px-8 mt-auto">
-        <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-medium text-black-placeholder">
-          <div>Copyright © CleanReport</div>
-          <div className="flex items-center gap-6">
-            <Link to="#" className="hover:text-black transition-colors">
-              Privacy
-            </Link>
-            <Link to="#" className="hover:text-black transition-colors">
-              Terms
-            </Link>
-            <Link to="#" className="hover:text-black transition-colors">
-              Cookies
-            </Link>
-          </div>
-        </div>
-      </footer>
+      <Footer />
 
       {/* Floating Action Button (FAB) always shown for quick reporting */}
       <div className="fixed bottom-6 right-6 z-40">
