@@ -10,13 +10,13 @@ export default function ProfilePage() {
 
   useEffect(() => {
     try {
-      const storedUser = localStorage.getItem('user');
+      const storedUser = (localStorage.getItem() || sessionStorage.getItem());
       if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
         setUser(JSON.parse(storedUser));
       } else {
         setUser({
-          displayName: localStorage.getItem('user_name') || '',
-          email: localStorage.getItem('user_email') || '',
+          displayName: (localStorage.getItem() || sessionStorage.getItem()) || '',
+          email: (localStorage.getItem() || sessionStorage.getItem()) || '',
         });
       }
     } catch (e) {
@@ -77,8 +77,8 @@ export default function ProfilePage() {
     return <div className="min-h-screen bg-white-bg flex items-center justify-center">Loading...</div>;
   }
 
-  const displayName = user.displayName || user.name || user.fullName || user.username || localStorage.getItem('user_name') || '';
-  const email = user.email || localStorage.getItem('user_email') || '';
+  const displayName = user.displayName || user.name || user.fullName || user.username || (localStorage.getItem() || sessionStorage.getItem()) || '';
+  const email = user.email || (localStorage.getItem() || sessionStorage.getItem()) || '';
 
   return (
     <div className="min-h-screen bg-white-bg font-body flex flex-col">

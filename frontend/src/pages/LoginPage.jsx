@@ -55,19 +55,34 @@ export default function LoginPage() {
         resData?.refresh_token || resData?.refreshToken;
 
       if (accessToken) {
-        localStorage.setItem('access_token', accessToken);
+        if (rememberMe) {
+          localStorage.setItem('access_token', accessToken);
+        } else {
+          sessionStorage.setItem('access_token', accessToken);
+        }
       }
       if (refreshToken) {
-        localStorage.setItem('refresh_token', refreshToken);
+        if (rememberMe) {
+          localStorage.setItem('refresh_token', refreshToken);
+        } else {
+          sessionStorage.setItem('refresh_token', refreshToken);
+        }
       }
 
       const userObj = resData?.user || {
         fullName: email.split('@')[0] ? email.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim() : '',
         email: email.trim(),
       };
-      localStorage.setItem('user', JSON.stringify(userObj));
-      localStorage.setItem('user_name', userObj.fullName || '');
-      localStorage.setItem('user_email', email.trim());
+      
+      if (rememberMe) {
+        localStorage.setItem('user', JSON.stringify(userObj));
+        localStorage.setItem('user_name', userObj.fullName || '');
+        localStorage.setItem('user_email', email.trim());
+      } else {
+        sessionStorage.setItem('user', JSON.stringify(userObj));
+        sessionStorage.setItem('user_name', userObj.fullName || '');
+        sessionStorage.setItem('user_email', email.trim());
+      }
 
       toast.success('Logged in successfully!');
       navigate('/');
@@ -100,7 +115,7 @@ export default function LoginPage() {
           {/* Heading & subtext */}
           <div className="text-center mb-6">
             <h1 className="font-heading text-auth-heading text-primary mb-1">
-              Welcome Back, {localStorage.getItem('user_name')?.split(' ')[0] || 'there'}
+              Welcome Back, {(localStorage.getItem() || sessionStorage.getItem())?.split(' ')[0] || 'there'}
             </h1>
             <p className="font-body text-auth-subtext text-paragraph">
               Welcome back! Please enter your details.

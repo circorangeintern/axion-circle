@@ -113,7 +113,7 @@ export default function ReportsPage() {
         console.error('Failed to fetch reports from backend:', error);
         // Fallback to local storage and default data if API fails
         try {
-          const stored = localStorage.getItem('user_my_reports');
+          const stored = (localStorage.getItem() || sessionStorage.getItem());
           if (stored) {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed) && parsed.length > 0) {

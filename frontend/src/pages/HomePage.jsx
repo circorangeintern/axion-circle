@@ -28,7 +28,7 @@ import {
 import AppNavbar from '../components/AppNavbar';
 import Footer from '../components/Footer';
 import mapBg from '../assets/map-bg.jpg';
-import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet';
+import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import MarkerClusterGroup from '@changey/react-leaflet-markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
 import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
@@ -78,17 +78,40 @@ const MapBoundsFit = ({ reports }) => {
   return null;
 };
 
+const MapCenterTracker = ({ onCityChange }) => {
+  const map = useMapEvents({
+    moveend: async () => {
+      const center = map.getCenter();
+      try {
+        const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${center.lat}&lon=${center.lng}&zoom=10&addressdetails=1`, {
+          headers: {
+            "User-Agent": "CleanReport-App/1.0 (amoo-ayomikun)"
+          }
+        });
+        const data = await res.json();
+        if (data && data.address) {
+          const city = data.address.city || data.address.town || data.address.state || 'the current area';
+          onCityChange(city);
+        }
+      } catch (err) {
+        console.error('Failed to reverse geocode map center', err);
+      }
+    }
+  });
+  return null;
+};
+
 export default function HomePage() {
   const navigate = useNavigate();
 
   const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
-    const token = localStorage.getItem('access_token');
+    const token = (localStorage.getItem() || sessionStorage.getItem());
     return Boolean(token && token !== 'undefined' && token !== 'null');
   });
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
+    const token = (localStorage.getItem() || sessionStorage.getItem());
     setIsLoggedIn(Boolean(token && token !== 'undefined' && token !== 'null'));
   }, [location.pathname]);
   const [isBannerDismissed, setIsBannerDismissed] = useState(false);
@@ -96,6 +119,7 @@ export default function HomePage() {
   const [mapStatus, setMapStatus] = useState('loading'); // 'loading' | 'success' | 'error'
   const [activeFilter, setActiveFilter] = useState('All');
   const [viewMode, setViewMode] = useState('map'); // 'map' | 'list'
+  const [currentCity, setCurrentCity] = useState('Lagos');
 
   const fetchReports = async () => {
     try {
@@ -152,7 +176,7 @@ export default function HomePage() {
   }, []);
 
   const handleViewAll = () => {
-    if (localStorage.getItem('access_token')) {
+    if ((localStorage.getItem() || sessionStorage.getItem())) {
       navigate('/reports');
     } else {
       navigate('/login');
@@ -161,23 +185,23 @@ export default function HomePage() {
 
   const getUserFirstName = () => {
     try {
-      const storedUser = localStorage.getItem('user');
+      const storedUser = (localStorage.getItem() || sessionStorage.getItem());
       if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
         const parsed = JSON.parse(storedUser);
-        const name = String(parsed?.displayName || parsed?.name || parsed?.fullName || parsed?.username || localStorage.getItem('user_name') || '');
+        const name = String(parsed?.displayName || parsed?.name || parsed?.fullName || parsed?.username || (localStorage.getItem() || sessionStorage.getItem()) || '');
         if (name && name.trim() !== '') {
           return name.split(' ')[0];
         }
         
         // Fallback to email
-        const emailStr = String(parsed?.email || localStorage.getItem('user_email') || '');
+        const emailStr = String(parsed?.email || (localStorage.getItem() || sessionStorage.getItem()) || '');
         if (emailStr && typeof emailStr === 'string' && emailStr.includes('@')) {
            return emailStr.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim().split(' ')[0];
         }
       }
     } catch (e) {}
     
-    const emailStr = localStorage.getItem('user_email');
+    const emailStr = (localStorage.getItem() || sessionStorage.getItem());
     if (emailStr && typeof emailStr === 'string' && emailStr.includes('@')) {
        return emailStr.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim().split(' ')[0];
     }
@@ -496,6 +520,7 @@ export default function HomePage() {
                         maxZoom={17}
                       >
                         <MapBoundsFit reports={filteredReports.filter((r) => r.latitude && r.longitude)} />
+                        <MapCenterTracker onCityChange={setCurrentCity} />
                         <TileLayer
                           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -569,7 +594,7 @@ export default function HomePage() {
                     <div className="absolute bottom-3 left-3 sm:bottom-4 sm:left-4 bg-white border border-white-stroke rounded-lg p-3 sm:p-4 w-[200px] sm:w-[240px] shadow-lg z-[400] pointer-events-none">
                       <h3 className="font-bold text-[11px] sm:text-xs text-black mb-1.5">District Overview</h3>
                       <p className="text-[9px] sm:text-[10px] text-paragraph leading-relaxed">
-                        Displaying {filteredReports.length} total active reports across all locations. Zoom out to view reports outside of Lagos.
+                        Displaying {filteredReports.length} total active reports across all locations. Zoom out to view reports outside of {currentCity}.
                       </p>
                     </div>
                   )}

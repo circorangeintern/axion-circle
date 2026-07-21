@@ -789,7 +789,7 @@ export default function ReportPage() {
             </p>
             <div className="space-y-2.5">
               {/* 1. View My Reports (Only show if user is logged in) */}
-              {localStorage.getItem('access_token') && (
+              {(localStorage.getItem() || sessionStorage.getItem()) && (
                 <button
                   type="button"
                   onClick={() => navigate('/my-reports')}
@@ -804,7 +804,7 @@ export default function ReportPage() {
                 type="button"
                 onClick={() => navigate('/reports')}
                 className={`w-full font-semibold py-3 rounded-xl transition-colors ${
-                  localStorage.getItem('access_token')
+                  (localStorage.getItem() || sessionStorage.getItem())
                     ? 'bg-white text-[#187A38] border-2 border-[#187A38] hover:bg-alert-successLight'
                     : 'bg-[#187A38] text-white hover:bg-[#14662E]'
                 }`}

@@ -84,11 +84,11 @@ export default function MyReportsPage() {
 
   const getUserInfo = () => {
     try {
-      const storedUser = localStorage.getItem('user');
+      const storedUser = (localStorage.getItem() || sessionStorage.getItem());
       if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
         const parsed = JSON.parse(storedUser);
-        let dName = String(parsed?.displayName || parsed?.name || parsed?.fullName || parsed?.username || localStorage.getItem('user_name') || '');
-        const email = String(parsed?.email || localStorage.getItem('user_email') || '');
+        let dName = String(parsed?.displayName || parsed?.name || parsed?.fullName || parsed?.username || (localStorage.getItem() || sessionStorage.getItem()) || '');
+        const email = String(parsed?.email || (localStorage.getItem() || sessionStorage.getItem()) || '');
         if (!dName || dName.trim() === '') {
            if (email && email.includes('@')) {
                dName = email.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim();
@@ -99,8 +99,8 @@ export default function MyReportsPage() {
         return { displayName: dName, email: email };
       }
     } catch (e) {}
-    let dName = String(localStorage.getItem('user_name') || '');
-    const email = String(localStorage.getItem('user_email') || '');
+    let dName = String((localStorage.getItem() || sessionStorage.getItem()) || '');
+    const email = String((localStorage.getItem() || sessionStorage.getItem()) || '');
     if (!dName || dName.trim() === '') {
        if (email && email.includes('@')) {
            dName = email.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim();
@@ -128,8 +128,8 @@ export default function MyReportsPage() {
         }
         
         try {
-          const overrides = JSON.parse(localStorage.getItem('report_overrides') || '{}');
-          let pending = JSON.parse(localStorage.getItem('pending_overrides') || '[]');
+          const overrides = JSON.parse((localStorage.getItem() || sessionStorage.getItem()) || '{}');
+          let pending = JSON.parse((localStorage.getItem() || sessionStorage.getItem()) || '[]');
           
           backendReports = backendReports.map(report => {
             let modified = { ...report };
@@ -161,7 +161,7 @@ export default function MyReportsPage() {
         console.error('Failed to fetch reports from backend:', error);
         // Fallback to local storage and default data if API fails
         try {
-          const stored = localStorage.getItem('user_my_reports');
+          const stored = (localStorage.getItem() || sessionStorage.getItem());
           if (stored) {
             const parsed = JSON.parse(stored);
             if (Array.isArray(parsed) && parsed.length > 0) {
@@ -187,7 +187,7 @@ export default function MyReportsPage() {
   };
 
   const handleClearSavedReports = () => {
-    localStorage.removeItem('user_my_reports');
+    localStorage.removeItem(); sessionStorage.removeItem();
     setReports([]);
     toast.success('Local test submissions cleared.');
   };

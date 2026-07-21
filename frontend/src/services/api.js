@@ -12,7 +12,7 @@ export const api = axios.create({
 
 // Request interceptor — attach JWT token
 api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("access_token");
+  const token = (localStorage.getItem() || sessionStorage.getItem());
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   }
@@ -63,12 +63,12 @@ api.interceptors.response.use(
       originalRequest._retry = true;
       isRefreshing = true;
 
-      const refreshToken = localStorage.getItem('refresh_token');
+      const refreshToken = (localStorage.getItem() || sessionStorage.getItem());
       if (!refreshToken) {
         isRefreshing = false;
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        localStorage.removeItem("user");
+        localStorage.removeItem(); sessionStorage.removeItem();
+        localStorage.removeItem(); sessionStorage.removeItem();
+        localStorage.removeItem(); sessionStorage.removeItem();
         window.location.href = "/login";
         return Promise.reject(error);
       }
@@ -94,9 +94,9 @@ api.interceptors.response.use(
       } catch (err) {
         processQueue(err, null);
         isRefreshing = false;
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
-        localStorage.removeItem("user");
+        localStorage.removeItem(); sessionStorage.removeItem();
+        localStorage.removeItem(); sessionStorage.removeItem();
+        localStorage.removeItem(); sessionStorage.removeItem();
         window.location.href = "/login";
         return Promise.reject(err);
       }
