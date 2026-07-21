@@ -432,6 +432,16 @@ export default function AppNavbar({ activeTab = '' }) {
                 >
                   <Settings className="w-5 h-5 text-black/80 shrink-0" /> Settings
                 </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowMobileUserMenu(false);
+                    handleLogout();
+                  }}
+                  className="w-full flex items-center gap-3.5 font-bold text-sm text-alert-error hover:text-alert-error/80 transition-colors text-left"
+                >
+                  <LogOut className="w-5 h-5 text-alert-error shrink-0" /> Log out
+                </button>
               </div>
             </div>
 

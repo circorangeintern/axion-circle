@@ -48,8 +48,6 @@ export default function ReportsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategoryFilters, setActiveCategoryFilters] = useState([]);
   const [activeUrgencyFilters, setActiveUrgencyFilters] = useState([]);
-  const [isStatusDropdownOpen, setIsStatusDropdownOpen] = useState(false);
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   const [isFilterModalOpen, setIsFilterModalOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [reportsList, setReportsList] = useState([]);
