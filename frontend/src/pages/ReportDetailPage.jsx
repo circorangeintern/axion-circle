@@ -322,7 +322,8 @@ export default function ReportDetailPage() {
                   {report.status || 'Reported'}
                 </span>
                 {/* Category Badge */}
-                <span className="text-[11px] font-bold uppercase px-2.5 py-0.5 rounded-sm bg-white-bg2 text-paragraph border border-white-stroke">
+                <span className="text-[11px] font-extrabold uppercase px-3 py-0.5 rounded-sm bg-white text-black border border-black/10 shadow-[0_2px_4px_rgba(0,0,0,0.05)] flex items-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-primary/70"></span>
                   {report.category ? report.category.replace(/_/g, ' ') : 'Sanitation'}
                 </span>
               </div>
@@ -383,19 +384,26 @@ export default function ReportDetailPage() {
                 </div>
               </div>
               
-              <div className="flex items-center gap-3 mt-4 sm:mt-3 pl-[128px] sm:pl-0">
-                <button onClick={handleShare} className="text-black-icon hover:text-primary transition-colors" title="Share Report">
-                  <Share2 className="w-[20px] h-[20px]" strokeWidth={1.5} />
+              <div className="flex flex-wrap items-center gap-3 mt-4 sm:mt-3 pl-[128px] sm:pl-0">
+                <button 
+                  onClick={handleShare} 
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 bg-[#25D366] text-white text-[13px] font-bold rounded-lg hover:bg-[#1EBE5A] transition-colors shadow-sm"
+                  title="Share on WhatsApp"
+                >
+                  <Share2 className="w-[16px] h-[16px]" strokeWidth={2} />
+                  Share on WhatsApp
                 </button>
-                <button className="text-black-icon hover:text-primary transition-colors" title="Save Report">
-                  <Star className="w-[20px] h-[20px]" strokeWidth={1.5} />
-                </button>
-                <button className="text-black-icon hover:text-alert-error transition-colors px-2" title="Flag Report">
-                  <Flag className="w-[20px] h-[20px]" strokeWidth={1.5} />
-                </button>
+                <div className="flex items-center gap-2">
+                  <button className="text-black-icon hover:text-primary transition-colors p-1" title="Save Report">
+                    <Star className="w-[20px] h-[20px]" strokeWidth={1.5} />
+                  </button>
+                  <button className="text-black-icon hover:text-alert-error transition-colors p-1" title="Flag Report">
+                    <Flag className="w-[20px] h-[20px]" strokeWidth={1.5} />
+                  </button>
+                </div>
                 <button 
                   onClick={() => document.getElementById('commentInput')?.focus()}
-                  className="px-4 py-2 bg-[#127C2F] text-white text-[13px] font-bold rounded-lg hover:bg-[#0e6325] transition-colors shadow-sm ml-1"
+                  className="px-4 py-2 bg-[#127C2F] text-white text-[13px] font-bold rounded-lg hover:bg-[#0e6325] transition-colors shadow-sm ml-auto sm:ml-1"
                 >
                   Add Comment
                 </button>
