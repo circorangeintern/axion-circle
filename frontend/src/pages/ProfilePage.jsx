@@ -92,6 +92,10 @@ export default function ProfilePage() {
               src={user.avatarUrl}
               alt="Profile"
               className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border border-white-stroke object-cover bg-white"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(getInitials(displayName, email))}&background=random`;
+              }}
             />
           ) : (
             <div className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border border-white-stroke bg-primary/10 flex items-center justify-center text-primary text-3xl sm:text-5xl font-heading font-bold shadow-sm">

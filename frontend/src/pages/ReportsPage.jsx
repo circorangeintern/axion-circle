@@ -370,7 +370,7 @@ export default function ReportsPage() {
                     onClick={() => setActiveTab(tab)}
                     className={`px-4 py-2 rounded-xl text-xs transition-all whitespace-nowrap shrink-0 border ${
                       isActive
-                        ? 'bg-alert-success border-transparent text-primary font-bold'
+                        ? 'bg-alert-success border-transparent text-white font-bold'
                         : 'bg-white border-white-stroke text-paragraph font-medium hover:bg-white-bg'
                     }`}
                   >
@@ -428,7 +428,7 @@ export default function ReportsPage() {
                       {/* Uniform h-44 Real Photo Image Box */}
                       <div className="mb-4 rounded-xl overflow-hidden border border-white-stroke h-44 bg-white-bg relative group/banner shrink-0">
                         <img
-                          src={report.photoUrl}
+                          src={getCardPhotoUrl(report)}
                           alt={report.title}
                           className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                           loading="lazy"

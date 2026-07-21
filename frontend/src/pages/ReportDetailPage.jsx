@@ -337,11 +337,17 @@ export default function ReportDetailPage() {
             <div className="flex items-center justify-between bg-white-bg2 p-4 rounded-2xl mb-5 border border-white-stroke">
               <div className="flex items-center gap-3">
                 <div className="w-12 h-12 rounded-full bg-white border border-white-stroke overflow-hidden flex items-center justify-center shrink-0 shadow-sm">
-                  {report.reporterAvatarUrl || report.reporter?.avatarUrl ? (
-                    <img src={report.reporterAvatarUrl || report.reporter.avatarUrl} alt="Reporter" className="w-full h-full object-cover" />
-                  ) : (
-                    <User className="w-6 h-6 text-primary/50" />
-                  )}
+                  <div className="w-10 h-10 rounded-full border border-white-stroke overflow-hidden shrink-0 bg-white-bg">
+                    <img 
+                      src={report.reporterAvatarUrl || report.reporter?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(report.reporterName || report.reporter?.name || 'U')}&background=random`} 
+                      alt="Reporter" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(report.reporterName || report.reporter?.name || 'U')}&background=random`;
+                      }}
+                    />
+                  </div>
                 </div>
                 <div className="flex flex-col">
                   <span className="font-bold text-[15px] text-black">
@@ -489,11 +495,17 @@ export default function ReportDetailPage() {
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-3 sm:gap-4 text-center sm:text-left">
                 {/* 80px avatar mobile, 112px desktop, shifted up to overlap photo equally */}
                 <div className="w-20 h-20 sm:w-[112px] sm:h-[112px] rounded-full bg-white flex items-center justify-center overflow-hidden shrink-0 -mt-10 sm:-mt-[56px] shadow-sm ring-4 ring-white">
-                  {(report.reporterAvatarUrl || report.reporterAvatar || report.reporter?.avatarUrl) ? (
-                    <img src={report.reporterAvatarUrl || report.reporterAvatar || report.reporter.avatarUrl} alt="Reporter" className="w-full h-full object-cover" />
-                  ) : (
-                    <User className="w-12 h-12 text-primary/50" />
-                  )}
+                  <div className="w-full h-full rounded-full border border-white-stroke overflow-hidden shrink-0">
+                    <img 
+                      src={report.reporterAvatarUrl || report.reporterAvatar || report.reporter?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(report.reporterName || report.reporter?.name || 'U')}&background=random`} 
+                      alt="Reporter" 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(report.reporterName || report.reporter?.name || 'U')}&background=random`;
+                      }}
+                    />
+                  </div>
                 </div>
                 {/* Text aligned to the middle of the bottom half of the avatar */}
                 <div className="mt-3">
@@ -610,11 +622,17 @@ export default function ReportDetailPage() {
                     return (
                       <div key={cid} className="flex gap-4">
                         <div className="w-10 h-10 rounded-full bg-white-bg2 border border-white-stroke flex items-center justify-center shrink-0 overflow-hidden">
-                          {comment.user?.avatarUrl ? (
-                            <img src={comment.user.avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                          ) : (
-                            <User className="w-5 h-5 text-black-placeholder" />
-                          )}
+                          <div className="w-10 h-10 rounded-full border border-white-stroke overflow-hidden shrink-0">
+                            <img 
+                              src={comment.user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user?.name || 'U')}&background=random`} 
+                              alt="Avatar" 
+                              className="w-full h-full object-cover"
+                              onError={(e) => {
+                                e.target.onerror = null;
+                                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user?.name || 'U')}&background=random`;
+                              }}
+                            />
+                          </div>
                         </div>
                         <div className="flex-1">
                           <div className="flex items-baseline justify-between mb-1">
