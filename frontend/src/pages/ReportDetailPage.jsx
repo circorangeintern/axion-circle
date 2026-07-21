@@ -438,17 +438,17 @@ export default function ReportDetailPage() {
                            <img src="/logo.svg" alt="Mod" className="w-5 h-5 object-contain" />
                         ) : (
                            <img 
-                             src={comment.user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user?.name || 'U')}&background=random`} 
+                             src={comment.user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user?.displayName || comment.user?.name || comment.user?.fullName || comment.user?.firstName || comment.authorName || 'U')}&background=random`} 
                              alt="Avatar" 
                              className="w-full h-full object-cover"
-                             onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user?.name || 'U')}&background=random`; }}
+                             onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user?.displayName || comment.user?.name || comment.user?.fullName || comment.user?.firstName || comment.authorName || 'U')}&background=random`; }}
                            />
                         )}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
                           <div className="flex items-center gap-1.5 text-[11px]">
-                            <span className="font-bold text-black">{comment.user?.displayName || comment.user?.name || comment.user?.firstName || 'Anonymous'}</span>
+                            <span className="font-bold text-black">{comment.user?.displayName || comment.user?.name || comment.user?.fullName || comment.user?.firstName || comment.authorName || 'Anonymous'}</span>
                             <span className="text-black-placeholder">• {timeAgo(comment.createdAt || comment.date || new Date())}</span>
                           </div>
                           {loggedInUserId && (comment.user?.id || comment.user?._id || comment.userId) === loggedInUserId && (
