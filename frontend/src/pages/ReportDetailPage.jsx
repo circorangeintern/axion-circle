@@ -79,6 +79,7 @@ export default function ReportDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [loggedInUserId, setLoggedInUserId] = useState(null);
+  const [loggedInUserRole, setLoggedInUserRole] = useState(null);
   
   const [report, setReport] = useState(null);
   const [statusHistory, setStatusHistory] = useState([]);
@@ -100,6 +101,7 @@ export default function ReportDetailPage() {
       if (userStr) {
         const user = JSON.parse(userStr);
         setLoggedInUserId(user.id || user._id);
+        setLoggedInUserRole((user.role || user.accountType || '').toLowerCase());
       }
     } catch (e) {
       console.error('Error parsing user from localStorage', e);
@@ -432,35 +434,40 @@ export default function ReportDetailPage() {
                   <p className="text-sm text-black-placeholder italic">No comments yet. Be the first to comment!</p>
                 ) : (
                   comments.map((comment) => (
-                    <div key={comment.id || comment._id} className="flex gap-3">
-                      <div className={`w-9 h-9 rounded-full border border-white-stroke flex items-center justify-center shrink-0 overflow-hidden ${comment.user?.isModerator || comment.user?.role === 'admin' ? 'bg-[#C2F5CB]' : 'bg-white-bg2'}`}>
-                        {comment.user?.isModerator || comment.user?.role === 'admin' ? (
+                    <div key={comment.id} className="flex gap-3">
+                      <div className={`w-9 h-9 rounded-full border border-white-stroke flex items-center justify-center shrink-0 overflow-hidden ${comment.isModerator ? 'bg-[#C2F5CB]' : 'bg-white-bg2'}`}>
+                        {comment.isModerator ? (
                            <img src="/logo.svg" alt="Mod" className="w-5 h-5 object-contain" />
                         ) : (
                            <img 
-                             src={comment.user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user?.displayName || comment.user?.name || comment.user?.fullName || comment.user?.firstName || comment.authorName || 'U')}&background=random`} 
+                             src={comment.authorAvatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.authorName || 'U')}&background=random`} 
                              alt="Avatar" 
                              className="w-full h-full object-cover"
-                             onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user?.displayName || comment.user?.name || comment.user?.fullName || comment.user?.firstName || comment.authorName || 'U')}&background=random`; }}
+                             onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.authorName || 'U')}&background=random`; }}
                            />
                         )}
                       </div>
                       <div className="flex-1">
                         <div className="flex items-center justify-between mb-1">
-                          <div className="flex items-center gap-1.5 text-[11px]">
-                            <span className="font-bold text-black">{comment.user?.displayName || comment.user?.name || comment.user?.fullName || comment.user?.firstName || comment.authorName || 'Anonymous'}</span>
-                            <span className="text-black-placeholder">• {timeAgo(comment.createdAt || comment.date || new Date())}</span>
+                          <div className="flex items-center gap-1.5 text-[11px] flex-wrap">
+                            <span className="font-bold text-black">
+                              {comment.authorName || 'Anonymous'}
+                              {comment.isModerator && (
+                                ' City Dispatch (Moderator)'
+                              )}
+                            </span>
+                            <span className="text-black-placeholder">• {timeAgo(comment.createdAt)}</span>
                           </div>
-                          {loggedInUserId && (comment.user?.id || comment.user?._id || comment.userId) === loggedInUserId && (
+                          {loggedInUserId && (comment.authorId === loggedInUserId || loggedInUserRole === 'admin') && (
                             <button 
-                              onClick={() => handleDeleteComment(comment.id || comment._id)}
+                              onClick={() => handleDeleteComment(comment.id)}
                               className="text-black-placeholder hover:text-alert-error transition-colors p-1"
                             >
                               <Trash2 className="w-3.5 h-3.5" />
                             </button>
                           )}
                         </div>
-                        <p className="text-[12px] text-paragraph leading-relaxed whitespace-pre-wrap">{comment.content || comment.text}</p>
+                        <p className="text-[12px] text-paragraph leading-relaxed whitespace-pre-wrap">{comment.content}</p>
                       </div>
                     </div>
                   ))
@@ -468,22 +475,37 @@ export default function ReportDetailPage() {
               </div>
               
               {/* Add Comment Input (Mobile) */}
-              <form onSubmit={handleAddComment} className="flex gap-2">
-                <input
-                  type="text"
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Write a comment..."
-                  className="flex-1 px-3 py-2.5 border border-white-stroke rounded-lg text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors bg-white shadow-sm"
-                />
-                <button
-                  type="submit"
-                  disabled={!newComment.trim() || isSubmittingComment}
-                  className="px-4 py-2.5 bg-[#118B33] text-white text-xs font-bold rounded-lg shadow-sm hover:bg-[#0e742a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-                >
-                  {isSubmittingComment ? '...' : 'Post'}
-                </button>
-              </form>
+              {loggedInUserId ? (
+                <form onSubmit={handleAddComment} className="flex flex-col gap-1.5">
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      maxLength={1000}
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Write a comment..."
+                      className="flex-1 px-3 py-2.5 border border-white-stroke rounded-lg text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors bg-white shadow-sm"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!newComment.trim() || isSubmittingComment}
+                      className="px-4 py-2.5 bg-[#118B33] text-white text-xs font-bold rounded-lg shadow-sm hover:bg-[#0e742a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                    >
+                      {isSubmittingComment ? '...' : 'Post'}
+                    </button>
+                  </div>
+                  <div className="text-right text-[10px] text-black-placeholder px-1">
+                    {newComment.length}/1000
+                  </div>
+                </form>
+              ) : (
+                <div className="flex flex-col items-center justify-center p-6 border border-white-stroke rounded-lg bg-white-bg2 text-center mt-2">
+                  <p className="text-sm text-paragraph mb-3">Log in to join the conversation</p>
+                  <Link to="/login" className="px-5 py-2 bg-primary text-white text-xs font-bold rounded-lg shadow-sm hover:bg-primary/90 transition-colors">
+                    Log in
+                  </Link>
+                </div>
+              )}
             </div>
             
             {/* Mobile Vertical Timeline */}
@@ -737,21 +759,21 @@ export default function ReportDetailPage() {
                   <p className="text-sm text-black-placeholder italic">No comments yet. Be the first to comment!</p>
                 ) : (
                   comments.map((comment) => {
-                    const cid = comment.id || comment._id;
-                    const cAuthorId = comment.user?.id || comment.user?._id || comment.userId;
-                    const canDelete = loggedInUserId && cAuthorId === loggedInUserId;
+                    const cid = comment.id;
+                    const cAuthorId = comment.authorId;
+                    const canDelete = loggedInUserId && (cAuthorId === loggedInUserId || loggedInUserRole === 'admin');
 
                     return (
                       <div key={cid} className="flex gap-4">
                         <div className="w-10 h-10 rounded-full bg-white-bg2 border border-white-stroke flex items-center justify-center shrink-0 overflow-hidden">
                           <div className="w-10 h-10 rounded-full border border-white-stroke overflow-hidden shrink-0">
                             <img 
-                              src={comment.user?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user?.displayName || comment.user?.name || comment.user?.fullName || comment.user?.firstName || comment.authorName || 'U')}&background=random`} 
+                              src={comment.authorAvatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.authorName || 'U')}&background=random`} 
                               alt="Avatar" 
                               className="w-full h-full object-cover"
                               onError={(e) => {
                                 e.target.onerror = null;
-                                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.user?.displayName || comment.user?.name || comment.user?.fullName || comment.user?.firstName || comment.authorName || 'U')}&background=random`;
+                                e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.authorName || 'U')}&background=random`;
                               }}
                             />
                           </div>
@@ -760,13 +782,13 @@ export default function ReportDetailPage() {
                           <div className="flex items-baseline justify-between mb-1">
                             <div className="flex items-baseline gap-2">
                               <span className="font-bold text-black text-[13px]">
-                                {comment.user?.displayName || comment.user?.name || comment.user?.fullName || comment.user?.firstName || comment.authorName || 'Anonymous'}
-                                {(comment.user?.role === 'admin' || comment.user?.role === 'moderator' || comment.user?.accountType === 'DISPATCH') && (
-                                  ' (Moderator)'
+                                {comment.authorName || 'Anonymous'}
+                                {comment.isModerator && (
+                                  ' City Dispatch (Moderator)'
                                 )}
                               </span>
                               <span className="text-[11px] text-black-placeholder flex items-center gap-1">
-                                • {timeAgo(comment.createdAt || comment.date)}
+                                • {timeAgo(comment.createdAt)}
                               </span>
                             </div>
                             {canDelete && (
@@ -780,7 +802,7 @@ export default function ReportDetailPage() {
                             )}
                           </div>
                           <p className="text-sm text-paragraph whitespace-pre-wrap">
-                            {comment.content || comment.text}
+                            {comment.content}
                           </p>
                         </div>
                       </div>
@@ -790,23 +812,38 @@ export default function ReportDetailPage() {
               </div>
 
               {/* Add Comment Input */}
-              <form onSubmit={handleAddComment} className="flex gap-3">
-                <input
-                  id="commentInput"
-                  type="text"
-                  value={newComment}
-                  onChange={(e) => setNewComment(e.target.value)}
-                  placeholder="Write a comment..."
-                  className="flex-1 px-4 py-2.5 border border-white-stroke rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors bg-white"
-                />
-                <button
-                  type="submit"
-                  disabled={!newComment.trim() || isSubmittingComment}
-                  className="px-6 py-2.5 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-                >
-                  {isSubmittingComment ? 'Posting...' : 'Post'}
-                </button>
-              </form>
+              {loggedInUserId ? (
+                <form onSubmit={handleAddComment} className="flex flex-col gap-2">
+                  <div className="flex gap-3">
+                    <input
+                      id="commentInput"
+                      type="text"
+                      maxLength={1000}
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      placeholder="Write a comment..."
+                      className="flex-1 px-4 py-2.5 border border-white-stroke rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors bg-white"
+                    />
+                    <button
+                      type="submit"
+                      disabled={!newComment.trim() || isSubmittingComment}
+                      className="px-6 py-2.5 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                    >
+                      {isSubmittingComment ? 'Posting...' : 'Post'}
+                    </button>
+                  </div>
+                  <div className="text-right text-[11px] text-black-placeholder px-1">
+                    {newComment.length}/1000
+                  </div>
+                </form>
+              ) : (
+                <div className="flex flex-col items-center justify-center p-8 border border-white-stroke rounded-xl bg-white-bg2 text-center mt-2">
+                  <p className="text-[15px] text-black font-medium mb-4">Log in to join the conversation</p>
+                  <Link to="/login" className="px-6 py-2.5 bg-primary text-white text-sm font-bold rounded-lg shadow-sm hover:bg-primary/90 transition-colors">
+                    Log in
+                  </Link>
+                </div>
+              )}
             </div>
 
             </div>
