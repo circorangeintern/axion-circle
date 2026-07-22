@@ -25,6 +25,34 @@ function App() {
     ReactGA.send({ hitType: 'pageview', page: location.pathname + location.search });
   }, [location]);
 
+  useEffect(() => {
+    const initFacebookSDK = () => {
+      if (window.FB) return;
+      
+      window.fbAsyncInit = function() {
+        const appId = import.meta.env.VITE_FACEBOOK_APP_ID;
+        if (appId && appId !== '%VITE_FACEBOOK_APP_ID%') {
+          window.FB.init({
+            appId      : appId,
+            cookie     : true,
+            xfbml      : true,
+            version    : 'v19.0'
+          });
+        }
+      };
+
+      (function(d, s, id) {
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id)) return;
+        js = d.createElement(s); js.id = id;
+        js.src = "https://connect.facebook.net/en_US/sdk.js";
+        fjs.parentNode.insertBefore(js, fjs);
+      }(document, 'script', 'facebook-jssdk'));
+    };
+    
+    initFacebookSDK();
+  }, []);
+
   return (
     <>
       <Toaster position="top-right" />

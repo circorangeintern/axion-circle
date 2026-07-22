@@ -199,6 +199,12 @@ export default function RegisterPage() {
   };
 
   const handleFacebookLogin = () => {
+    const appId = import.meta.env.VITE_FACEBOOK_APP_ID;
+    if (!appId || appId === '%VITE_FACEBOOK_APP_ID%') {
+      toast.error('Facebook login is not configured on this environment (missing App ID).');
+      return;
+    }
+
     if (!window.FB) {
       toast.error('Facebook SDK not loaded. Please try again later.');
       return;
