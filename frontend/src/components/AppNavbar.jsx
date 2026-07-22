@@ -19,6 +19,7 @@ import {
   Home,
 } from 'lucide-react';
 import NavbarLogo from './NavbarLogo';
+import NotificationBell from './NotificationBell';
 
 export default function AppNavbar({ activeTab = '' }) {
   const navigate = useNavigate();
@@ -186,15 +187,7 @@ export default function AppNavbar({ activeTab = '' }) {
                 <Settings className="w-5 h-5" />
               </button>
 
-              <button
-                type="button"
-                onClick={() => toast.success('No new notifications')}
-                className="text-black-icon hover:text-black p-1.5 relative rounded-lg hover:bg-white-bg transition-colors"
-                aria-label="Notifications"
-              >
-                <Bell className="w-5 h-5" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-alert-error rounded-full ring-2 ring-white"></span>
-              </button>
+              <NotificationBell />
 
               <div
                 onClick={() => setIsMenuOpen((prev) => !prev)}
@@ -290,7 +283,8 @@ export default function AppNavbar({ activeTab = '' }) {
         <Link to="/" className="flex items-center shrink-0">
           <NavbarLogo className="h-8 sm:h-9 w-auto object-contain" />
         </Link>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          {isLoggedIn && <NotificationBell />}
           <button
             type="button"
             onClick={() => {
@@ -414,17 +408,6 @@ export default function AppNavbar({ activeTab = '' }) {
               </nav>
 
               <div className="mt-auto px-6 space-y-6 mb-6 pt-8">
-                <button
-                  type="button"
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    setShowMobileUserMenu(false);
-                    toast.success('No new notifications');
-                  }}
-                  className="w-full flex items-center gap-3.5 font-bold text-sm text-black hover:text-primary transition-colors text-left"
-                >
-                  <Bell className="w-5 h-5 text-black/80 shrink-0" /> Notification
-                </button>
                 <button
                   type="button"
                   onClick={() => {
