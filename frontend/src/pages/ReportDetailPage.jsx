@@ -942,26 +942,32 @@ export default function ReportDetailPage() {
 
       {/* Delete Confirmation Modal */}
       {commentToDelete && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setCommentToDelete(null)}></div>
-          <div className="relative bg-white rounded-2xl p-6 shadow-xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
-            <div className="w-12 h-12 rounded-full bg-alert-errorLight flex items-center justify-center mb-4 mx-auto">
-              <AlertCircle className="w-6 h-6 text-alert-error" />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl w-full max-w-sm p-8 shadow-xl flex flex-col items-center text-center relative overflow-hidden animate-in zoom-in-95 duration-200">
+            
+            <div className="w-28 h-28 bg-alert-error rounded-full flex items-center justify-center relative z-10 shadow-lg mb-6">
+              <AlertCircle className="w-12 h-12 text-white" />
             </div>
-            <h3 className="text-lg font-bold text-black text-center mb-2">Delete Comment</h3>
-            <p className="text-sm text-paragraph text-center mb-6">Are you sure you want to delete this comment? This action cannot be undone.</p>
-            <div className="flex items-center gap-3">
-              <button 
-                onClick={() => setCommentToDelete(null)}
-                className="flex-1 px-4 py-2.5 rounded-lg border border-white-stroke text-black font-semibold hover:bg-white-bg transition-colors"
-              >
-                Cancel
-              </button>
+            
+            <h2 className="font-heading font-bold text-2xl text-black mb-3">
+              Delete Comment
+            </h2>
+            <p className="text-paragraph text-[15px] leading-relaxed mb-8">
+              Are you sure you want to delete this comment? This action cannot be undone.
+            </p>
+            
+            <div className="w-full flex flex-col gap-3">
               <button 
                 onClick={confirmDelete}
-                className="flex-1 px-4 py-2.5 rounded-lg bg-alert-error text-white font-semibold hover:bg-alert-error/90 transition-colors"
+                className="w-full py-3.5 bg-alert-error text-white font-semibold rounded-xl hover:bg-alert-error/90 transition-colors shadow-sm"
               >
-                Delete
+                Yes, Delete
+              </button>
+              <button 
+                onClick={() => setCommentToDelete(null)}
+                className="w-full py-3.5 bg-white border border-white-stroke text-black font-semibold rounded-xl hover:bg-white-bg transition-colors shadow-sm"
+              >
+                Cancel
               </button>
             </div>
           </div>

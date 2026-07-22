@@ -66,13 +66,20 @@ export default function RegisterPage() {
     setIsSubmitting(true);
     setLoadingText('Sending Code...');
     try {
-      // Mocking the send-registration-otp placeholder endpoint
+      // Mocking the send-registration-otp placeholder endpoint for 404s, but handle real errors
       try {
         await api.post('/auth/send-registration-otp', { email: email.trim() });
+        navigate('/verify-email', { state: { email: email.trim() } });
       } catch (err) {
-        console.warn('Mocking send otp success since endpoint might not exist yet');
+        if (!err.response || err.response.status === 404 || err.code === 'ECONNABORTED') {
+          console.warn('Endpoint missing or connection failed, mocking OTP send success');
+          navigate('/verify-email', { state: { email: email.trim() } });
+        } else {
+          // A real error from the backend (like "Email already in use")
+          const errorMsg = err.response.data?.message || err.response.data?.error || 'Failed to send verification code. Please try again.';
+          setStep1Error(errorMsg);
+        }
       }
-      navigate('/verify-email', { state: { email: email.trim() } });
     } finally {
       setIsSubmitting(false);
     }

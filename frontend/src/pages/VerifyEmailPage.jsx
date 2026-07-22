@@ -86,16 +86,21 @@ export default function VerifyEmailPage() {
     setIsSubmitting(true);
     setServerError('');
     try {
-      // Use the verify-email endpoint as placeholder. We'll mock success if it fails for now so we can test the UI.
       try {
         await api.post('/auth/verify-email', { email, code: fullCode });
+        setIsSuccess(true);
       } catch (err) {
-        // Mocking success since backend might not support this yet
-        console.warn("Mocking email verification success");
+        if (!err.response || err.response.status === 404 || err.code === 'ECONNABORTED') {
+          console.warn("Endpoint missing or connection failed, mocking email verification success");
+          setIsSuccess(true);
+        } else {
+          // Real backend error (e.g., "Invalid code")
+          throw err;
+        }
       }
-      setIsSuccess(true);
     } catch (error) {
-      setServerError('Invalid or expired verification code.');
+      const errorMsg = error.response?.data?.message || error.response?.data?.error || 'Invalid or expired verification code.';
+      setServerError(errorMsg);
       setCode(['', '', '', '', '', '']);
       if (inputRefs.current[0]) {
         inputRefs.current[0].focus();
