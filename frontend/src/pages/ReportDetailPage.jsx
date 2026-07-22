@@ -187,9 +187,16 @@ export default function ReportDetailPage() {
     }
   };
 
-  const handleDeleteComment = async (commentId) => {
-    if (!window.confirm('Are you sure you want to delete this comment?')) return;
-    
+  const [commentToDelete, setCommentToDelete] = useState(null);
+
+  const handleDeleteComment = (commentId) => {
+    setCommentToDelete(commentId);
+  };
+
+  const confirmDelete = async () => {
+    if (!commentToDelete) return;
+    const commentId = commentToDelete;
+    setCommentToDelete(null);
     try {
       await api.delete(`/reports/${id}/comments/${commentId}`);
       setComments(prev => prev.filter(c => c.id !== commentId && c._id !== commentId));
@@ -476,27 +483,27 @@ export default function ReportDetailPage() {
               
               {/* Add Comment Input (Mobile) */}
               {loggedInUserId ? (
-                <form onSubmit={handleAddComment} className="flex flex-col gap-1.5">
-                  <div className="flex gap-2">
+                <form onSubmit={handleAddComment} className="flex gap-2 items-start">
+                  <div className="relative flex-1">
                     <input
                       type="text"
                       maxLength={1000}
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                       placeholder="Write a comment..."
-                      className="flex-1 px-3 py-2.5 border border-white-stroke rounded-lg text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors bg-white shadow-sm"
+                      className="w-full px-3 py-2.5 pr-14 border border-white-stroke rounded-lg text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors bg-white shadow-sm"
                     />
-                    <button
-                      type="submit"
-                      disabled={!newComment.trim() || isSubmittingComment}
-                      className="px-4 py-2.5 bg-[#118B33] text-white text-xs font-bold rounded-lg shadow-sm hover:bg-[#0e742a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-                    >
-                      {isSubmittingComment ? '...' : 'Post'}
-                    </button>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-black-placeholder">
+                      {newComment.length}/1000
+                    </div>
                   </div>
-                  <div className="text-right text-[10px] text-black-placeholder px-1">
-                    {newComment.length}/1000
-                  </div>
+                  <button
+                    type="submit"
+                    disabled={!newComment.trim() || isSubmittingComment}
+                    className="px-4 py-2.5 bg-[#118B33] text-white text-xs font-bold rounded-lg shadow-sm hover:bg-[#0e742a] transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                  >
+                    {isSubmittingComment ? '...' : 'Post'}
+                  </button>
                 </form>
               ) : (
                 <div className="flex flex-col items-center justify-center p-6 border border-white-stroke rounded-lg bg-white-bg2 text-center mt-2">
@@ -813,8 +820,8 @@ export default function ReportDetailPage() {
 
               {/* Add Comment Input */}
               {loggedInUserId ? (
-                <form onSubmit={handleAddComment} className="flex flex-col gap-2">
-                  <div className="flex gap-3">
+                <form onSubmit={handleAddComment} className="flex gap-3 items-start">
+                  <div className="relative flex-1">
                     <input
                       id="commentInput"
                       type="text"
@@ -822,19 +829,19 @@ export default function ReportDetailPage() {
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                       placeholder="Write a comment..."
-                      className="flex-1 px-4 py-2.5 border border-white-stroke rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors bg-white"
+                      className="w-full px-4 py-2.5 pr-14 border border-white-stroke rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors bg-white"
                     />
-                    <button
-                      type="submit"
-                      disabled={!newComment.trim() || isSubmittingComment}
-                      className="px-6 py-2.5 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
-                    >
-                      {isSubmittingComment ? 'Posting...' : 'Post'}
-                    </button>
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-black-placeholder">
+                      {newComment.length}/1000
+                    </div>
                   </div>
-                  <div className="text-right text-[11px] text-black-placeholder px-1">
-                    {newComment.length}/1000
-                  </div>
+                  <button
+                    type="submit"
+                    disabled={!newComment.trim() || isSubmittingComment}
+                    className="px-6 py-2.5 bg-primary text-white text-sm font-semibold rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed shrink-0"
+                  >
+                    {isSubmittingComment ? 'Posting...' : 'Post'}
+                  </button>
                 </form>
               ) : (
                 <div className="flex flex-col items-center justify-center p-8 border border-white-stroke rounded-xl bg-white-bg2 text-center mt-2">
@@ -928,6 +935,34 @@ export default function ReportDetailPage() {
         </div>
       </main>
       <Footer />
+
+      {/* Delete Confirmation Modal */}
+      {commentToDelete && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={() => setCommentToDelete(null)}></div>
+          <div className="relative bg-white rounded-2xl p-6 shadow-xl w-full max-w-sm animate-in fade-in zoom-in-95 duration-200">
+            <div className="w-12 h-12 rounded-full bg-alert-errorLight flex items-center justify-center mb-4 mx-auto">
+              <AlertCircle className="w-6 h-6 text-alert-error" />
+            </div>
+            <h3 className="text-lg font-bold text-black text-center mb-2">Delete Comment</h3>
+            <p className="text-sm text-paragraph text-center mb-6">Are you sure you want to delete this comment? This action cannot be undone.</p>
+            <div className="flex items-center gap-3">
+              <button 
+                onClick={() => setCommentToDelete(null)}
+                className="flex-1 px-4 py-2.5 rounded-lg border border-white-stroke text-black font-semibold hover:bg-white-bg transition-colors"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={confirmDelete}
+                className="flex-1 px-4 py-2.5 rounded-lg bg-alert-error text-white font-semibold hover:bg-alert-error/90 transition-colors"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
