@@ -80,6 +80,7 @@ export default function ReportDetailPage() {
   const navigate = useNavigate();
   const [loggedInUserId, setLoggedInUserId] = useState(null);
   const [loggedInUserRole, setLoggedInUserRole] = useState(null);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   
   const [report, setReport] = useState(null);
   const [statusHistory, setStatusHistory] = useState([]);
@@ -96,6 +97,9 @@ export default function ReportDetailPage() {
   const [geoDistrict, setGeoDistrict] = useState(null);
 
   useEffect(() => {
+    const token = (localStorage.getItem('access_token') || sessionStorage.getItem('access_token'));
+    setIsLoggedIn(Boolean(token && token !== 'undefined' && token !== 'null'));
+    
     try {
       const userStr = (localStorage.getItem('user') || sessionStorage.getItem('user'));
       if (userStr) {
@@ -465,16 +469,16 @@ export default function ReportDetailPage() {
                             </span>
                             <span className="text-black-placeholder">• {timeAgo(comment.createdAt)}</span>
                           </div>
-                          {loggedInUserId && (comment.authorId === loggedInUserId || loggedInUserRole === 'admin') && (
+                          {(loggedInUserId === comment.authorId || loggedInUserRole === 'admin') && (
                             <button 
                               onClick={() => handleDeleteComment(comment.id)}
                               className="text-black-placeholder hover:text-alert-error transition-colors p-1"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           )}
                         </div>
-                        <p className="text-[12px] text-paragraph leading-relaxed whitespace-pre-wrap">{comment.content}</p>
+                        <p className="text-sm text-paragraph leading-relaxed whitespace-pre-wrap break-words overflow-hidden">{comment.content}</p>
                       </div>
                     </div>
                   ))
@@ -482,7 +486,7 @@ export default function ReportDetailPage() {
               </div>
               
               {/* Add Comment Input (Mobile) */}
-              {loggedInUserId ? (
+              {isLoggedIn ? (
                 <form onSubmit={handleAddComment} className="flex gap-2 items-start">
                   <div className="relative flex-1">
                     <input
@@ -491,9 +495,9 @@ export default function ReportDetailPage() {
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                       placeholder="Write a comment..."
-                      className="w-full px-3 py-2.5 pr-14 border border-white-stroke rounded-lg text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors bg-white shadow-sm"
+                      className="w-full px-3 py-2.5 pr-16 border border-white-stroke rounded-lg text-xs focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors bg-white shadow-sm"
                     />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-black-placeholder">
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 bg-white/90 px-1 text-[10px] text-black-placeholder">
                       {newComment.length}/1000
                     </div>
                   </div>
@@ -808,7 +812,7 @@ export default function ReportDetailPage() {
                               </button>
                             )}
                           </div>
-                          <p className="text-sm text-paragraph whitespace-pre-wrap">
+                          <p className="text-sm text-paragraph whitespace-pre-wrap break-words overflow-hidden">
                             {comment.content}
                           </p>
                         </div>
@@ -819,7 +823,7 @@ export default function ReportDetailPage() {
               </div>
 
               {/* Add Comment Input */}
-              {loggedInUserId ? (
+              {isLoggedIn ? (
                 <form onSubmit={handleAddComment} className="flex gap-3 items-start">
                   <div className="relative flex-1">
                     <input
@@ -829,9 +833,9 @@ export default function ReportDetailPage() {
                       value={newComment}
                       onChange={(e) => setNewComment(e.target.value)}
                       placeholder="Write a comment..."
-                      className="w-full px-4 py-2.5 pr-14 border border-white-stroke rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors bg-white"
+                      className="w-full px-4 py-2.5 pr-16 border border-white-stroke rounded-lg text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors bg-white"
                     />
-                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-[11px] text-black-placeholder">
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2 bg-white/90 px-1 text-[11px] text-black-placeholder">
                       {newComment.length}/1000
                     </div>
                   </div>
