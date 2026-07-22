@@ -16,7 +16,8 @@ export default function NotificationBell() {
   const fetchUnreadCount = async () => {
     try {
       const { data } = await api.get('/notifications/unread-count');
-      setUnreadCount(data.unreadCount || 0);
+      const unreadResponse = data.data || data;
+      setUnreadCount(unreadResponse.unreadCount ?? unreadResponse.unread_count ?? 0);
     } catch (error) {
       console.error('Failed to fetch unread count:', error);
     }
@@ -44,9 +45,9 @@ export default function NotificationBell() {
     if (nextState) {
       setIsLoading(true);
       try {
-        const { data } = await api.get('/notifications?page=0&size=10');
-        // Handle paginated response which usually has content or data array
-        const items = data.content || data.data || data || [];
+        const { data } = await api.get('/notifications?page=0&size=20');
+        const payload = data.data || data;
+        const items = payload.content || payload || [];
         setNotifications(Array.isArray(items) ? items : []);
       } catch (error) {
         console.error('Failed to fetch notifications:', error);
@@ -56,8 +57,8 @@ export default function NotificationBell() {
     }
   };
 
-  const handleNotificationClick = async (notification) => {
-    setIsOpen(false);
+  const handleMarkAllAsRead = async (e) => {
+    if (e) e.stopPropagation();
     try {
       await api.post('/notifications/mark-read');
       setUnreadCount(0);
@@ -65,9 +66,17 @@ export default function NotificationBell() {
     } catch (error) {
       console.error('Failed to mark notifications as read:', error);
     }
+  };
+
+  const handleNotificationClick = async (notification) => {
+    setIsOpen(false);
     
     if (notification?.report?.id) {
       navigate(`/reports/${notification.report.id}`);
+    }
+    
+    if (unreadCount > 0) {
+      handleMarkAllAsRead();
     }
   };
 
@@ -103,11 +112,21 @@ export default function NotificationBell() {
       {isOpen && (
         <div className="absolute right-0 top-12 w-[calc(100vw-2rem)] sm:w-80 max-w-sm bg-white border border-white-stroke rounded-2xl shadow-xl z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden origin-top-right">
           <div className="px-4 py-3 border-b border-white-stroke flex justify-between items-center bg-white-bg/50">
-            <h3 className="font-bold text-black text-sm">Notifications</h3>
-            {unreadCount > 0 && (
-              <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
-                {unreadCount} New
-              </span>
+            <div className="flex items-center gap-2">
+              <h3 className="font-bold text-black text-sm">Notifications</h3>
+              {unreadCount > 0 && (
+                <span className="text-[10px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                  {unreadCount} New
+                </span>
+              )}
+            </div>
+            {notifications.some(n => !n.isRead) && (
+              <button 
+                onClick={handleMarkAllAsRead}
+                className="text-xs font-semibold text-primary hover:text-primary/80 transition-colors"
+              >
+                Mark all read
+              </button>
             )}
           </div>
           
