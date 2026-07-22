@@ -44,7 +44,7 @@ export default function AppNavbar({ activeTab = '' }) {
       if (storedUser && storedUser !== 'undefined' && storedUser !== 'null') {
         const parsed = JSON.parse(storedUser);
         
-        let dName = String(parsed?.displayName || parsed?.name || parsed?.fullName || parsed?.username || (localStorage.getItem('user_name') || sessionStorage.getItem('user_name')) || '');
+        let dName = String(parsed?.authorName || parsed?.displayName || parsed?.name || parsed?.fullName || parsed?.username || (localStorage.getItem('user_name') || sessionStorage.getItem('user_name')) || '');
         const email = String(parsed?.email || (localStorage.getItem('user_email') || sessionStorage.getItem('user_email')) || 'belrah@gmail.com');
         
         if (!dName || dName.trim() === '') {
@@ -58,7 +58,7 @@ export default function AppNavbar({ activeTab = '' }) {
         return {
           displayName: dName,
           email: email,
-          avatarUrl: parsed?.avatarUrl || null,
+          avatarUrl: parsed?.authorAvatarUrl || parsed?.avatarUrl || null,
         };
       }
     } catch (e) {

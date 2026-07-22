@@ -478,7 +478,7 @@ export default function ReportDetailPage() {
                             </button>
                           )}
                         </div>
-                        <p className="text-sm text-paragraph leading-relaxed whitespace-pre-wrap break-words overflow-hidden">{comment.content}</p>
+                        <p className="text-sm text-paragraph leading-relaxed whitespace-pre-wrap break-all overflow-hidden">{comment.content}</p>
                       </div>
                     </div>
                   ))
@@ -812,7 +812,7 @@ export default function ReportDetailPage() {
                               </button>
                             )}
                           </div>
-                          <p className="text-sm text-paragraph whitespace-pre-wrap break-words overflow-hidden">
+                          <p className="text-sm text-paragraph whitespace-pre-wrap break-all overflow-hidden">
                             {comment.content}
                           </p>
                         </div>

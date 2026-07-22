@@ -70,18 +70,28 @@ export default function LoginPage() {
         }
       }
 
+      const parsedName = resData?.fullName || resData?.name || resData?.displayName || resData?.authorName || '';
+      const parsedAvatar = resData?.avatarUrl || resData?.authorAvatarUrl || null;
+      const parsedRole = resData?.role || resData?.accountType || 'user';
+      const parsedId = resData?.id || resData?._id || '';
+
       const userObj = resData?.user || {
-        fullName: email.split('@')[0] ? email.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim() : '',
-        email: email.trim(),
+        id: parsedId,
+        fullName: parsedName || (email.split('@')[0] ? email.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim() : ''),
+        email: resData?.email || email.trim(),
+        avatarUrl: parsedAvatar,
+        role: parsedRole
       };
       
+      const storeName = userObj.fullName || userObj.name || userObj.displayName || '';
+
       if (rememberMe) {
         localStorage.setItem('user', JSON.stringify(userObj));
-        localStorage.setItem('user_name', userObj.fullName || '');
+        localStorage.setItem('user_name', storeName);
         localStorage.setItem('user_email', email.trim());
       } else {
         sessionStorage.setItem('user', JSON.stringify(userObj));
-        sessionStorage.setItem('user_name', userObj.fullName || '');
+        sessionStorage.setItem('user_name', storeName);
         sessionStorage.setItem('user_email', email.trim());
       }
 
