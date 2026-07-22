@@ -210,63 +210,66 @@ export default function RegisterPage() {
       return;
     }
     
-    window.FB.login(async (response) => {
-      if (response.authResponse) {
-        try {
-          setIsSubmitting(true);
-          setLoadingText('Signing in...');
-          setServerError('');
+    window.FB.login((response) => {
+      const processLogin = async () => {
+        if (response.authResponse) {
+          try {
+            setIsSubmitting(true);
+            setLoadingText('Signing in...');
+            setServerError('');
 
-          const apiResponse = await api.post('/auth/facebook', {
-            accessToken: response.authResponse.accessToken
-          });
+            const apiResponse = await api.post('/auth/facebook', {
+              accessToken: response.authResponse.accessToken
+            });
 
-          const resData = apiResponse.data?.data || apiResponse.data;
-          const accessToken =
-            resData?.access_token ||
-            resData?.accessToken ||
-            resData?.token;
-          const refreshToken =
-            resData?.refresh_token || resData?.refreshToken;
+            const resData = apiResponse.data?.data || apiResponse.data;
+            const accessToken =
+              resData?.access_token ||
+              resData?.accessToken ||
+              resData?.token;
+            const refreshToken =
+              resData?.refresh_token || resData?.refreshToken;
 
-          if (accessToken) {
-            localStorage.setItem('access_token', accessToken);
+            if (accessToken) {
+              localStorage.setItem('access_token', accessToken);
+            }
+            if (refreshToken) {
+              localStorage.setItem('refresh_token', refreshToken);
+            }
+
+            const parsedName = resData?.fullName || resData?.name || resData?.displayName || resData?.authorName || '';
+            const parsedAvatar = resData?.avatarUrl || resData?.authorAvatarUrl || null;
+            const parsedRole = resData?.role || resData?.accountType || 'user';
+            const parsedId = resData?.id || resData?._id || '';
+            const userEmail = resData?.email || '';
+
+            const userObj = resData?.user || {
+              id: parsedId,
+              fullName: parsedName || (userEmail.split('@')[0] ? userEmail.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim() : ''),
+              email: userEmail,
+              avatarUrl: parsedAvatar,
+              role: parsedRole
+            };
+            
+            const storeName = userObj.fullName || userObj.name || userObj.displayName || '';
+
+            localStorage.setItem('user', JSON.stringify(userObj));
+            localStorage.setItem('user_name', storeName);
+            localStorage.setItem('user_email', userEmail);
+
+            toast.success('Signed in successfully!');
+            navigate('/');
+          } catch (error) {
+            toast.error(error.response?.data?.message || error.response?.data?.error || 'Facebook sign-in failed. Please try again.');
+            setServerError('Facebook sign-in failed.');
+          } finally {
+            setIsSubmitting(false);
           }
-          if (refreshToken) {
-            localStorage.setItem('refresh_token', refreshToken);
-          }
-
-          const parsedName = resData?.fullName || resData?.name || resData?.displayName || resData?.authorName || '';
-          const parsedAvatar = resData?.avatarUrl || resData?.authorAvatarUrl || null;
-          const parsedRole = resData?.role || resData?.accountType || 'user';
-          const parsedId = resData?.id || resData?._id || '';
-          const userEmail = resData?.email || '';
-
-          const userObj = resData?.user || {
-            id: parsedId,
-            fullName: parsedName || (userEmail.split('@')[0] ? userEmail.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim() : ''),
-            email: userEmail,
-            avatarUrl: parsedAvatar,
-            role: parsedRole
-          };
-          
-          const storeName = userObj.fullName || userObj.name || userObj.displayName || '';
-
-          localStorage.setItem('user', JSON.stringify(userObj));
-          localStorage.setItem('user_name', storeName);
-          localStorage.setItem('user_email', userEmail);
-
-          toast.success('Signed in successfully!');
-          navigate('/');
-        } catch (error) {
-          toast.error(error.response?.data?.message || error.response?.data?.error || 'Facebook sign-in failed. Please try again.');
-          setServerError('Facebook sign-in failed.');
-        } finally {
-          setIsSubmitting(false);
+        } else {
+          toast.error('Facebook sign-in was cancelled or failed.');
         }
-      } else {
-        toast.error('Facebook sign-in was cancelled or failed.');
-      }
+      };
+      processLogin();
     }, { scope: 'email,public_profile' });
   };
 
