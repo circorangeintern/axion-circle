@@ -198,6 +198,72 @@ export default function RegisterPage() {
     setServerError('Google sign-in failed.');
   };
 
+  const handleFacebookLogin = () => {
+    if (!window.FB) {
+      toast.error('Facebook SDK not loaded. Please try again later.');
+      return;
+    }
+    
+    window.FB.login(async (response) => {
+      if (response.authResponse) {
+        try {
+          setIsSubmitting(true);
+          setLoadingText('Signing in...');
+          setServerError('');
+
+          const apiResponse = await api.post('/auth/facebook', {
+            accessToken: response.authResponse.accessToken
+          });
+
+          const resData = apiResponse.data?.data || apiResponse.data;
+          const accessToken =
+            resData?.access_token ||
+            resData?.accessToken ||
+            resData?.token;
+          const refreshToken =
+            resData?.refresh_token || resData?.refreshToken;
+
+          if (accessToken) {
+            localStorage.setItem('access_token', accessToken);
+          }
+          if (refreshToken) {
+            localStorage.setItem('refresh_token', refreshToken);
+          }
+
+          const parsedName = resData?.fullName || resData?.name || resData?.displayName || resData?.authorName || '';
+          const parsedAvatar = resData?.avatarUrl || resData?.authorAvatarUrl || null;
+          const parsedRole = resData?.role || resData?.accountType || 'user';
+          const parsedId = resData?.id || resData?._id || '';
+          const userEmail = resData?.email || '';
+
+          const userObj = resData?.user || {
+            id: parsedId,
+            fullName: parsedName || (userEmail.split('@')[0] ? userEmail.split('@')[0].replace(/[._0-9]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()).trim() : ''),
+            email: userEmail,
+            avatarUrl: parsedAvatar,
+            role: parsedRole
+          };
+          
+          const storeName = userObj.fullName || userObj.name || userObj.displayName || '';
+
+          localStorage.setItem('user', JSON.stringify(userObj));
+          localStorage.setItem('user_name', storeName);
+          localStorage.setItem('user_email', userEmail);
+
+          toast.success('Signed in successfully!');
+          navigate('/');
+        } catch (error) {
+          toast.error(error.response?.data?.message || error.response?.data?.error || 'Facebook sign-in failed. Please try again.');
+          setServerError('Facebook sign-in failed.');
+        } finally {
+          setIsSubmitting(false);
+        }
+      } else {
+        toast.error('Facebook sign-in was cancelled or failed.');
+      }
+    }, { scope: 'email,public_profile' });
+  };
+
   // Step 2 submit handler
   const handleStep2Submit = async (e) => {
     e.preventDefault();
@@ -291,7 +357,7 @@ export default function RegisterPage() {
 
                 <button
                   type="button"
-                  onClick={() => handleSocialClick('Facebook')}
+                  onClick={handleFacebookLogin}
                   className="w-full px-4 py-3 bg-white border border-white-stroke text-black font-semibold rounded-xl hover:bg-white-bg transition-all flex items-center justify-center gap-3 text-sm shadow-sm"
                 >
                   <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="#1877F2">
@@ -598,6 +664,17 @@ export default function RegisterPage() {
                       shape="rectangular"
                     />
                   </div>
+                  
+                  <button
+                    type="button"
+                    onClick={handleFacebookLogin}
+                    className="w-full px-4 py-2.5 bg-white border border-white-stroke text-black font-semibold rounded-lg hover:bg-white-bg transition-all flex items-center justify-center gap-3 text-sm shadow-sm mt-3"
+                  >
+                    <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="#1877F2">
+                      <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+                    </svg>
+                    Sign up with Facebook
+                  </button>
                 </div>
               </form>
 
