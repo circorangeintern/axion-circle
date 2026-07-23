@@ -45,7 +45,6 @@ export default defineConfig({
           react: ['react', 'react-dom', 'react-router-dom'],
           leaflet: ['leaflet', 'react-leaflet'],
           icons: ['lucide-react'],
-          recharts: ['recharts'],
         },
       },
     },
