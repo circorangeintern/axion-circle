@@ -75,14 +75,23 @@ export default function NotificationBell() {
       navigate(`/reports/${notification.report.id}`);
     }
     
-    if (unreadCount > 0) {
-      handleMarkAllAsRead();
+    if (!notification.isRead && notification.id) {
+      try {
+        await api.post(`/notifications/${notification.id}/read`);
+        setUnreadCount(prev => Math.max(0, prev - 1));
+        setNotifications(prev => 
+          prev.map(n => n.id === notification.id ? { ...n, isRead: true } : n)
+        );
+      } catch (error) {
+        console.error('Failed to mark notification as read:', error);
+      }
     }
   };
 
   const getIconForType = (type) => {
     switch (type?.toLowerCase()) {
       case 'comment':
+      case 'comment_added':
         return <MessageCircle className="w-5 h-5 text-primary" />;
       case 'status_change':
         return <CheckCircle className="w-5 h-5 text-alert-success" />;
