@@ -81,15 +81,16 @@ export default function LoginPage() {
         toast.success('Logged in successfully!');
         navigate('/');
       } catch (error) {
-        toast.error(error.response?.data?.message || error.response?.data?.error || 'Google sign-in failed. Please try again.');
-        setServerError('Google sign-in failed.');
+        const errorMsg = error.response?.data?.message || error.response?.data?.error || 'Google sign-in failed. Please try again.';
+        toast.error(errorMsg);
+        setServerError(errorMsg);
       } finally {
         setIsSubmitting(false);
       }
     },
     onError: () => {
-      toast.error('Google sign-in failed. Please try again.');
-      setServerError('Google sign-in failed.');
+      toast.error('Google sign-in popup failed. Please try again.');
+      setServerError('Google sign-in popup failed.');
     }
   });
 
