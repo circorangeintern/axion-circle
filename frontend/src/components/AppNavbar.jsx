@@ -117,7 +117,7 @@ export default function AppNavbar({ activeTab = '' }) {
   return (
     <>
       {/* Desktop Header */}
-      <header className="hidden md:flex items-center justify-between px-8 py-4 border-b border-white-stroke bg-white sticky top-0 z-30 shadow-xs">
+      <header className="hidden lg:flex items-center justify-between px-8 py-4 border-b border-white-stroke bg-white sticky top-0 z-30 shadow-xs">
         <Link to="/" className="flex items-center shrink-0">
           <NavbarLogo className="h-8 sm:h-9 w-auto object-contain" />
         </Link>
@@ -284,7 +284,7 @@ export default function AppNavbar({ activeTab = '' }) {
       </header>
 
       {/* Mobile Header */}
-      <header className="md:hidden flex items-center justify-between px-4 py-3.5 border-b border-white-stroke bg-white sticky top-0 z-30 shadow-xs">
+      <header className="lg:hidden flex items-center justify-between px-4 py-3.5 border-b border-white-stroke bg-white sticky top-0 z-30 shadow-xs">
         <Link to="/" className="flex items-center shrink-0">
           <NavbarLogo className="h-8 sm:h-9 w-auto object-contain" />
         </Link>
@@ -306,7 +306,7 @@ export default function AppNavbar({ activeTab = '' }) {
 
       {/* Mobile Slide-In Menu Drawer (Logged Out) */}
       {isMobileMenuOpen && !isLoggedIn && (
-        <div className="fixed inset-0 z-50 md:hidden flex justify-start">
+        <div className="fixed inset-0 z-50 lg:hidden flex justify-start">
           <div
             className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
             onClick={() => setIsMobileMenuOpen(false)}
@@ -352,7 +352,7 @@ export default function AppNavbar({ activeTab = '' }) {
 
       {/* Mobile Slide-In Menu Drawer (Logged In) */}
       {isMobileMenuOpen && isLoggedIn && (
-        <div className="fixed inset-0 z-50 md:hidden flex justify-start">
+        <div className="fixed inset-0 z-50 lg:hidden flex justify-start">
           <div
             className="fixed inset-0 bg-black/50 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
             onClick={() => {
