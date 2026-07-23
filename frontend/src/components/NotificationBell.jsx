@@ -25,7 +25,7 @@ export default function NotificationBell() {
 
   useEffect(() => {
     fetchUnreadCount();
-    const intervalId = setInterval(fetchUnreadCount, 60000); // 60 seconds
+    const intervalId = setInterval(fetchUnreadCount, 15000); // 15 seconds
     return () => clearInterval(intervalId);
   }, []);
 
@@ -47,8 +47,19 @@ export default function NotificationBell() {
       try {
         const { data } = await api.get('/notifications?page=0&size=20');
         const payload = data.data || data;
-        const items = payload.content || payload || [];
-        setNotifications(Array.isArray(items) ? items : []);
+        let items = [];
+        if (Array.isArray(payload)) {
+          items = payload;
+        } else if (payload?.content && Array.isArray(payload.content)) {
+          items = payload.content;
+        } else if (payload?.notifications && Array.isArray(payload.notifications)) {
+          items = payload.notifications;
+        } else if (payload?.data && Array.isArray(payload.data)) {
+          items = payload.data;
+        } else if (payload?.items && Array.isArray(payload.items)) {
+          items = payload.items;
+        }
+        setNotifications(items);
       } catch (error) {
         console.error('Failed to fetch notifications:', error);
       } finally {
