@@ -342,7 +342,7 @@ export default function ReportDetailPage() {
             {/* Photo */}
             <div className="relative mb-8 mt-2">
               <div className="w-full h-[220px] rounded-2xl overflow-hidden shadow-sm bg-white-bg2 border border-white-stroke">
-                <img src={thePhotoUrl || fallbackImage} className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = fallbackImage; }} />
+                <img src={thePhotoUrl || fallbackImage} width="400" height="220" className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = fallbackImage; }} />
               </div>
               
               {/* Overlapping Reporter Avatar */}
@@ -351,6 +351,8 @@ export default function ReportDetailPage() {
                   <img 
                     src={report.reporterAvatarUrl || report.reporterAvatar || report.reporter?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(report.reporterName || report.reporter?.displayName || report.reporter?.name || report.reporter?.fullName || report.reporter?.firstName || 'U')}&background=random`} 
                     alt="Reporter" 
+                    width="56"
+                    height="56"
                     className="w-full h-full rounded-full object-cover"
                     onError={(e) => {
                       e.target.onerror = null;
@@ -448,11 +450,13 @@ export default function ReportDetailPage() {
                     <div key={comment.id} className="flex gap-3">
                       <div className={`w-9 h-9 rounded-full border border-white-stroke flex items-center justify-center shrink-0 overflow-hidden ${comment.isModerator ? 'bg-[#C2F5CB]' : 'bg-white-bg2'}`}>
                         {comment.isModerator ? (
-                           <img src="/logo.svg" alt="Mod" className="w-5 h-5 object-contain" />
+                           <img src="/logo.svg" alt="Mod" width="20" height="20" className="w-5 h-5 object-contain" />
                         ) : (
                            <img 
                              src={comment.authorAvatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.authorName || 'U')}&background=random`} 
                              alt="Avatar" 
+                             width="36"
+                             height="36"
                              className="w-full h-full object-cover"
                              onError={(e) => { e.target.onerror = null; e.target.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.authorName || 'U')}&background=random`; }}
                            />
@@ -635,6 +639,8 @@ export default function ReportDetailPage() {
                 <img 
                   src={thePhotoUrl} 
                   alt="Report issue" 
+                  width="800"
+                  height="360"
                   className="w-full h-full object-cover"
                   onError={(e) => { e.target.onerror = null; e.target.src = fallbackImage; }}
                 />
@@ -654,6 +660,8 @@ export default function ReportDetailPage() {
                     <img 
                       src={report.reporterAvatarUrl || report.reporterAvatar || report.reporter?.avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(report.reporterName || report.reporter?.displayName || report.reporter?.name || report.reporter?.fullName || report.reporter?.firstName || 'U')}&background=random`} 
                       alt="Reporter" 
+                      width="112"
+                      height="112"
                       className="w-full h-full object-cover"
                       onError={(e) => {
                         e.target.onerror = null;
@@ -781,6 +789,8 @@ export default function ReportDetailPage() {
                             <img 
                               src={comment.authorAvatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(comment.authorName || 'U')}&background=random`} 
                               alt="Avatar" 
+                              width="40"
+                              height="40"
                               className="w-full h-full object-cover"
                               onError={(e) => {
                                 e.target.onerror = null;

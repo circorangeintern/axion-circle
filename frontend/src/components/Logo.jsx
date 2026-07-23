@@ -5,6 +5,8 @@ export default function Logo({ className = "w-14 h-14 object-contain" }) {
     <img
       src={logoSvg}
       alt="CleanReport Official Logo"
+      width="56"
+      height="56"
       className={className}
     />
   );

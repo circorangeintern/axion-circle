@@ -196,6 +196,8 @@ export default function AppNavbar({ activeTab = '' }) {
                 <img 
                   src={avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName || 'U')}&background=random`} 
                   alt="User profile avatar" 
+                  width="36"
+                  height="36"
                   className="w-9 h-9 rounded-full object-cover shadow-sm ring-2 ring-alert-success"
                   onError={(e) => {
                     e.target.onerror = null;
@@ -212,6 +214,8 @@ export default function AppNavbar({ activeTab = '' }) {
                     <img 
                       src={avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName || 'U')}&background=random`} 
                       alt="User profile avatar inside menu dropdown" 
+                      width="40"
+                      height="40"
                       loading="lazy"
                       className="w-10 h-10 rounded-full object-cover shrink-0 shadow-sm"
                       onError={(e) => {
@@ -501,6 +505,8 @@ export default function AppNavbar({ activeTab = '' }) {
                   <img 
                     src={avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName || 'U')}&background=random`} 
                     alt="User profile avatar for mobile menu" 
+                    width="40"
+                    height="40"
                     loading="lazy"
                     className="w-10 h-10 rounded-full object-cover shrink-0 shadow-xs ring-1 ring-white-stroke"
                     onError={(e) => {

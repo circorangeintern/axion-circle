@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import AppNavbar from '../components/AppNavbar';
 import Footer from '../components/Footer';
-import mapBg from '../assets/map-bg.jpg';
+import mapBg from '../assets/map-bg.webp';
 import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
 import MarkerClusterGroup from '@changey/react-leaflet-markercluster';
 import 'leaflet.markercluster/dist/MarkerCluster.css';
@@ -174,7 +174,7 @@ export default function HomePage() {
               <div className="lg:hidden fixed inset-0 z-[100] bg-white flex flex-col p-6 pb-12 justify-between">
                 <div>
                   <div className="flex flex-col items-start pt-4">
-                    <img src="/logo.svg" alt="CleanReport Logo Mobile Splash" className="w-14 h-14 object-contain mb-1" onError={(e) => { e.target.style.display = 'none'; }} />
+                    <img src="/logo.svg" alt="CleanReport Logo Mobile Splash" width="56" height="56" className="w-14 h-14 object-contain mb-1" onError={(e) => { e.target.style.display = 'none'; }} />
                     <span className="font-heading font-bold text-xl text-primary mt-2">CleanReport</span>
                   </div>
                 </div>

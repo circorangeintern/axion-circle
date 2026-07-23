@@ -43,6 +43,8 @@ export default function ReportListView({ reports }) {
                 <img 
                   src={report.photoUrl} 
                   alt="Thumbnail evidence for report list item" 
+                  width="96"
+                  height="96"
                   loading="lazy"
                   className="w-full h-full object-cover" 
                   onError={(e) => {

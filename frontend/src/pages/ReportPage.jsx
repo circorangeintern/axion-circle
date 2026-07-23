@@ -485,6 +485,8 @@ export default function ReportPage() {
                   <img
                     src={photoPreviewUrl}
                     alt="Evidence preview"
+                    width="400"
+                    height="256"
                     className="w-full h-48 sm:h-64 object-cover rounded-lg"
                   />
                   <button

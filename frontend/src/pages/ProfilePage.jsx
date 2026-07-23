@@ -91,6 +91,8 @@ export default function ProfilePage() {
             <img
               src={user.avatarUrl}
               alt="Profile"
+              width="128"
+              height="128"
               className="w-24 h-24 sm:w-32 sm:h-32 rounded-full border border-white-stroke object-cover bg-white"
               onError={(e) => {
                 e.target.onerror = null;

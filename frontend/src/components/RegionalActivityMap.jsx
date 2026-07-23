@@ -212,6 +212,8 @@ export default function RegionalActivityMap({ reports, mapStatus, onRetry }) {
                           <img 
                             src={report.photoUrl} 
                             alt="Thumbnail evidence for map report popup" 
+                            width="200"
+                            height="96"
                             loading="lazy"
                             className="w-full h-24 object-cover rounded-t-lg mb-2" 
                               onError={(e) => { e.target.onerror = null; e.target.src = fallbackImage; }}

@@ -432,6 +432,8 @@ export default function ReportsPage() {
                         <img
                           src={getCardPhotoUrl(report)}
                           alt={report.title}
+                          width="400"
+                          height="176"
                           className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
                           loading="lazy"
                           onError={(e) => {

@@ -128,6 +128,8 @@ export default function AdminLayout({ children }) {
               <img 
                 src={avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`} 
                 alt="Admin profile avatar in sidebar" 
+                width="40"
+                height="40"
                 className="w-10 h-10 rounded-full object-cover shadow-sm border border-white-stroke shrink-0"
                 onError={(e) => {
                   e.target.onerror = null;
@@ -246,6 +248,8 @@ export default function AdminLayout({ children }) {
             <img 
               src={avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`} 
               alt="Admin profile avatar in top navbar" 
+              width="40"
+              height="40"
               className="w-10 h-10 rounded-full object-cover shadow-sm border border-white-stroke shrink-0"
               onError={(e) => {
                 e.target.onerror = null;
