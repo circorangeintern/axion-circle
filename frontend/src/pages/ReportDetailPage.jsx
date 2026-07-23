@@ -674,7 +674,7 @@ export default function ReportDetailPage() {
                 <div className="mt-3">
                   <h2 className="font-heading font-bold text-black text-xl sm:text-[28px] leading-none mb-1">
                     {report.reporterName || report.reporter?.displayName || report.reporter?.name || report.reporter?.fullName || report.reporter?.firstName || 'Anonymous'}
-                  </h3>
+                  </h2>
                   <p className="text-sm text-paragraph font-medium">
                     {report.reporter?.status || 'Top Contributor'}
                   </p>
