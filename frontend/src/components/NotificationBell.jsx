@@ -63,6 +63,7 @@ export default function NotificationBell() {
         setNotifications(items);
       } catch (error) {
         console.error('Failed to fetch notifications:', error);
+        window.__debug_notif_payload = { error: error.message, status: error.response?.status, data: error.response?.data };
       } finally {
         setIsLoading(false);
       }
