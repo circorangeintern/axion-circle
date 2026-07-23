@@ -100,4 +100,16 @@ public class NotificationService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
         notificationRepository.markAllAsRead(user.getId());
     }
+
+    /**
+     * Mark a single notification as read.
+     */
+    @Transactional
+    public void markAsRead(String email, java.util.UUID notificationId) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
+        notificationRepository.markAsRead(notificationId, user.getId());
+    }
 }
+
+// (appended to existing file)

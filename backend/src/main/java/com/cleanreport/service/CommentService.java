@@ -27,6 +27,7 @@ public class CommentService {
     private final CommentRepository commentRepository;
     private final ReportRepository reportRepository;
     private final UserRepository userRepository;
+    private final NotificationService notificationService;
 
     /**
      * Add a comment to a report. is_moderator flag auto-set based on user role.
@@ -50,6 +51,15 @@ public class CommentService {
 
         Comment saved = commentRepository.save(comment);
         log.info("Comment added to report {} by {} (moderator: {})", reportId, userEmail, isModerator);
+
+        // Notify report owner (if commenter is not the owner)
+        if (!report.getReporter().getId().equals(author.getId())) {
+            String title = "New comment on " + report.getReferenceNumber();
+            String message = author.getDisplayName() + " commented: " + 
+                    request.getContent().substring(0, Math.min(50, request.getContent().length())) +
+                    (request.getContent().length() > 50 ? "..." : "");
+            notificationService.createNotification(report.getReporter(), report, "COMMENT_ADDED", title, message);
+        }
 
         return mapToResponse(saved);
     }

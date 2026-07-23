@@ -51,4 +51,14 @@ public class NotificationController {
         notificationService.markAllAsRead(authentication.getName());
         return ResponseEntity.ok(ApiResponse.ok(null, "All notifications marked as read"));
     }
+
+    @Operation(summary = "Mark a single notification as read",
+            security = @SecurityRequirement(name = "Bearer Auth"))
+    @PostMapping("/{notificationId}/read")
+    public ResponseEntity<ApiResponse<Void>> markOneAsRead(
+            @PathVariable java.util.UUID notificationId,
+            Authentication authentication) {
+        notificationService.markAsRead(authentication.getName(), notificationId);
+        return ResponseEntity.ok(ApiResponse.ok(null, "Notification marked as read"));
+    }
 }

@@ -42,6 +42,7 @@ class CommentServiceTest {
     @Mock private CommentRepository commentRepository;
     @Mock private ReportRepository reportRepository;
     @Mock private UserRepository userRepository;
+    @Mock private NotificationService notificationService;
 
     @InjectMocks private CommentService commentService;
 
@@ -56,7 +57,7 @@ class CommentServiceTest {
                 .displayName("Test User").role(UserRole.REPORTER).build();
         testAdmin = User.builder().id(TEST_ADMIN_ID).email(TEST_ADMIN_EMAIL)
                 .displayName("Admin").role(UserRole.ADMIN).build();
-        testReport = Report.builder().id(TEST_REPORT_ID).referenceNumber("CR-00001").build();
+        testReport = Report.builder().id(TEST_REPORT_ID).referenceNumber("CR-00001").reporter(testUser).build();
         testComment = Comment.builder().id(TEST_COMMENT_ID).report(testReport)
                 .author(testUser).content("Test comment").isModerator(false)
                 .createdAt(Instant.now()).build();
