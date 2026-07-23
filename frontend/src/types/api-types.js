@@ -1,19 +1,12 @@
 /**
  * CleanReport — API Data Types Reference
- * 
- * This file documents the shape of data returned by the backend API.
- * You don't need to import this — just reference it when you need to know
- * what fields an API response contains.
- * 
- * Example: When you call GET /api/v1/reports, each report looks like the
- * 'Report' object below.
  */
 
 /**
  * @typedef {'REPORTER' | 'ADMIN'} UserRole
- * @typedef {'OVERFLOW' | 'ILLEGAL_DUMPING' | 'BLOCKED_DRAIN'} ReportCategory
+ * @typedef {'OVERFLOW' | 'ILLEGAL_DUMPING' | 'BLOCKED_DRAIN' | 'STREET_LITTER' | 'RESIDENTIAL_DUMP' | 'COMMERCIAL_DUMP'} ReportCategory
  * @typedef {'REPORTED' | 'ACKNOWLEDGED' | 'IN_PROGRESS' | 'RESOLVED'} ReportStatus
- * @typedef {'ROUTINE' | 'URGENT' | 'CRITICAL'} ReportUrgency
+ * @typedef {'ROUTINE' | 'VERY_URGENT' | 'CRITICAL'} ReportUrgency
  * @typedef {'PENDING' | 'APPROVED' | 'COLLECTED'} ClaimStatus
  */
 

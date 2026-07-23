@@ -86,7 +86,7 @@ Frontend runs at: `http://localhost:3000`
 | Frontend | Next.js 14, React 18, TypeScript, Tailwind CSS |
 | Database | PostgreSQL 15 + PostGIS |
 | Auth | JWT (access + refresh tokens) |
-| Photos | Cloudinary |
+| Photos |  |
 | Email | SendGrid |
 | Maps | Leaflet + OpenStreetMap |
 | CI/CD | GitHub Actions |

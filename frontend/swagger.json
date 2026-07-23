@@ -1,0 +1,3765 @@
+{
+  "openapi": "3.0.1",
+  "info": {
+    "title": "CleanReport API",
+    "description": "# CleanReport — Community Waste & Sanitation Issue Reporting\n\n## Overview\nREST API for reporting sanitation issues (overflowing bins, illegal dumping, blocked drains)\nwith photo evidence and GPS location. Reports are publicly visible and tracked through a\nstatus lifecycle (Reported → Acknowledged → In Progress → Resolved).\n\n## Authentication\nMost write endpoints require a JWT Bearer token. Get a token by calling `/auth/register` or `/auth/login`.\nThen click the **Authorize** button above and enter: `Bearer <your-token>`\n\nToken expiry:\n- **Access token:** 15 minutes\n- **Refresh token:** 7 days\n\n## Standard Response Format\nAll responses follow this envelope:\n```json\n{\n  \"success\": true/false,\n  \"message\": \"Human-readable message\",\n  \"data\": { ... },\n  \"timestamp\": \"2026-07-13T12:00:00Z\"\n}\n```\n\n## Error Codes\n| HTTP Code | Meaning | When |\n|-----------|---------|------|\n| 400 | Bad Request | Validation failed (missing/invalid fields) |\n| 401 | Unauthorized | Missing or invalid JWT token, or wrong credentials |\n| 403 | Forbidden | Valid token but insufficient permissions (e.g. non-admin accessing /admin) |\n| 404 | Not Found | Resource doesn't exist (report ID, user) |\n| 409 | Conflict | Duplicate resource (email already registered) |\n| 413 | Payload Too Large | File exceeds 5MB limit |\n| 500 | Internal Server Error | Unexpected server error |\n\n## Error Response Format\n```json\n{\n  \"success\": false,\n  \"message\": \"Description of what went wrong\",\n  \"errors\": { \"fieldName\": \"specific error\" },\n  \"timestamp\": \"2026-07-13T12:00:00Z\"\n}\n```\n\n## Enums\n**ReportCategory:** `OVERFLOW` | `ILLEGAL_DUMPING` | `BLOCKED_DRAIN`\n\n**ReportStatus:** `REPORTED` | `ACKNOWLEDGED` | `IN_PROGRESS` | `RESOLVED`\n\n**ReportUrgency:** `ROUTINE` | `URGENT` | `CRITICAL`\n\n**UserRole:** `REPORTER` | `ADMIN`\n\n## Rate Limits\n- 100 requests per minute per IP (free tier)\n\n## Base URL\nProduction: `https://cleanreport-api.onrender.com/api/v1`\n",
+    "contact": {
+      "name": "Axion Circle — Orange Internship",
+      "url": "https://github.com/circorangeintern/axion-circle"
+    },
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "https://cleanreport-api.onrender.com/api/v1",
+      "description": "Generated server url"
+    }
+  ],
+  "security": [
+    {
+      "Bearer Auth": []
+    }
+  ],
+  "tags": [
+    {
+      "name": "Credits",
+      "description": "View credit balance and transaction history. Credits earned from report submissions and resolutions."
+    },
+    {
+      "name": "Notifications",
+      "description": "In-app notification system"
+    },
+    {
+      "name": "Area Statistics",
+      "description": "District overview and area-level report statistics"
+    },
+    {
+      "name": "System",
+      "description": "Health check and system status"
+    },
+    {
+      "name": "Comments",
+      "description": "Add, view, and delete comments on reports"
+    },
+    {
+      "name": "Rewards",
+      "description": "Browse reward catalog and claim rewards with credits"
+    },
+    {
+      "name": "Saved Filters",
+      "description": "Save, list, and delete custom report filter presets"
+    },
+    {
+      "name": "Admin",
+      "description": "Admin-only endpoints for managing reports. Requires ADMIN role."
+    },
+    {
+      "name": "Reports",
+      "description": "Submit sanitation issue reports, search, view stats, filter by status/category/location."
+    },
+    {
+      "name": "Status Management",
+      "description": "Update report status (admin only) and view status history (public)"
+    },
+    {
+      "name": "Authentication",
+      "description": "User registration and login. Returns JWT tokens for authenticated requests."
+    },
+    {
+      "name": "Leaderboard",
+      "description": "Community leaderboard showing top contributors"
+    }
+  ],
+  "paths": {
+    "/reports/{reportId}/status": {
+      "get": {
+        "tags": [
+          "Status Management"
+        ],
+        "summary": "Get status history for a report",
+        "description": "Returns the full timeline of status changes for a report.\nSorted newest first. Includes who made each change, the note, and timestamp.\n\n**Public endpoint — no auth required.**\n",
+        "operationId": "getStatusHistory",
+        "parameters": [
+          {
+            "name": "reportId",
+            "in": "path",
+            "description": "Report UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status history returned",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListStatusHistoryResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Report not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListStatusHistoryResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Status Management"
+        ],
+        "summary": "Update report status (Admin only)",
+        "description": "Transitions a report to a new status. Only forward transitions allowed:\nREPORTED → ACKNOWLEDGED → IN_PROGRESS → RESOLVED\n\nAttempting to go backward (e.g., RESOLVED → REPORTED) returns 400.\nEach change is recorded in status history with who changed it and optional note.\n\n**Requires ADMIN role.**\n",
+        "operationId": "updateStatus",
+        "parameters": [
+          {
+            "name": "reportId",
+            "in": "path",
+            "description": "Report UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateStatusRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Status updated successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseStatusHistoryResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid transition (backward) or validation error",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseStatusHistoryResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseStatusHistoryResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Not an admin",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseStatusHistoryResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Report not found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseStatusHistoryResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/rewards/{rewardId}/claim": {
+      "post": {
+        "tags": [
+          "Rewards"
+        ],
+        "summary": "Claim a reward",
+        "description": "Spend credits to claim a reward. Deducts credits from balance immediately.\nReturns 400 if insufficient credits or reward out of stock.\nClaim status starts as PENDING (admin approves later).\n",
+        "operationId": "claimReward",
+        "parameters": [
+          {
+            "name": "rewardId",
+            "in": "path",
+            "description": "Reward UUID to claim",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseRewardClaim"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/reports": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "List reports (paginated, filterable)",
+        "description": "Returns a paginated list of all reports. **Public endpoint — no auth required.**\n\n**Filters:**\n- `status`: REPORTED, ACKNOWLEDGED, IN_PROGRESS, RESOLVED\n- `category`: OVERFLOW, ILLEGAL_DUMPING, BLOCKED_DRAIN, STREET_LITTER, RESIDENTIAL_DUMP, COMMERCIAL_DUMP\n\n**Pagination:**\n- `page`: 0-based page number (default: 0)\n- `size`: items per page (default: 20, max: 100)\n\n**Sorting:** Always newest first (createdAt DESC).\n",
+        "operationId": "getReports",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by status",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "REPORTED",
+                "ACKNOWLEDGED",
+                "IN_PROGRESS",
+                "RESOLVED"
+              ]
+            },
+            "example": "REPORTED"
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Filter by category",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "OVERFLOW",
+                "ILLEGAL_DUMPING",
+                "BLOCKED_DRAIN",
+                "STREET_LITTER",
+                "RESIDENTIAL_DUMP",
+                "COMMERCIAL_DUMP"
+              ]
+            },
+            "example": "ILLEGAL_DUMPING"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number (0-based)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            },
+            "example": 0
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Items per page (max 100)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            },
+            "example": 20
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageReportResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Submit a new report",
+        "description": "Creates a sanitation issue report. Requires authentication (Bearer token).\n\n**Flow:**\n1. Frontend uploads photo to Cloudinary → gets photoUrl\n2. Frontend captures GPS coordinates from browser\n3. User selects category and optionally adds title + description\n4. Submit this endpoint with all data\n5. If no address provided, reverse geocoding auto-fills it from coordinates\n\n**Credits:** Reporter earns +10 credits on successful submission.\n\n**Reference number:** A unique CR-XXXXX number is generated for tracking.\n\n**Categories:** OVERFLOW, ILLEGAL_DUMPING, BLOCKED_DRAIN, STREET_LITTER, RESIDENTIAL_DUMP, COMMERCIAL_DUMP\n\n**Urgency levels:** ROUTINE (default), VERY_URGENT, CRITICAL\n",
+        "operationId": "createReport",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateReportRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "Report created successfully",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseReportResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error (missing photo, category, or coordinates)",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseReportResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated — include Bearer token in Authorization header",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseReportResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/reports/{reportId}/comments": {
+      "get": {
+        "tags": [
+          "Comments"
+        ],
+        "summary": "Get all comments for a report",
+        "description": "Returns all comments on a report in chronological order (oldest first). **Public endpoint.**",
+        "operationId": "getComments",
+        "parameters": [
+          {
+            "name": "reportId",
+            "in": "path",
+            "description": "Report UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListCommentResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Comments"
+        ],
+        "summary": "Add a comment to a report",
+        "description": "Adds a comment to a report. Requires authentication.\nAdmin comments are automatically flagged with is_moderator = true.\n",
+        "operationId": "createComment",
+        "parameters": [
+          {
+            "name": "reportId",
+            "in": "path",
+            "description": "Report UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCommentRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseCommentResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/notifications/mark-read": {
+      "post": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Mark all notifications as read",
+        "operationId": "markAllAsRead",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/filters": {
+      "get": {
+        "tags": [
+          "Saved Filters"
+        ],
+        "summary": "Get my saved filters",
+        "description": "List all saved filter presets for the current user.",
+        "operationId": "getMyFilters",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListSavedFilter"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      },
+      "post": {
+        "tags": [
+          "Saved Filters"
+        ],
+        "summary": "Save a filter preset",
+        "description": "Save filter configuration for quick access. Max 10 per user.",
+        "operationId": "createFilter",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SavedFilterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseSavedFilter"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/auth/verify-email": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Verify email with 6-digit code",
+        "description": "After registration, user receives a 6-digit code (via email or from logs in dev).\nSubmit the code here to verify the email address. Code expires after 10 minutes.\n",
+        "operationId": "verifyEmail",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyEmailRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/reset-password": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Reset password with token",
+        "description": "Validates the reset token from the email link and sets a new password.\nToken expires after 15 minutes. Can only be used once.\n",
+        "operationId": "resetPassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Password reset successful",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or expired token",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/resend-verification": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Resend verification code",
+        "description": "Generates and sends a new 6-digit verification code. Previous code is invalidated.",
+        "operationId": "resendVerification",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/register": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Register a new user",
+        "description": "Creates a new account with REPORTER role. Returns JWT access token (15 min)\nand refresh token (7 days). The access token must be included in the\nAuthorization header for all authenticated endpoints: `Authorization: Bearer <token>`\n",
+        "operationId": "register",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "description": "User registered successfully. Returns tokens + user details.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation error — email invalid, password too short, or display name missing",
+            "content": {
+              "*/*": {
+                "example": {
+                  "success": false,
+                  "message": "Validation failed",
+                  "errors": {
+                    "email": "Invalid email format",
+                    "password": "Password must be at least 8 characters"
+                  },
+                  "timestamp": "2026-07-13T12:00:00Z"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Email already registered",
+            "content": {
+              "*/*": {
+                "example": {
+                  "success": false,
+                  "message": "Email already registered: user@example.com",
+                  "errors": null,
+                  "timestamp": "2026-07-13T12:00:00Z"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/refresh": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Refresh access token",
+        "description": "Exchange a valid refresh token for a new access token + refresh token pair.\nCall this when the access token expires (after 15 min) to avoid forcing re-login.\nThe old refresh token is invalidated.\n",
+        "operationId": "refreshToken",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RefreshTokenRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "New tokens issued",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseAuthResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or expired refresh token",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseAuthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Login with email and password",
+        "description": "Authenticates an existing user. Returns JWT access token (15 min) and\nrefresh token (7 days). Use the access token in the Authorization header\nfor protected endpoints.\n",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Login successful. Returns tokens + user details.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseAuthResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid email or password",
+            "content": {
+              "*/*": {
+                "example": {
+                  "success": false,
+                  "message": "Invalid email or password",
+                  "errors": null,
+                  "timestamp": "2026-07-13T12:00:00Z"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/google": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Login with Google OAuth",
+        "description": "Exchange a Google ID token for CleanReport JWT tokens.\n\n**Frontend flow:**\n1. User clicks \"Sign in with Google\" button\n2. Google Sign-In returns an ID token\n3. Frontend sends that token to this endpoint\n4. Backend verifies with Google, creates user if first time, returns our JWT\n\n**Auto-creates user on first login** with REPORTER role.\nIf user already exists (same email), returns tokens for existing account.\n",
+        "operationId": "googleLogin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GoogleOAuthRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Google login successful. Returns JWT tokens + user details.",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseAuthResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid Google token or email not verified",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseAuthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/forgot-password": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Request password reset",
+        "description": "Sends a password reset email with a time-limited token (15 min).\nAlways returns 200 even if email doesn't exist (prevents email enumeration).\n",
+        "operationId": "forgotPassword",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/facebook": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Login with Facebook OAuth",
+        "description": "Exchange a Facebook access token for CleanReport JWT tokens.\nFrontend uses Facebook Login SDK, sends the access token here.\nAuto-creates user on first login. Requires public email permission.\n",
+        "operationId": "facebookLogin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FacebookOAuthRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseAuthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/apple": {
+      "post": {
+        "tags": [
+          "Authentication"
+        ],
+        "summary": "Login with Apple Sign-In",
+        "description": "Exchange Apple identity token for CleanReport JWT tokens.\nApple only sends user name on first sign-in — frontend must pass email and fullName.\nAuto-creates user on first login.\n",
+        "operationId": "appleLogin",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AppleOAuthRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseAuthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rewards": {
+      "get": {
+        "tags": [
+          "Rewards"
+        ],
+        "summary": "Get active rewards catalog",
+        "description": "Returns all available rewards sorted by credits required (cheapest first). **Public endpoint.**",
+        "operationId": "getRewards",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListReward"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/rewards/my-claims": {
+      "get": {
+        "tags": [
+          "Rewards"
+        ],
+        "summary": "Get my reward claims",
+        "description": "Returns all rewards claimed by the authenticated user, newest first.",
+        "operationId": "getMyClaims",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListRewardClaim"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/reports/{id}": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Get report by ID",
+        "description": "Returns full details of a single report including reporter name\n(or \"Anonymous\" if submitted anonymously), photo URL, GPS coordinates,\ntitle, address, status, and timestamps. **Public endpoint.**\n",
+        "operationId": "getReportById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "description": "Report UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Report found",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseReportResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Report not found",
+            "content": {
+              "*/*": {
+                "example": {
+                  "success": false,
+                  "message": "Report not found: 550e8400-e29b-41d4-a716-446655440000",
+                  "errors": null,
+                  "timestamp": "2026-07-13T12:00:00Z"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reports/stats": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Get dashboard statistics",
+        "description": "Returns aggregated statistics for the dashboard:\n- Total reports count\n- Resolved vs pending count\n- Breakdown by status\n- Breakdown by category\n- Total community credits earned\n- Total registered users\n\n**Public endpoint — no auth required.**\n",
+        "operationId": "getDashboardStats",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseDashboardStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reports/search": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Search reports by keyword",
+        "description": "Full-text search across report title, description, and address.\nUses PostgreSQL's `to_tsvector` for efficient text matching.\n**Public endpoint — no auth required.**\n\n**Example:** `/reports/search?q=drainage&page=0&size=10`\n",
+        "operationId": "searchReports",
+        "parameters": [
+          {
+            "name": "q",
+            "in": "query",
+            "description": "Search keyword",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "drainage"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number (0-based)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            },
+            "example": 0
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Items per page (max 100)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            },
+            "example": 20
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageReportResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reports/nearby": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Find reports near a location",
+        "description": "Returns all reports within a given radius of GPS coordinates.\nUses PostGIS geospatial query. **Public endpoint.**\n\n**Example:** `/reports/nearby?lat=6.5244&lng=3.3792&radius=5`\n→ all reports within 5km of Lekki, Lagos.\n",
+        "operationId": "getNearbyReports",
+        "parameters": [
+          {
+            "name": "lat",
+            "in": "query",
+            "description": "Latitude of center point",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            },
+            "example": 6.5244
+          },
+          {
+            "name": "lng",
+            "in": "query",
+            "description": "Longitude of center point",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double"
+            },
+            "example": 3.3792
+          },
+          {
+            "name": "radius",
+            "in": "query",
+            "description": "Search radius in kilometers",
+            "required": false,
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "default": 5
+            },
+            "example": 5
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListReportResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/reports/my": {
+      "get": {
+        "tags": [
+          "Reports"
+        ],
+        "summary": "Get my reports",
+        "description": "Returns all reports submitted by the currently authenticated user.\nRequires Bearer token. Sorted newest first.\n",
+        "operationId": "getMyReports",
+        "responses": {
+          "200": {
+            "description": "List of user's reports",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListReportResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListReportResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/notifications": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Get my notifications",
+        "description": "Paginated, newest first.",
+        "operationId": "getNotifications",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Page size",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageNotification"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/notifications/unread-count": {
+      "get": {
+        "tags": [
+          "Notifications"
+        ],
+        "summary": "Get unread notification count",
+        "operationId": "getUnreadCount",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseMapStringLong"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/leaderboard": {
+      "get": {
+        "tags": [
+          "Leaderboard"
+        ],
+        "summary": "Get community leaderboard",
+        "description": "Returns top contributors ranked by credit balance. Default top 20. **Public endpoint.**",
+        "operationId": "getLeaderboard",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Number of top users to return (max 50)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            },
+            "example": 20
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListLeaderboardEntry"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/health": {
+      "get": {
+        "tags": [
+          "System"
+        ],
+        "summary": "Health check",
+        "description": "Returns UP if the service is running",
+        "operationId": "health",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "type": "object",
+                  "additionalProperties": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/credits/history": {
+      "get": {
+        "tags": [
+          "Credits"
+        ],
+        "summary": "Get credit transaction history",
+        "description": "Returns paginated list of all credit transactions for the authenticated user.\nSorted newest first. Shows amount, reason, related report, and timestamp.\n",
+        "operationId": "getHistory",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number (0-based)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            },
+            "example": 0
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Items per page",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            },
+            "example": 20
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageCreditTransactionResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/credits/balance": {
+      "get": {
+        "tags": [
+          "Credits"
+        ],
+        "summary": "Get my credit balance",
+        "description": "Returns the current credit balance for the authenticated user. Each credit = ₦1 value.",
+        "operationId": "getBalance",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseCreditBalanceResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/areas/stats": {
+      "get": {
+        "tags": [
+          "Area Statistics"
+        ],
+        "summary": "Get area statistics / district overview",
+        "description": "Returns report counts grouped by area_name (district).\nShows total, resolved, pending per area. Sorted by total reports descending.\n**Public endpoint.**\n",
+        "operationId": "getAreaStats",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseListAreaStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/areas/stats/{areaName}": {
+      "get": {
+        "tags": [
+          "Area Statistics"
+        ],
+        "summary": "Get stats for a specific area/district",
+        "description": "Returns detailed stats for a single area by name (partial match).",
+        "operationId": "getAreaStatsByName",
+        "parameters": [
+          {
+            "name": "areaName",
+            "in": "path",
+            "description": "Area name (partial match)",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "example": "Lagos Island"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseAreaStatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/admin/reports": {
+      "get": {
+        "tags": [
+          "Admin"
+        ],
+        "summary": "List all reports with advanced filters (Admin only)",
+        "description": "Enhanced report listing for admin dashboard. Supports all public filters\nplus date range and area filtering, with configurable sort order.\n\n**Filters:**\n- `status`: REPORTED, ACKNOWLEDGED, IN_PROGRESS, RESOLVED\n- `category`: OVERFLOW, ILLEGAL_DUMPING, BLOCKED_DRAIN, STREET_LITTER, RESIDENTIAL_DUMP, COMMERCIAL_DUMP\n- `from` / `to`: Date range filter (ISO format: 2026-07-01)\n- `area`: Filter by area_name (partial match)\n\n**Sort:** `sortBy` (createdAt, updatedAt, category, status) + `direction` (asc, desc)\n\n**Requires ADMIN role.**\n",
+        "operationId": "getAdminReports",
+        "parameters": [
+          {
+            "name": "status",
+            "in": "query",
+            "description": "Filter by status",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "REPORTED",
+                "ACKNOWLEDGED",
+                "IN_PROGRESS",
+                "RESOLVED"
+              ]
+            }
+          },
+          {
+            "name": "category",
+            "in": "query",
+            "description": "Filter by category",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "enum": [
+                "OVERFLOW",
+                "ILLEGAL_DUMPING",
+                "BLOCKED_DRAIN",
+                "STREET_LITTER",
+                "RESIDENTIAL_DUMP",
+                "COMMERCIAL_DUMP"
+              ]
+            }
+          },
+          {
+            "name": "from",
+            "in": "query",
+            "description": "From date (inclusive, ISO format)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-07-01"
+          },
+          {
+            "name": "to",
+            "in": "query",
+            "description": "To date (inclusive, ISO format)",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "example": "2026-07-31"
+          },
+          {
+            "name": "area",
+            "in": "query",
+            "description": "Filter by area name (partial match)",
+            "required": false,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sortBy",
+            "in": "query",
+            "description": "Sort field",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "createdAt"
+            },
+            "example": "createdAt"
+          },
+          {
+            "name": "direction",
+            "in": "query",
+            "description": "Sort direction",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "default": "desc"
+            },
+            "example": "desc"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number (0-based)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "description": "Items per page (max 100)",
+            "required": false,
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 20
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponsePageReportResponse"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/reports/{reportId}/comments/{commentId}": {
+      "delete": {
+        "tags": [
+          "Comments"
+        ],
+        "summary": "Delete a comment",
+        "description": "Delete a comment. Only the author or an admin can delete a comment.",
+        "operationId": "deleteComment",
+        "parameters": [
+          {
+            "name": "reportId",
+            "in": "path",
+            "description": "Report UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "commentId",
+            "in": "path",
+            "description": "Comment UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    },
+    "/filters/{filterId}": {
+      "delete": {
+        "tags": [
+          "Saved Filters"
+        ],
+        "summary": "Delete a saved filter",
+        "description": "Remove a saved filter preset. Only owner can delete.",
+        "operationId": "deleteFilter",
+        "parameters": [
+          {
+            "name": "filterId",
+            "in": "path",
+            "description": "Filter UUID",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "*/*": {
+                "schema": {
+                  "$ref": "#/components/schemas/ApiResponseVoid"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "Bearer Auth": []
+          }
+        ]
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "UpdateStatusRequest": {
+        "required": [
+          "status"
+        ],
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "description": "New status to transition to",
+            "example": "ACKNOWLEDGED",
+            "enum": [
+              "REPORTED",
+              "ACKNOWLEDGED",
+              "IN_PROGRESS",
+              "RESOLVED",
+              "ACKNOWLEDGED",
+              "IN_PROGRESS",
+              "RESOLVED"
+            ]
+          },
+          "note": {
+            "maxLength": 500,
+            "minLength": 0,
+            "type": "string",
+            "description": "Optional note explaining the status change",
+            "example": "Dispatch team has been notified"
+          }
+        },
+        "description": "Status update request"
+      },
+      "ApiResponseStatusHistoryResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/StatusHistoryResponse"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "StatusHistoryResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "changedByName": {
+            "type": "string",
+            "description": "Who made the change"
+          },
+          "changedById": {
+            "type": "string",
+            "description": "User ID of who changed it",
+            "format": "uuid"
+          },
+          "oldStatus": {
+            "type": "string",
+            "description": "Previous status (null for initial report)",
+            "enum": [
+              "REPORTED",
+              "ACKNOWLEDGED",
+              "IN_PROGRESS",
+              "RESOLVED"
+            ]
+          },
+          "newStatus": {
+            "type": "string",
+            "description": "New status after change",
+            "enum": [
+              "REPORTED",
+              "ACKNOWLEDGED",
+              "IN_PROGRESS",
+              "RESOLVED"
+            ]
+          },
+          "note": {
+            "type": "string",
+            "description": "Note explaining the change"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When the change happened",
+            "format": "date-time"
+          }
+        },
+        "description": "Status history entry"
+      },
+      "ApiResponseRewardClaim": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/RewardClaim"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Reward": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "creditsRequired": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "quantityAvailable": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isActive": {
+            "type": "boolean"
+          },
+          "imageUrl": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RewardClaim": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "reward": {
+            "$ref": "#/components/schemas/Reward"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "APPROVED",
+              "COLLECTED"
+            ]
+          },
+          "claimedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "approvedAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "collectedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "User": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "email": {
+            "type": "string"
+          },
+          "phone": {
+            "type": "string"
+          },
+          "passwordHash": {
+            "type": "string"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "REPORTER",
+              "ADMIN"
+            ]
+          },
+          "creditBalance": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "isAnonymous": {
+            "type": "boolean"
+          },
+          "avatarUrl": {
+            "type": "string"
+          },
+          "passwordResetToken": {
+            "type": "string"
+          },
+          "passwordResetExpires": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "verificationCode": {
+            "type": "string"
+          },
+          "verificationCodeExpires": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreateReportRequest": {
+        "required": [
+          "category",
+          "latitude",
+          "longitude",
+          "photoUrl"
+        ],
+        "type": "object",
+        "properties": {
+          "title": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "description": "Short title for the report (optional, max 100 chars)",
+            "example": "Overflowing bin near school"
+          },
+          "photoUrl": {
+            "type": "string",
+            "description": "Cloudinary URL of uploaded photo",
+            "example": "https://res.cloudinary.com/xxx/image/upload/v1/reports/abc123.jpg"
+          },
+          "latitude": {
+            "maximum": 90,
+            "exclusiveMaximum": false,
+            "minimum": -90,
+            "exclusiveMinimum": false,
+            "type": "number",
+            "description": "GPS latitude (-90 to 90)",
+            "format": "double",
+            "example": 6.5244
+          },
+          "longitude": {
+            "maximum": 180,
+            "exclusiveMaximum": false,
+            "minimum": -180,
+            "exclusiveMinimum": false,
+            "type": "number",
+            "description": "GPS longitude (-180 to 180)",
+            "format": "double",
+            "example": 3.3792
+          },
+          "category": {
+            "type": "string",
+            "description": "Issue category",
+            "example": "ILLEGAL_DUMPING",
+            "enum": [
+              "OVERFLOW",
+              "ILLEGAL_DUMPING",
+              "BLOCKED_DRAIN",
+              "STREET_LITTER",
+              "RESIDENTIAL_DUMP",
+              "COMMERCIAL_DUMP",
+              "OVERFLOW",
+              "ILLEGAL_DUMPING",
+              "BLOCKED_DRAIN",
+              "STREET_LITTER",
+              "RESIDENTIAL_DUMP",
+              "COMMERCIAL_DUMP"
+            ]
+          },
+          "description": {
+            "maxLength": 200,
+            "minLength": 0,
+            "type": "string",
+            "description": "Short description of the issue (max 200 chars)",
+            "example": "Large pile of waste near the school gate"
+          },
+          "address": {
+            "maxLength": 300,
+            "minLength": 0,
+            "type": "string",
+            "description": "Manual address (optional — auto-filled via reverse geocoding if not provided)",
+            "example": "15 Broad Street, Lagos Island"
+          },
+          "urgency": {
+            "type": "string",
+            "description": "Urgency level (defaults to ROUTINE if not provided)",
+            "example": "ROUTINE",
+            "enum": [
+              "ROUTINE",
+              "VERY_URGENT",
+              "CRITICAL",
+              "ROUTINE",
+              "VERY_URGENT",
+              "CRITICAL"
+            ]
+          },
+          "isAnonymous": {
+            "type": "boolean",
+            "description": "Submit anonymously (hides reporter name)",
+            "example": false
+          }
+        },
+        "description": "Report submission request"
+      },
+      "ApiResponseReportResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/ReportResponse"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ReportResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "referenceNumber": {
+            "type": "string"
+          },
+          "reporterId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reporterName": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "photoUrl": {
+            "type": "string"
+          },
+          "photoAfterUrl": {
+            "type": "string"
+          },
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "description": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "OVERFLOW",
+              "ILLEGAL_DUMPING",
+              "BLOCKED_DRAIN",
+              "STREET_LITTER",
+              "RESIDENTIAL_DUMP",
+              "COMMERCIAL_DUMP"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "REPORTED",
+              "ACKNOWLEDGED",
+              "IN_PROGRESS",
+              "RESOLVED"
+            ]
+          },
+          "urgency": {
+            "type": "string",
+            "enum": [
+              "ROUTINE",
+              "VERY_URGENT",
+              "CRITICAL"
+            ]
+          },
+          "isAnonymous": {
+            "type": "boolean"
+          },
+          "areaName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "description": "Report response"
+      },
+      "CreateCommentRequest": {
+        "required": [
+          "content"
+        ],
+        "type": "object",
+        "properties": {
+          "content": {
+            "maxLength": 1000,
+            "minLength": 0,
+            "type": "string",
+            "description": "Comment text",
+            "example": "The cleanup team has been dispatched to this location."
+          }
+        },
+        "description": "Create comment request"
+      },
+      "ApiResponseCommentResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CommentResponse"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CommentResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "reportId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "authorId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "authorName": {
+            "type": "string"
+          },
+          "authorAvatarUrl": {
+            "type": "string"
+          },
+          "content": {
+            "type": "string"
+          },
+          "isModerator": {
+            "type": "boolean",
+            "description": "True if the comment was made by an admin/moderator"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        },
+        "description": "Comment response"
+      },
+      "ApiResponseVoid": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SavedFilterRequest": {
+        "required": [
+          "name"
+        ],
+        "type": "object",
+        "properties": {
+          "name": {
+            "maxLength": 100,
+            "minLength": 0,
+            "type": "string",
+            "description": "User-friendly name for this filter",
+            "example": "My area - urgent only"
+          },
+          "categories": {
+            "type": "array",
+            "description": "Categories to filter",
+            "example": [
+              "OVERFLOW",
+              "BLOCKED_DRAIN"
+            ],
+            "items": {
+              "type": "string",
+              "description": "Categories to filter",
+              "example": "[\"OVERFLOW\",\"BLOCKED_DRAIN\"]"
+            }
+          },
+          "urgencyLevels": {
+            "type": "array",
+            "description": "Urgency levels to filter",
+            "example": [
+              "VERY_URGENT",
+              "CRITICAL"
+            ],
+            "items": {
+              "type": "string",
+              "description": "Urgency levels to filter",
+              "example": "[\"VERY_URGENT\",\"CRITICAL\"]"
+            }
+          },
+          "statuses": {
+            "type": "array",
+            "description": "Statuses to filter",
+            "example": [
+              "REPORTED",
+              "IN_PROGRESS"
+            ],
+            "items": {
+              "type": "string",
+              "description": "Statuses to filter",
+              "example": "[\"REPORTED\",\"IN_PROGRESS\"]"
+            }
+          },
+          "areaName": {
+            "type": "string",
+            "description": "Area name filter",
+            "example": "Lagos Island"
+          }
+        },
+        "description": "Create/update saved filter request"
+      },
+      "ApiResponseSavedFilter": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/SavedFilter"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "SavedFilter": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "name": {
+            "type": "string"
+          },
+          "categories": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "urgencyLevels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "statuses": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "areaName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "VerifyEmailRequest": {
+        "required": [
+          "code",
+          "email"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address to verify",
+            "example": "user@example.com"
+          },
+          "code": {
+            "maxLength": 6,
+            "minLength": 6,
+            "type": "string",
+            "description": "6-digit verification code received via email",
+            "example": "482917"
+          }
+        },
+        "description": "Email verification request"
+      },
+      "ResetPasswordRequest": {
+        "required": [
+          "newPassword",
+          "token"
+        ],
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "description": "Token received via email"
+          },
+          "newPassword": {
+            "maxLength": 2147483647,
+            "minLength": 8,
+            "type": "string",
+            "description": "New password (min 8 chars)"
+          }
+        },
+        "description": "Reset password request"
+      },
+      "ForgotPasswordRequest": {
+        "required": [
+          "email"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "description": "Email address of the account",
+            "example": "user@example.com"
+          }
+        },
+        "description": "Forgot password request"
+      },
+      "RegisterRequest": {
+        "required": [
+          "displayName",
+          "email",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "amaka@example.com"
+          },
+          "password": {
+            "maxLength": 2147483647,
+            "minLength": 8,
+            "type": "string",
+            "example": "mypassword123"
+          },
+          "displayName": {
+            "maxLength": 100,
+            "minLength": 2,
+            "type": "string",
+            "example": "Amaka Obi"
+          }
+        },
+        "description": "Registration request"
+      },
+      "ApiResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "RefreshTokenRequest": {
+        "required": [
+          "refreshToken"
+        ],
+        "type": "object",
+        "properties": {
+          "refreshToken": {
+            "type": "string",
+            "description": "Valid refresh token from login/register",
+            "example": "eyJhbGciOiJ..."
+          }
+        },
+        "description": "Token refresh request"
+      },
+      "ApiResponseAuthResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AuthResponse"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AuthResponse": {
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "JWT access token (15 min expiry)"
+          },
+          "refreshToken": {
+            "type": "string",
+            "description": "JWT refresh token (7 day expiry)"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserResponse"
+          }
+        },
+        "description": "Authentication response with tokens"
+      },
+      "UserResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "example": "550e8400-e29b-41d4-a716-446655440000"
+          },
+          "email": {
+            "type": "string",
+            "example": "amaka@example.com"
+          },
+          "displayName": {
+            "type": "string",
+            "example": "Amaka Obi"
+          },
+          "role": {
+            "type": "string",
+            "example": "REPORTER",
+            "enum": [
+              "REPORTER",
+              "ADMIN"
+            ]
+          },
+          "creditBalance": {
+            "type": "integer",
+            "format": "int32",
+            "example": 0
+          }
+        },
+        "description": "User details response"
+      },
+      "LoginRequest": {
+        "required": [
+          "email",
+          "password"
+        ],
+        "type": "object",
+        "properties": {
+          "email": {
+            "type": "string",
+            "example": "amaka@example.com"
+          },
+          "password": {
+            "type": "string",
+            "example": "mypassword123"
+          },
+          "rememberMe": {
+            "type": "boolean",
+            "description": "If true, refresh token lasts 30 days instead of 7",
+            "example": false
+          }
+        },
+        "description": "Login request"
+      },
+      "GoogleOAuthRequest": {
+        "required": [
+          "idToken"
+        ],
+        "type": "object",
+        "properties": {
+          "idToken": {
+            "type": "string",
+            "description": "Google ID token obtained from Google Sign-In on the frontend",
+            "example": "eyJhbGciOiJSUzI1NiIs..."
+          }
+        },
+        "description": "Google OAuth login request"
+      },
+      "FacebookOAuthRequest": {
+        "required": [
+          "accessToken"
+        ],
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string",
+            "description": "Facebook access token from Facebook Login SDK",
+            "example": "EAAGm..."
+          }
+        },
+        "description": "Facebook OAuth login request"
+      },
+      "AppleOAuthRequest": {
+        "required": [
+          "email",
+          "identityToken"
+        ],
+        "type": "object",
+        "properties": {
+          "identityToken": {
+            "type": "string",
+            "description": "Apple identity token from Sign In with Apple JS"
+          },
+          "email": {
+            "type": "string",
+            "description": "User email (Apple only sends on first sign-in, frontend must pass it)"
+          },
+          "fullName": {
+            "type": "string",
+            "description": "User's full name (Apple only sends on first sign-in)"
+          }
+        },
+        "description": "Apple Sign-In request"
+      },
+      "ApiResponseListReward": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Reward"
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseListRewardClaim": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RewardClaim"
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponsePageReportResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageReportResponse"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PageReportResponse": {
+        "type": "object",
+        "properties": {
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "first": {
+            "type": "boolean"
+          },
+          "last": {
+            "type": "boolean"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportResponse"
+            }
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sort": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SortObject"
+            }
+          },
+          "numberOfElements": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageable": {
+            "$ref": "#/components/schemas/PageableObject"
+          },
+          "empty": {
+            "type": "boolean"
+          }
+        }
+      },
+      "PageableObject": {
+        "type": "object",
+        "properties": {
+          "offset": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "sort": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SortObject"
+            }
+          },
+          "paged": {
+            "type": "boolean"
+          },
+          "pageNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageSize": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "unpaged": {
+            "type": "boolean"
+          }
+        }
+      },
+      "SortObject": {
+        "type": "object",
+        "properties": {
+          "direction": {
+            "type": "string"
+          },
+          "nullHandling": {
+            "type": "string"
+          },
+          "ascending": {
+            "type": "boolean"
+          },
+          "property": {
+            "type": "string"
+          },
+          "ignoreCase": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ApiResponseListStatusHistoryResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/StatusHistoryResponse"
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseListCommentResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CommentResponse"
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseDashboardStatsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/DashboardStatsResponse"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "DashboardStatsResponse": {
+        "type": "object",
+        "properties": {
+          "totalReports": {
+            "type": "integer",
+            "description": "Total number of reports",
+            "format": "int64",
+            "example": 142
+          },
+          "resolvedReports": {
+            "type": "integer",
+            "description": "Count of resolved reports",
+            "format": "int64",
+            "example": 87
+          },
+          "pendingReports": {
+            "type": "integer",
+            "description": "Count of pending reports (reported + acknowledged + in_progress)",
+            "format": "int64",
+            "example": 55
+          },
+          "byStatus": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "description": "Reports count grouped by status",
+              "format": "int64"
+            },
+            "description": "Reports count grouped by status",
+            "example": {
+              "REPORTED": 20,
+              "ACKNOWLEDGED": 15,
+              "IN_PROGRESS": 20,
+              "RESOLVED": 87
+            }
+          },
+          "byCategory": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "description": "Reports count grouped by category",
+              "format": "int64"
+            },
+            "description": "Reports count grouped by category",
+            "example": {
+              "OVERFLOW": 30,
+              "ILLEGAL_DUMPING": 45
+            }
+          },
+          "totalCreditsEarned": {
+            "type": "integer",
+            "description": "Total community credits earned",
+            "format": "int64",
+            "example": 1420
+          },
+          "totalUsers": {
+            "type": "integer",
+            "description": "Number of registered users",
+            "format": "int64",
+            "example": 38
+          }
+        },
+        "description": "Dashboard statistics"
+      },
+      "ApiResponseListReportResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/ReportResponse"
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponsePageNotification": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageNotification"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Coordinate": {
+        "type": "object",
+        "properties": {
+          "x": {
+            "type": "number",
+            "format": "double"
+          },
+          "y": {
+            "type": "number",
+            "format": "double"
+          },
+          "z": {
+            "type": "number",
+            "format": "double"
+          },
+          "coordinate": {
+            "$ref": "#/components/schemas/Coordinate"
+          },
+          "m": {
+            "type": "number",
+            "format": "double"
+          },
+          "valid": {
+            "type": "boolean"
+          }
+        }
+      },
+      "CoordinateSequence": {
+        "type": "object",
+        "properties": {
+          "measures": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "dimension": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "CoordinateSequenceFactory": {
+        "type": "object"
+      },
+      "Envelope": {
+        "type": "object",
+        "properties": {
+          "height": {
+            "type": "number",
+            "format": "double"
+          },
+          "diameter": {
+            "type": "number",
+            "format": "double"
+          },
+          "null": {
+            "type": "boolean"
+          },
+          "width": {
+            "type": "number",
+            "format": "double"
+          },
+          "area": {
+            "type": "number",
+            "format": "double"
+          },
+          "minX": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxX": {
+            "type": "number",
+            "format": "double"
+          },
+          "minY": {
+            "type": "number",
+            "format": "double"
+          },
+          "maxY": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "Geometry": {
+        "type": "object",
+        "properties": {
+          "envelope": {
+            "$ref": "#/components/schemas/Geometry"
+          },
+          "factory": {
+            "$ref": "#/components/schemas/GeometryFactory"
+          },
+          "userData": {
+            "type": "object"
+          },
+          "length": {
+            "type": "number",
+            "format": "double"
+          },
+          "empty": {
+            "type": "boolean"
+          },
+          "valid": {
+            "type": "boolean"
+          },
+          "simple": {
+            "type": "boolean"
+          },
+          "srid": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "geometryType": {
+            "type": "string"
+          },
+          "dimension": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numGeometries": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "precisionModel": {
+            "$ref": "#/components/schemas/PrecisionModel"
+          },
+          "coordinate": {
+            "$ref": "#/components/schemas/Coordinate"
+          },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Coordinate"
+            }
+          },
+          "numPoints": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "rectangle": {
+            "type": "boolean"
+          },
+          "area": {
+            "type": "number",
+            "format": "double"
+          },
+          "centroid": {
+            "$ref": "#/components/schemas/Point"
+          },
+          "interiorPoint": {
+            "$ref": "#/components/schemas/Point"
+          },
+          "boundary": {
+            "$ref": "#/components/schemas/Geometry"
+          },
+          "boundaryDimension": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "envelopeInternal": {
+            "$ref": "#/components/schemas/Envelope"
+          }
+        }
+      },
+      "GeometryFactory": {
+        "type": "object",
+        "properties": {
+          "precisionModel": {
+            "$ref": "#/components/schemas/PrecisionModel"
+          },
+          "coordinateSequenceFactory": {
+            "$ref": "#/components/schemas/CoordinateSequenceFactory"
+          },
+          "srid": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "Notification": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "user": {
+            "$ref": "#/components/schemas/User"
+          },
+          "report": {
+            "$ref": "#/components/schemas/Report"
+          },
+          "type": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "message": {
+            "type": "string"
+          },
+          "isRead": {
+            "type": "boolean"
+          },
+          "sentAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "PageNotification": {
+        "type": "object",
+        "properties": {
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "first": {
+            "type": "boolean"
+          },
+          "last": {
+            "type": "boolean"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Notification"
+            }
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sort": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SortObject"
+            }
+          },
+          "numberOfElements": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageable": {
+            "$ref": "#/components/schemas/PageableObject"
+          },
+          "empty": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Point": {
+        "type": "object",
+        "properties": {
+          "envelope": {
+            "$ref": "#/components/schemas/Geometry"
+          },
+          "factory": {
+            "$ref": "#/components/schemas/GeometryFactory"
+          },
+          "userData": {
+            "type": "object"
+          },
+          "coordinates": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Coordinate"
+            }
+          },
+          "empty": {
+            "type": "boolean"
+          },
+          "simple": {
+            "type": "boolean"
+          },
+          "y": {
+            "type": "number",
+            "format": "double"
+          },
+          "x": {
+            "type": "number",
+            "format": "double"
+          },
+          "geometryType": {
+            "type": "string"
+          },
+          "dimension": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "coordinate": {
+            "$ref": "#/components/schemas/Coordinate"
+          },
+          "numPoints": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "boundary": {
+            "$ref": "#/components/schemas/Geometry"
+          },
+          "boundaryDimension": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "coordinateSequence": {
+            "$ref": "#/components/schemas/CoordinateSequence"
+          },
+          "length": {
+            "type": "number",
+            "format": "double"
+          },
+          "valid": {
+            "type": "boolean"
+          },
+          "srid": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "numGeometries": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "precisionModel": {
+            "$ref": "#/components/schemas/PrecisionModel"
+          },
+          "rectangle": {
+            "type": "boolean"
+          },
+          "area": {
+            "type": "number",
+            "format": "double"
+          },
+          "centroid": {
+            "$ref": "#/components/schemas/Point"
+          },
+          "interiorPoint": {
+            "$ref": "#/components/schemas/Point"
+          },
+          "envelopeInternal": {
+            "$ref": "#/components/schemas/Envelope"
+          }
+        }
+      },
+      "PrecisionModel": {
+        "type": "object",
+        "properties": {
+          "scale": {
+            "type": "number",
+            "format": "double"
+          },
+          "maximumSignificantDigits": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "offsetX": {
+            "type": "number",
+            "format": "double"
+          },
+          "offsetY": {
+            "type": "number",
+            "format": "double"
+          },
+          "type": {
+            "$ref": "#/components/schemas/Type"
+          },
+          "floating": {
+            "type": "boolean"
+          }
+        }
+      },
+      "Report": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "referenceNumber": {
+            "type": "string"
+          },
+          "reporter": {
+            "$ref": "#/components/schemas/User"
+          },
+          "title": {
+            "type": "string"
+          },
+          "photoUrl": {
+            "type": "string"
+          },
+          "photoAfterUrl": {
+            "type": "string"
+          },
+          "location": {
+            "$ref": "#/components/schemas/Point"
+          },
+          "description": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "category": {
+            "type": "string",
+            "enum": [
+              "OVERFLOW",
+              "ILLEGAL_DUMPING",
+              "BLOCKED_DRAIN",
+              "STREET_LITTER",
+              "RESIDENTIAL_DUMP",
+              "COMMERCIAL_DUMP"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "REPORTED",
+              "ACKNOWLEDGED",
+              "IN_PROGRESS",
+              "RESOLVED"
+            ]
+          },
+          "urgency": {
+            "type": "string",
+            "enum": [
+              "ROUTINE",
+              "VERY_URGENT",
+              "CRITICAL"
+            ]
+          },
+          "isAnonymous": {
+            "type": "boolean"
+          },
+          "areaName": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "Type": {
+        "type": "object"
+      },
+      "ApiResponseMapStringLong": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "integer",
+              "format": "int64"
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponseListLeaderboardEntry": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LeaderboardEntry"
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "LeaderboardEntry": {
+        "type": "object",
+        "properties": {
+          "rank": {
+            "type": "integer",
+            "description": "Rank position",
+            "format": "int32",
+            "example": 1
+          },
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "avatarUrl": {
+            "type": "string"
+          },
+          "creditBalance": {
+            "type": "integer",
+            "description": "Total credits earned",
+            "format": "int32",
+            "example": 250
+          },
+          "reportCount": {
+            "type": "integer",
+            "description": "Total reports submitted",
+            "format": "int64",
+            "example": 15
+          }
+        },
+        "description": "Leaderboard entry"
+      },
+      "ApiResponseListSavedFilter": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SavedFilter"
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "ApiResponsePageCreditTransactionResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/PageCreditTransactionResponse"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreditTransactionResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "amount": {
+            "type": "integer",
+            "description": "Credits earned (positive) or spent (negative)",
+            "format": "int32",
+            "example": 10
+          },
+          "reason": {
+            "type": "string",
+            "description": "Reason for the transaction",
+            "example": "Report submitted: CR-88251"
+          },
+          "reportId": {
+            "type": "string",
+            "description": "Related report ID (if applicable)",
+            "format": "uuid"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "When the transaction occurred",
+            "format": "date-time"
+          }
+        },
+        "description": "Credit transaction history entry"
+      },
+      "PageCreditTransactionResponse": {
+        "type": "object",
+        "properties": {
+          "totalPages": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "totalElements": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "first": {
+            "type": "boolean"
+          },
+          "last": {
+            "type": "boolean"
+          },
+          "size": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "content": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreditTransactionResponse"
+            }
+          },
+          "number": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "sort": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SortObject"
+            }
+          },
+          "numberOfElements": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "pageable": {
+            "$ref": "#/components/schemas/PageableObject"
+          },
+          "empty": {
+            "type": "boolean"
+          }
+        }
+      },
+      "ApiResponseCreditBalanceResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/CreditBalanceResponse"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "CreditBalanceResponse": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "displayName": {
+            "type": "string"
+          },
+          "balance": {
+            "type": "integer",
+            "description": "Current credit balance (₦1 per credit)",
+            "format": "int32",
+            "example": 85
+          }
+        },
+        "description": "User credit balance"
+      },
+      "ApiResponseListAreaStatsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AreaStatsResponse"
+            }
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      },
+      "AreaStatsResponse": {
+        "type": "object",
+        "properties": {
+          "areaName": {
+            "type": "string",
+            "description": "Area/district name",
+            "example": "Lagos Island"
+          },
+          "totalReports": {
+            "type": "integer",
+            "description": "Total reports in this area",
+            "format": "int64"
+          },
+          "resolvedReports": {
+            "type": "integer",
+            "description": "Resolved reports",
+            "format": "int64"
+          },
+          "pendingReports": {
+            "type": "integer",
+            "description": "Pending (reported + acknowledged + in_progress)",
+            "format": "int64"
+          },
+          "recentReports": {
+            "type": "integer",
+            "description": "Reports in the last 7 days",
+            "format": "int64"
+          }
+        },
+        "description": "Area/district statistics"
+      },
+      "ApiResponseAreaStatsResponse": {
+        "type": "object",
+        "properties": {
+          "success": {
+            "type": "boolean"
+          },
+          "message": {
+            "type": "string"
+          },
+          "data": {
+            "$ref": "#/components/schemas/AreaStatsResponse"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time"
+          }
+        }
+      }
+    },
+    "responses": {
+      "400": {
+        "description": "Bad Request — validation failed",
+        "content": {
+          "application/json": {
+            "example": {
+              "timestamp": "2026-07-13T12:00:00Z",
+              "message": "Validation failed",
+              "success": false,
+              "errors": {
+                "password": "Password must be at least 8 characters",
+                "email": "Invalid email format"
+              }
+            }
+          }
+        }
+      },
+      "401": {
+        "description": "Unauthorized — missing/invalid token or wrong credentials",
+        "content": {
+          "application/json": {
+            "example": {
+              "timestamp": "2026-07-13T12:00:00Z",
+              "message": "Invalid email or password",
+              "success": false,
+              "errors": {}
+            }
+          }
+        }
+      },
+      "404": {
+        "description": "Not Found — resource does not exist",
+        "content": {
+          "application/json": {
+            "example": {
+              "timestamp": "2026-07-13T12:00:00Z",
+              "message": "Report not found: 550e8400-e29b-41d4-a716-446655440000",
+              "success": false,
+              "errors": {}
+            }
+          }
+        }
+      },
+      "409": {
+        "description": "Conflict — duplicate resource",
+        "content": {
+          "application/json": {
+            "example": {
+              "timestamp": "2026-07-13T12:00:00Z",
+              "message": "Email already registered: user@example.com",
+              "success": false,
+              "errors": {}
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "Bearer Auth": {
+        "type": "http",
+        "description": "JWT access token from /auth/login or /auth/register. Format: `Bearer eyJhbGciOiJ...`",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    }
+  }
+}
