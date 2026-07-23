@@ -12,7 +12,7 @@ import MyReportsPage from './pages/MyReportsPage';
 import CreditsPage from './pages/CreditsPage';
 import RewardsPage from './pages/RewardsPage';
 import ProfilePage from './pages/ProfilePage';
-import AdminPage from './pages/AdminPage';
+import AdminReportsPage from './pages/AdminReportsPage';
 import NotFoundPage from './pages/NotFoundPage';
 import VerifyEmailPage from './pages/VerifyEmailPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
@@ -75,7 +75,8 @@ function App() {
         <Route path="/profile" element={<ProfilePage />} />
 
         {/* Admin Routes */}
-        <Route path="/admin" element={<AdminPage />} />
+        <Route path="/admin" element={<AdminReportsPage />} />
+        <Route path="/admin/reports" element={<AdminReportsPage />} />
 
         {/* 404 */}
         <Route path="*" element={<NotFoundPage />} />
