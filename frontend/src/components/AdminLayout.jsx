@@ -136,7 +136,7 @@ export default function AdminLayout({ children }) {
               />
               <div className="overflow-hidden">
                 <p className="text-sm font-bold text-black truncate">{displayName}</p>
-                <p className="text-xs text-paragraph truncate">Product Designer</p>
+                <p className="text-xs text-paragraph truncate">System Administrator</p>
               </div>
             </div>
           </div>

@@ -61,7 +61,11 @@ export default function AdminReportsPage() {
       setStatus('success');
     } catch (err) {
       console.error('Failed to fetch admin reports', err);
-      setStatus('error');
+      if (err.response && (err.response.status === 403 || err.response.status === 401)) {
+        setStatus('forbidden');
+      } else {
+        setStatus('error');
+      }
     }
   };
 
@@ -102,7 +106,7 @@ export default function AdminReportsPage() {
                 </button>
               </div>
               <div className="flex items-baseline gap-3 mt-auto relative z-10">
-                <span className="text-[28px] font-bold text-black tracking-tight leading-none">{totalReports > 0 ? totalReports : '2,420'}</span>
+                <span className="text-[28px] font-bold text-black tracking-tight leading-none">{status === 'loading' ? '...' : totalReports}</span>
                 <span className="inline-flex items-center gap-0.5 text-primary text-xs font-bold">
                   <ArrowUpRight className="w-3.5 h-3.5" /> 40%
                 </span>
@@ -129,7 +133,7 @@ export default function AdminReportsPage() {
                 </button>
               </div>
               <div className="flex items-baseline gap-3 mt-auto relative z-10">
-                <span className="text-[28px] font-bold text-black tracking-tight leading-none">{resolvedReports > 0 ? resolvedReports : '1,210'}</span>
+                <span className="text-[28px] font-bold text-black tracking-tight leading-none">{status === 'loading' ? '...' : resolvedReports}</span>
                 <span className="inline-flex items-center gap-0.5 text-alert-error text-xs font-bold">
                   <ArrowDownRight className="w-3.5 h-3.5" /> 10%
                 </span>
@@ -156,7 +160,7 @@ export default function AdminReportsPage() {
                 </button>
               </div>
               <div className="flex items-baseline gap-3 mt-auto relative z-10">
-                <span className="text-[28px] font-bold text-black tracking-tight leading-none">{pendingReports > 0 ? pendingReports : '45'}</span>
+                <span className="text-[28px] font-bold text-black tracking-tight leading-none">{status === 'loading' ? '...' : pendingReports}</span>
                 <span className="inline-flex items-center gap-0.5 text-primary text-xs font-bold">
                   <ArrowUpRight className="w-3.5 h-3.5" /> 5%
                 </span>
@@ -214,10 +218,17 @@ export default function AdminReportsPage() {
                 {status === 'error' && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
                     <AlertCircle className="w-8 h-8 text-paragraph mb-2" />
-                    <p className="text-sm text-paragraph mb-4">Backend is asleep</p>
-                    <button onClick={fetchAdminReports} className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg flex items-center gap-2">
+                    <p className="text-sm text-paragraph mb-4">Backend is asleep or offline</p>
+                    <button onClick={fetchAdminReports} className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-lg flex items-center gap-2 hover:bg-primary/90">
                       <RefreshCw className="w-4 h-4" /> Retry
                     </button>
+                  </div>
+                )}
+                {status === 'forbidden' && (
+                  <div className="absolute inset-0 flex flex-col items-center justify-center text-center px-4">
+                    <AlertCircle className="w-8 h-8 text-alert-error mb-2" />
+                    <p className="text-sm text-alert-error font-bold mb-1">Access Denied</p>
+                    <p className="text-xs text-paragraph mb-4">Only administrators can view these reports.</p>
                   </div>
                 )}
                 {status === 'success' && (
