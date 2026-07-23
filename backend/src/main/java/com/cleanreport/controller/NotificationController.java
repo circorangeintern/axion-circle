@@ -1,7 +1,6 @@
 package com.cleanreport.controller;
 
 import com.cleanreport.dto.response.ApiResponse;
-import com.cleanreport.model.entity.Notification;
 import com.cleanreport.service.NotificationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -27,11 +26,11 @@ public class NotificationController {
     @Operation(summary = "Get my notifications", description = "Paginated, newest first.",
             security = @SecurityRequirement(name = "Bearer Auth"))
     @GetMapping
-    public ResponseEntity<ApiResponse<Page<Notification>>> getNotifications(
+    public ResponseEntity<ApiResponse<Page<com.cleanreport.dto.response.NotificationResponse>>> getNotifications(
             Authentication authentication,
             @Parameter(description = "Page number") @RequestParam(defaultValue = "0") int page,
             @Parameter(description = "Page size") @RequestParam(defaultValue = "20") int size) {
-        Page<Notification> notifications = notificationService.getMyNotifications(
+        var notifications = notificationService.getMyNotificationsDto(
                 authentication.getName(), PageRequest.of(page, Math.min(size, 50)));
         return ResponseEntity.ok(ApiResponse.ok(notifications));
     }

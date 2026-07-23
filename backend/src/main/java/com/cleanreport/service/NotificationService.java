@@ -110,6 +110,22 @@ public class NotificationService {
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + email));
         notificationRepository.markAsRead(notificationId, user.getId());
     }
+
+    private com.cleanreport.dto.response.NotificationResponse mapToResponse(com.cleanreport.model.entity.Notification n) {
+        return com.cleanreport.dto.response.NotificationResponse.builder()
+                .id(n.getId())
+                .reportId(n.getReport() != null ? n.getReport().getId() : null)
+                .type(n.getType())
+                .title(n.getTitle())
+                .message(n.getMessage())
+                .isRead(n.getIsRead())
+                .sentAt(n.getSentAt())
+                .build();
+    }
+
+    public org.springframework.data.domain.Page<com.cleanreport.dto.response.NotificationResponse> getMyNotificationsDto(String email, org.springframework.data.domain.Pageable pageable) {
+        return getMyNotifications(email, pageable).map(this::mapToResponse);
+    }
 }
 
 // (appended to existing file)
