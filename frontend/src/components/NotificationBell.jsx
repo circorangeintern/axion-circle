@@ -45,7 +45,7 @@ export default function NotificationBell() {
     if (nextState) {
       setIsLoading(true);
       try {
-        const { data } = await api.get('/notifications?page=0&size=20');
+        const { data } = await api.get('/notifications?page=1&size=20');
         const payload = data.data || data;
         window.__debug_notif_payload = payload;
         let items = [];
@@ -132,7 +132,7 @@ export default function NotificationBell() {
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-12 w-[calc(100vw-2rem)] sm:w-80 max-w-sm bg-white border border-white-stroke rounded-2xl shadow-xl z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden origin-top-right">
+        <div className="fixed inset-x-4 top-20 sm:inset-x-auto sm:absolute sm:right-0 sm:top-12 sm:w-80 sm:max-w-sm bg-white border border-white-stroke rounded-2xl shadow-xl z-50 animate-in fade-in zoom-in-95 duration-150 overflow-hidden sm:origin-top-right">
           <div className="px-4 py-3 border-b border-white-stroke flex justify-between items-center bg-white-bg/50">
             <div className="flex items-center gap-2">
               <h3 className="font-bold text-black text-sm">Notifications</h3>
