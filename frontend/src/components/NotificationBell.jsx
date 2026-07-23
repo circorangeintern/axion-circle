@@ -84,8 +84,9 @@ export default function NotificationBell() {
   const handleNotificationClick = async (notification) => {
     setIsOpen(false);
     
-    if (notification?.report?.id) {
-      navigate(`/reports/${notification.report.id}`);
+    const targetReportId = notification?.reportId || notification?.report?.id;
+    if (targetReportId) {
+      navigate(`/reports/${targetReportId}`);
     }
     
     if (!notification.isRead && notification.id) {
