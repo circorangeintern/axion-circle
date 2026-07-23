@@ -159,10 +159,6 @@ export default function NotificationBell() {
               <div className="p-6 text-center">
                 <Bell className="w-8 h-8 mx-auto text-black-placeholder/50 mb-2" />
                 <p className="text-sm text-black-icon">No notifications yet.</p>
-                <div className="text-[10px] text-left mt-4 text-alert-error bg-alert-errorLight p-2 rounded max-w-full overflow-x-auto">
-                  <p>DEBUG PAYLOAD (please screenshot):</p>
-                  <pre>{JSON.stringify(window.__debug_notif_payload || 'No payload captured', null, 2)}</pre>
-                </div>
               </div>
             ) : (
               <div className="flex flex-col">
