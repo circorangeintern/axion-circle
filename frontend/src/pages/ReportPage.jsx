@@ -168,6 +168,7 @@ export default function ReportPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   const handleReset = () => {
     setPhoto(null);
@@ -345,6 +346,14 @@ export default function ReportPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    // Check if user is logged in BEFORE validating form or uploading photo
+    const token = localStorage.getItem('access_token') || sessionStorage.getItem('access_token');
+    if (!token || token === 'undefined' || token === 'null') {
+      setShowAuthModal(true);
+      return;
+    }
+
     if (!photo || !category) {
       toast.error('Please attach an evidence photo and select a report category.');
       return;
@@ -834,6 +843,53 @@ export default function ReportPage() {
           </div>
         </div>
       )}
+
+      {/* Auth Modal (Prompt for Unauthenticated Users) */}
+      {showAuthModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div 
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity animate-in fade-in duration-200"
+            onClick={() => setShowAuthModal(false)}
+          />
+          <div className="bg-white rounded-3xl w-full max-w-sm p-8 shadow-xl flex flex-col items-center text-center relative overflow-hidden animate-in zoom-in-95 duration-200">
+            {/* Close Button */}
+            <button 
+              onClick={() => setShowAuthModal(false)}
+              className="absolute top-4 right-4 text-black-placeholder hover:text-black transition-colors"
+            >
+              <XCircle className="w-6 h-6" />
+            </button>
+            
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mb-5 shrink-0">
+              <User className="w-8 h-8 text-primary" />
+            </div>
+            
+            <h3 className="font-heading font-bold text-2xl text-black mb-2">
+              Authentication Required
+            </h3>
+            
+            <p className="text-paragraph text-sm mb-8 leading-relaxed">
+              Please sign up or log in to submit a report and help keep your community clean.
+            </p>
+            
+            <div className="flex flex-col gap-3 w-full">
+              <button 
+                onClick={() => navigate('/register')}
+                className="w-full bg-primary text-white font-bold py-3.5 rounded-xl hover:bg-primary/90 transition-colors shadow-sm"
+              >
+                Sign Up
+              </button>
+              <button 
+                onClick={() => navigate('/login')}
+                className="w-full bg-white text-black font-bold py-3.5 rounded-xl border border-white-stroke hover:bg-white-bg transition-colors"
+              >
+                Log In
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
