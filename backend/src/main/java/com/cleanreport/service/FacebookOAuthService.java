@@ -103,12 +103,15 @@ public class FacebookOAuthService {
                 .displayName(name != null ? name : email.split("@")[0])
                 .role(UserRole.REPORTER)
                 .creditBalance(0)
+                .lifetimeCredits(0)
+                .streakCount(0)
+                .level(com.cleanreport.model.enums.UserLevel.OBSERVER)
                 .isAnonymous(false)
-                .emailVerified(true) // Facebook emails are pre-verified
+                .emailVerified(true)
                 .avatarUrl(avatarUrl)
                 .build();
 
-        User saved = userRepository.save(user);
+        User saved = userRepository.saveAndFlush(user);
         log.info("New Facebook OAuth user created: {} ({})", saved.getEmail(), saved.getId());
         return saved;
     }

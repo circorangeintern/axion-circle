@@ -135,7 +135,7 @@ public class AuthController {
     })
     @PostMapping("/google")
     public ResponseEntity<ApiResponse<AuthResponse>> googleLogin(@Valid @RequestBody GoogleOAuthRequest request) {
-        AuthResponse response = googleOAuthService.authenticateWithGoogle(request.getIdToken());
+        AuthResponse response = googleOAuthService.authenticateWithGoogle(request.getIdToken(), request.getCode());
         return ResponseEntity.ok(ApiResponse.ok(response, "Google login successful"));
     }
 
