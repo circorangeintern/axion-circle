@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense, lazy } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import {
@@ -28,15 +28,9 @@ import {
 import AppNavbar from '../components/AppNavbar';
 import Footer from '../components/Footer';
 import mapBg from '../assets/map-bg.webp';
-import { MapContainer, TileLayer, Marker, Popup, useMap, useMapEvents } from 'react-leaflet';
-import MarkerClusterGroup from '@changey/react-leaflet-markercluster';
-import 'leaflet.markercluster/dist/MarkerCluster.css';
-import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
-import 'leaflet/dist/leaflet.css';
-import L from 'leaflet';
 import api from '../services/api';
 import ReportListView from '../components/ReportListView';
-import RegionalActivityMap from '../components/RegionalActivityMap';
+const RegionalActivityMap = lazy(() => import('../components/RegionalActivityMap'));
 import fallbackImage from '../assets/fallback-image.svg';
 import { timeAgo } from '../utils/timeAgo';
 
@@ -376,7 +370,14 @@ export default function HomePage() {
             {/* Left Column (Span 7): Regional Activity Map + Bottom Two Cards */}
             <div className="lg:col-span-7 flex flex-col gap-6">
               {/* 1. Regional Activity Map Card */}
-              <RegionalActivityMap reports={reports} mapStatus={mapStatus} onRetry={fetchReports} />
+              <Suspense fallback={
+                <div className="bg-white border border-white-stroke rounded-2xl shadow-sm flex flex-col overflow-hidden h-[450px] items-center justify-center">
+                  <RefreshCw className="w-8 h-8 text-primary animate-spin mb-4" />
+                  <p className="text-paragraph font-medium">Loading map module...</p>
+                </div>
+              }>
+                <RegionalActivityMap reports={reports} mapStatus={mapStatus} onRetry={fetchReports} />
+              </Suspense>
 
               {/* 2. Bottom Two Cards (Local Goals + Energy Saving) placed inside Left Column right under Regional Activity */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
