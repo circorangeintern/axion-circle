@@ -64,26 +64,8 @@ export default function RegisterPage() {
       return;
     }
     setStep1Error('');
-    setIsSubmitting(true);
-    setLoadingText('Sending Code...');
-    try {
-      // Mocking the send-registration-otp placeholder endpoint for 404s, but handle real errors
-      try {
-        await api.post('/auth/send-registration-otp', { email: email.trim() });
-        navigate('/verify-email', { state: { email: email.trim() } });
-      } catch (err) {
-        if (!err.response || err.response.status === 404 || err.code === 'ECONNABORTED') {
-          console.warn('Endpoint missing or connection failed, mocking OTP send success');
-          navigate('/verify-email', { state: { email: email.trim() } });
-        } else {
-          // A real error from the backend (like "Email already in use")
-          const errorMsg = err.response.data?.message || err.response.data?.error || 'Failed to send verification code. Please try again.';
-          setStep1Error(errorMsg);
-        }
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
+    // Valid email, just go to step 2 directly
+    setStep(2);
   };
 
   // Step 2 validation
@@ -292,9 +274,34 @@ export default function RegisterPage() {
         displayName: fullName.trim(),
       });
 
-      // Show Account Created step inline to match Figma
-      setStep(3);
+      const resData = response.data?.data || response.data;
+      const accessToken = resData?.access_token || resData?.accessToken || resData?.token;
+      const refreshToken = resData?.refresh_token || resData?.refreshToken;
+
+      if (accessToken) {
+        localStorage.setItem('access_token', accessToken);
+      }
+      if (refreshToken) {
+        localStorage.setItem('refresh_token', refreshToken);
+      }
+
+      const parsedName = resData?.fullName || resData?.name || resData?.displayName || fullName.trim();
+      const parsedId = resData?.id || resData?._id || '';
+      const userEmail = resData?.email || email.trim();
+
+      const userObj = resData?.user || {
+        id: parsedId,
+        fullName: parsedName,
+        email: userEmail,
+        role: 'user'
+      };
+      
+      localStorage.setItem('user', JSON.stringify(userObj));
+      localStorage.setItem('user_name', userObj.fullName);
+      localStorage.setItem('user_email', userObj.email);
+
       ReactGA.event({ category: 'Auth', action: 'sign_up', label: 'email' });
+      navigate('/verify-email', { state: { email: email.trim() } });
     } catch (error) {
 
       // Connection failure: timeout (ECONNABORTED) or no response from server
@@ -381,17 +388,6 @@ export default function RegisterPage() {
                     <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
                   </svg>
                   Sign up with Facebook
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => handleSocialClick('Apple')}
-                  className="w-full px-4 py-3 bg-white border border-white-stroke text-black font-semibold rounded-xl hover:bg-white-bg transition-all flex items-center justify-center gap-3 text-sm shadow-sm"
-                >
-                  <svg className="w-5 h-5 shrink-0 fill-black" viewBox="0 0 24 24">
-                    <path d="M17.05 20.28c-.98.95-2.05.8-3.08.35-1.09-.46-2.09-.48-3.24 0-1.44.62-2.2.44-3.06-.35C2.79 15.25 3.51 7.59 9.05 7.31c1.35.07 2.29.74 3.08.8 1.18-.24 2.31-.93 3.57-.84 1.51.12 2.65.72 3.4 1.8-3.12 1.87-2.38 5.98.48 7.13-.57 1.5-1.31 2.99-2.53 4.08zM12.03 7.25c-.15-2.23 1.66-4.07 3.74-4.25.29 2.58-2.34 4.5-3.74 4.25z" />
-                  </svg>
-                  Sign up with Apple
                 </button>
 
                 {/* OR Divider */}

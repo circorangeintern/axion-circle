@@ -160,10 +160,10 @@ export default function VerifyEmailPage() {
             </p>
             
             <button
-              onClick={() => navigate('/register', { state: { email, step: 2 } })}
-              className="w-full px-4 py-3 bg-alert-success text-white font-semibold rounded-lg hover:bg-alert-success/90 active:scale-[0.99] transition-all shadow-sm"
+              onClick={() => navigate('/')}
+              className="w-full px-4 py-3 bg-alert-success text-white font-semibold rounded-lg hover:bg-alert-success/90 active:scale-[0.99] transition-all shadow-sm cursor-pointer"
             >
-              Finish Account Creation
+              Go to Dashboard
             </button>
           </div>
         </div>
