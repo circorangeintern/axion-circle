@@ -175,7 +175,7 @@ export default function ReportsPage() {
     const s = status.toLowerCase();
     if (s === 'reported') {
       return {
-        pillClass: 'bg-status-reported/15 text-[#B06500] border border-status-reported/30',
+        pillClass: 'bg-status-reported/15 text-[#8B4500] border border-status-reported/30',
         text: 'Reported',
       };
     }

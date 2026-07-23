@@ -321,7 +321,7 @@ export default function AppNavbar({ activeTab = '' }) {
           </button>
           <div className="relative w-[80vw] max-w-[280px] sm:max-w-xs bg-white h-full shadow-2xl flex flex-col justify-between z-10 animate-in slide-in-from-left duration-200">
             <div className="p-6 pb-6">
-              <Link to="/" className="flex items-center shrink-0">
+              <Link to="/" className="flex items-center shrink-0" aria-label="Home">
                 <NavbarLogo className="h-8 sm:h-9 w-auto object-contain" />
               </Link>
             </div>

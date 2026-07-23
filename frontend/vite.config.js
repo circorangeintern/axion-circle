@@ -38,4 +38,16 @@ export default defineConfig({
       },
     },
   },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          react: ['react', 'react-dom', 'react-router-dom'],
+          leaflet: ['leaflet', 'react-leaflet'],
+          icons: ['lucide-react'],
+          recharts: ['recharts'],
+        },
+      },
+    },
+  },
 });
