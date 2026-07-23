@@ -687,6 +687,7 @@ export default function ReportPage() {
                 }`}
                 role="switch"
                 aria-checked={isAnonymous}
+                aria-label="Toggle anonymous submission"
               >
                 <span
                   className={`pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow transform ring-0 transition duration-200 ease-in-out ${

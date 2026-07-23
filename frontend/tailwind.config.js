@@ -10,7 +10,7 @@ export default {
         black: Object.assign("#001310", {
           DEFAULT: "#001310",
           main: "#001310",
-          placeholder: "#80838D",
+          placeholder: "#667085",
           icon: "#667085",
         }),
         white: {

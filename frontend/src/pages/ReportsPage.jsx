@@ -479,7 +479,7 @@ export default function ReportsPage() {
                         <Link
                           to={`/reports/${report.id}`}
                           className="text-xs sm:text-sm font-bold text-primary hover:text-primary/80 flex items-center gap-1 group/link"
-                          aria-label={`Show details for ${report.title || 'report'}`}
+                          aria-label={`Show details for ${report.title || 'report'} - Ref ${report.referenceId || report.id}`}
                         >
                           Show Details
                           <ChevronRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />
