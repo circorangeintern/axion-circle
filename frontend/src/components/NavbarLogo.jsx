@@ -4,7 +4,7 @@ export default function NavbarLogo({ className = "h-8 sm:h-9 w-auto object-conta
   return (
     <img
       src={navbarLogoSvg}
-      alt="CleanReport Navbar Logo"
+      alt="CleanReport Official Logo"
       className={className}
     />
   );

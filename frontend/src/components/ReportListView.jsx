@@ -42,7 +42,8 @@ export default function ReportListView({ reports }) {
               <div className="w-full sm:w-24 h-32 sm:h-24 rounded-lg overflow-hidden shrink-0">
                 <img 
                   src={report.photoUrl} 
-                  alt="Report evidence" 
+                  alt="Thumbnail evidence for report list item" 
+                  loading="lazy"
                   className="w-full h-full object-cover" 
                   onError={(e) => {
                     e.target.onerror = null;

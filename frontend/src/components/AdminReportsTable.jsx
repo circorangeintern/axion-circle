@@ -192,7 +192,7 @@ export default function AdminReportsTable({ reports, onRefresh }) {
             <tr className="bg-white-bg2 border-b border-white-stroke text-xs font-semibold text-paragraph">
               <th className="px-5 py-3 cursor-pointer whitespace-nowrap" onClick={() => handleSort('category')}>
                 <div className="flex items-center gap-2">
-                  <input type="checkbox" className="w-4 h-4 rounded border-white-stroke text-primary focus:ring-primary" />
+                  <input type="checkbox" aria-label="Select all reports" className="w-4 h-4 rounded border-white-stroke text-primary focus:ring-primary" />
                   Category <SortIcon column="category" />
                 </div>
               </th>
@@ -236,7 +236,7 @@ export default function AdminReportsTable({ reports, onRefresh }) {
                   <tr key={report.id} className="hover:bg-white-bg/50 transition-colors bg-white">
                     <td className="px-5 py-4">
                       <div className="flex items-center gap-3">
-                        <input type="checkbox" className="w-4 h-4 rounded border-white-stroke text-primary focus:ring-primary" />
+                        <input type="checkbox" aria-label={`Select report ${report.id}`} className="w-4 h-4 rounded border-white-stroke text-primary focus:ring-primary" />
                         <div className="w-8 h-8 rounded-full bg-white-bg2 border border-white-stroke flex items-center justify-center shrink-0">
                           {getCategoryIcon(catName)}
                         </div>

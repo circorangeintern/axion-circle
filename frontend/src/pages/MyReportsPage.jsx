@@ -331,6 +331,7 @@ export default function MyReportsPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="search your reports..."
+                  aria-label="Search your reports"
                   className="w-full pl-9 pr-4 py-2 border border-white-stroke rounded-xl text-xs sm:text-sm bg-white-bg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 text-black font-medium placeholder:text-black-placeholder"
                 />
               </div>
@@ -347,6 +348,7 @@ export default function MyReportsPage() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="search your reports..."
+                aria-label="Search your reports"
                 className="w-full pl-9 pr-4 py-2.5 border border-white-stroke rounded-xl text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 text-black font-medium placeholder:text-black-placeholder shadow-xs"
               />
             </div>
@@ -420,6 +422,7 @@ export default function MyReportsPage() {
                         <img
                           src={getCardPhotoUrl(report)}
                           alt={report.title}
+                          loading="lazy"
                           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
                           onError={(e) => {
                             e.target.onerror = null;

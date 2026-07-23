@@ -175,7 +175,7 @@ export default function HomePage() {
               <div className="lg:hidden fixed inset-0 z-[100] bg-white flex flex-col p-6 pb-12 justify-between">
                 <div>
                   <div className="flex flex-col items-start pt-4">
-                    <img src="/logo.svg" alt="CleanReport Logo" className="w-14 h-14 object-contain mb-1" onError={(e) => { e.target.style.display = 'none'; }} />
+                    <img src="/logo.svg" alt="CleanReport Logo Mobile Splash" className="w-14 h-14 object-contain mb-1" onError={(e) => { e.target.style.display = 'none'; }} />
                     <span className="font-heading font-bold text-xl text-primary mt-2">CleanReport</span>
                   </div>
                 </div>

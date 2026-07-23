@@ -293,6 +293,7 @@ export default function ReportsPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="search for a report"
+                  aria-label="Search reports"
                   className="w-full pl-9 pr-3.5 py-2 border border-white-stroke rounded-xl text-xs sm:text-sm bg-white-bg focus:bg-white focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all text-black font-medium placeholder:text-black-placeholder"
                 />
               </div>
@@ -340,6 +341,7 @@ export default function ReportsPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="search for a report..."
+                  aria-label="Search reports"
                   className="w-full pl-9 pr-4 py-2.5 border border-white-stroke rounded-xl text-xs sm:text-sm bg-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 text-black font-medium placeholder:text-black-placeholder shadow-xs"
                 />
               </div>

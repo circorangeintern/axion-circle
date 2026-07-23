@@ -7,7 +7,7 @@ export default function AuthHeroPanel() {
       {/* Real background image */}
       <img
         src={loginHero}
-        alt="CleanReport community impact"
+        alt="Community members cleaning up the environment"
         className="absolute inset-0 w-full h-full object-cover"
       />
 

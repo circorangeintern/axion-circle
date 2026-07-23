@@ -127,7 +127,7 @@ export default function AdminLayout({ children }) {
             <div className="flex items-center gap-3 overflow-hidden">
               <img 
                 src={avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`} 
-                alt={displayName} 
+                alt="Admin profile avatar in sidebar" 
                 className="w-10 h-10 rounded-full object-cover shadow-sm border border-white-stroke shrink-0"
                 onError={(e) => {
                   e.target.onerror = null;
@@ -233,6 +233,7 @@ export default function AdminLayout({ children }) {
               <input 
                 type="text" 
                 placeholder="search" 
+                aria-label="Search reports"
                 className="pl-9 pr-4 py-2 rounded-xl border border-white-stroke bg-white text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 w-64"
               />
             </div>
@@ -244,7 +245,7 @@ export default function AdminLayout({ children }) {
             </div>
             <img 
               src={avatarUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(displayName)}&background=random`} 
-              alt={displayName} 
+              alt="Admin profile avatar in top navbar" 
               className="w-10 h-10 rounded-full object-cover shadow-sm border border-white-stroke shrink-0"
               onError={(e) => {
                 e.target.onerror = null;
