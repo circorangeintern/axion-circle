@@ -161,6 +161,7 @@ export default function AdminReportsTable({ reports, onRefresh }) {
             value={filterStatus}
             onChange={(e) => { setFilterStatus(e.target.value); setCurrentPage(1); }}
             className="px-3 py-2 bg-white border border-white-stroke rounded-lg text-sm font-medium text-black outline-none focus:border-primary shadow-sm"
+            aria-label="Filter by status"
           >
             <option>All Status</option>
             <option>Reported</option>
@@ -172,6 +173,7 @@ export default function AdminReportsTable({ reports, onRefresh }) {
             value={filterCategory}
             onChange={(e) => { setFilterCategory(e.target.value); setCurrentPage(1); }}
             className="px-3 py-2 bg-white border border-white-stroke rounded-lg text-sm font-medium text-black outline-none focus:border-primary shadow-sm"
+            aria-label="Filter by category"
           >
             <option>All Categories</option>
             <option>Waste Management</option>
@@ -345,7 +347,7 @@ export default function AdminReportsTable({ reports, onRefresh }) {
           <div className="bg-white w-full max-w-md rounded-2xl shadow-xl relative z-10 overflow-hidden flex flex-col animate-in zoom-in-95 duration-200">
             <div className="p-5 border-b border-white-stroke flex items-center justify-between">
               <h3 className="font-heading font-bold text-lg text-black">Update Report Status</h3>
-              <button onClick={() => setModalOpen(false)} className="text-black-icon hover:text-black">
+              <button onClick={() => setModalOpen(false)} className="text-black-icon hover:text-black" aria-label="Close modal">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -357,8 +359,9 @@ export default function AdminReportsTable({ reports, onRefresh }) {
               </div>
 
               <div className="space-y-1.5">
-                <label className="text-sm font-bold text-black">New Status</label>
+                <label htmlFor="new-status-select" className="text-sm font-bold text-black">New Status</label>
                 <select
+                  id="new-status-select"
                   value={newStatus}
                   onChange={(e) => setNewStatus(e.target.value)}
                   className="w-full px-4 py-3 bg-white border border-white-stroke rounded-xl text-sm font-medium text-black focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20"

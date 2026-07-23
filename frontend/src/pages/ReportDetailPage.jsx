@@ -604,7 +604,7 @@ export default function ReportDetailPage() {
                   (report.status || '').toLowerCase().replace(' ', '') === 'resolved' ? 'bg-alert-successLight text-primary border-alert-successStroke' :
                   (report.status || '').toLowerCase().replace(' ', '') === 'inprogress' ? 'bg-alert-inprogressLight text-alert-inprogress border-alert-inprogressStroke' :
                   (report.status || '').toLowerCase().replace(' ', '') === 'acknowledged' ? 'bg-alert-infoLight text-alert-info border-alert-infoStroke' :
-                  'bg-alert-warningLight text-accent border-alert-warningStroke'
+                  'bg-alert-warningLight text-[#B06500] border-alert-warningStroke'
                 }`}>
                   {report.status || 'Reported'}
                 </span>

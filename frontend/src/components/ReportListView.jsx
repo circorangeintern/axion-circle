@@ -34,7 +34,7 @@ export default function ReportListView({ reports }) {
         const statusClass = isResolved ? 'bg-alert-successLight text-primary' :
                             isInProgress ? 'bg-alert-inprogressLight text-alert-inprogress' :
                             isAcknowledged ? 'bg-alert-infoLight text-alert-info' :
-                            'bg-alert-warningLight text-accent';
+                            'bg-alert-warningLight text-[#B06500]';
 
         return (
           <div key={report.id} className="bg-white rounded-xl p-4 shadow-sm border border-white-stroke flex flex-col sm:flex-row gap-4 relative">
