@@ -38,8 +38,7 @@ import api from '../services/api';
 import ReportListView from '../components/ReportListView';
 import RegionalActivityMap from '../components/RegionalActivityMap';
 import fallbackImage from '../assets/fallback-image.svg';
-
-
+import { timeAgo } from '../utils/timeAgo';
 
 export default function HomePage() {
   const navigate = useNavigate();
