@@ -65,6 +65,7 @@ public class ReportService {
                 .location(location)
                 .description(request.getDescription())
                 .address(address)
+                .areaName(extractAreaName(address))
                 .category(request.getCategory())
                 .status(ReportStatus.REPORTED)
                 .urgency(request.getUrgency() != null ? request.getUrgency() : ReportUrgency.ROUTINE)
@@ -183,6 +184,15 @@ public class ReportService {
         }
 
         return reportRepository.findAll(spec, pageable).map(this::mapToResponse);
+    }
+
+    /**
+     * Extract area/district name from full address (first part before comma).
+     */
+    private String extractAreaName(String address) {
+        if (address == null || address.isBlank()) return null;
+        String[] parts = address.split(",");
+        return parts[0].trim();
     }
 
     private ReportResponse mapToResponse(Report report) {
