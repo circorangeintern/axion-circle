@@ -239,7 +239,7 @@ export default function AdminLayout({ children }) {
                 className="pl-9 pr-4 py-2 rounded-xl border border-white-stroke bg-white text-sm focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 w-64"
               />
             </div>
-            <button className="w-10 h-10 rounded-xl bg-white border border-white-stroke flex items-center justify-center text-black-icon hover:text-black hover:border-black/20 shadow-sm transition-colors">
+            <button className="w-10 h-10 rounded-xl bg-white border border-white-stroke flex items-center justify-center text-black-icon hover:text-black hover:border-black/20 shadow-sm transition-colors" aria-label="Settings">
               <Settings className="w-5 h-5" />
             </button>
             <div className="bg-white rounded-xl border border-white-stroke shadow-sm flex items-center justify-center">

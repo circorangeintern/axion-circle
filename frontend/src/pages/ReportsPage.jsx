@@ -392,7 +392,7 @@ export default function ReportsPage() {
           ) : filteredReports.length === 0 ? (
             <div className="bg-white border border-white-stroke rounded-2xl p-12 text-center my-8 shadow-2xs">
               <Sprout className="w-12 h-12 text-white-stroke mx-auto mb-3 animate-pulse" />
-              <h3 className="text-base sm:text-lg font-bold text-black mb-1">No community reports found</h3>
+              <h2 className="text-base sm:text-lg font-bold text-black mb-1">No community reports found</h2>
               <p className="text-xs sm:text-sm text-paragraph mb-6">
                 No reports match your current category, status, or keyword filters.
               </p>
@@ -445,9 +445,9 @@ export default function ReportsPage() {
                       </div>
 
                       {/* Title */}
-                      <h3 className="font-heading font-bold text-base sm:text-lg text-black mb-2 group-hover:text-primary transition-colors">
+                      <h2 className="font-heading font-bold text-base sm:text-lg text-black mb-2 group-hover:text-primary transition-colors">
                         {report.title}
-                      </h3>
+                      </h2>
 
                       {/* Description Text */}
                       <p className="text-xs sm:text-sm text-paragraph line-clamp-3 mb-4 leading-relaxed">
@@ -479,6 +479,7 @@ export default function ReportsPage() {
                         <Link
                           to={`/reports/${report.id}`}
                           className="text-xs sm:text-sm font-bold text-primary hover:text-primary/80 flex items-center gap-1 group/link"
+                          aria-label={`Show details for ${report.title || 'report'}`}
                         >
                           Show Details
                           <ChevronRight className="w-4 h-4 group-hover/link:translate-x-1 transition-transform" />

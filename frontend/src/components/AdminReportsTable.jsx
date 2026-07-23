@@ -271,6 +271,7 @@ export default function AdminReportsTable({ reports, onRefresh }) {
                           onClick={() => openStatusModal(report)}
                           className="p-1.5 text-paragraph hover:text-primary bg-white-bg hover:bg-primary/10 rounded-lg transition-colors"
                           title="Update Status"
+                          aria-label="View or update status"
                         >
                           <Eye className="w-4 h-4" />
                         </button>

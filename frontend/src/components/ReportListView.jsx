@@ -65,9 +65,9 @@ export default function ReportListView({ reports }) {
                     {timeAgo(report.createdAt || report.date)}
                   </span>
                 </div>
-                <h4 className="text-sm font-bold text-black mb-1 leading-tight truncate">
+                <h3 className="text-sm font-bold text-black mb-1 leading-tight truncate">
                   {report.title || report.category || 'Sanitation Issue'}
-                </h4>
+                </h3>
                 <div className="flex items-center gap-1 text-[11px] text-black-icon mb-2">
                   <MapPin className="w-3 h-3 shrink-0" />
                   <span className="truncate">

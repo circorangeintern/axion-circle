@@ -83,7 +83,7 @@ export default function AdminReportsPage() {
         
         {/* System Overview Section */}
         <div>
-          <h2 className="font-heading font-bold text-lg sm:text-xl text-black mb-4">System Overview</h2>
+          <h1 className="font-heading font-bold text-lg sm:text-xl text-black mb-4">System Overview</h1>
           <div className="flex overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-4 gap-4 pb-2 hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
             
             {/* 1. Total Reports */}
@@ -101,7 +101,7 @@ export default function AdminReportsPage() {
                   </div>
                   <span className="text-sm font-semibold text-black">Total Reports</span>
                 </div>
-                <button className="text-black-icon hover:text-black shrink-0">
+                <button className="text-black-icon hover:text-black shrink-0" aria-label="More options">
                   <MoreVertical className="w-4 h-4" />
                 </button>
               </div>
@@ -128,7 +128,7 @@ export default function AdminReportsPage() {
                   </div>
                   <span className="text-sm font-semibold text-black">Resolved Reports</span>
                 </div>
-                <button className="text-black-icon hover:text-black shrink-0">
+                <button className="text-black-icon hover:text-black shrink-0" aria-label="More options">
                   <MoreVertical className="w-4 h-4" />
                 </button>
               </div>
@@ -155,7 +155,7 @@ export default function AdminReportsPage() {
                   </div>
                   <span className="text-sm font-semibold text-black">Pending Reports</span>
                 </div>
-                <button className="text-black-icon hover:text-black shrink-0">
+                <button className="text-black-icon hover:text-black shrink-0" aria-label="More options">
                   <MoreVertical className="w-4 h-4" />
                 </button>
               </div>
@@ -182,7 +182,7 @@ export default function AdminReportsPage() {
                   </div>
                   <span className="text-sm font-semibold text-black">Avg Response Time</span>
                 </div>
-                <button className="text-black-icon hover:text-black shrink-0">
+                <button className="text-black-icon hover:text-black shrink-0" aria-label="More options">
                   <MoreVertical className="w-4 h-4" />
                 </button>
               </div>

@@ -374,10 +374,10 @@ export default function ReportDetailPage() {
                 </span>
               </div>
               <div className="flex items-center gap-2">
-                <button className="text-black-icon hover:text-primary transition-colors p-1.5">
+                <button className="text-black-icon hover:text-primary transition-colors p-1.5" aria-label="Save Report">
                   <Star className="w-4 h-4" />
                 </button>
-                <button className="text-black-icon hover:text-primary transition-colors p-1.5">
+                <button className="text-black-icon hover:text-primary transition-colors p-1.5" aria-label="Flag Report">
                   <Flag className="w-4 h-4" />
                 </button>
                 <button onClick={handleShare} className="flex items-center gap-1.5 text-black hover:text-primary transition-colors px-3 py-1.5 border border-white-stroke rounded-lg text-[11px] font-bold bg-white shadow-sm ml-1">
@@ -389,7 +389,7 @@ export default function ReportDetailPage() {
             
             {/* Description & Map */}
             <div className="mb-6">
-              <h3 className="font-heading font-bold text-lg text-black mb-2">Description</h3>
+              <h2 className="font-heading font-bold text-lg text-black mb-2">Description</h2>
               <p className="text-[13px] text-paragraph leading-relaxed mb-4">
                 {report.description || 'The green bin at Riverside East is completely full and littering the sidewalk. Several heavy bags have been left beside the bin, attracting pests and creating a walking hazard for pedestrians.'}
               </p>
@@ -441,7 +441,7 @@ export default function ReportDetailPage() {
             
             {/* Comments (Mobile) */}
             <div className="mb-8">
-              <h3 className="font-heading font-bold text-lg text-black mb-4">Comments ({comments.length})</h3>
+              <h2 className="font-heading font-bold text-lg text-black mb-4">Comments ({comments.length})</h2>
               <div className="space-y-5 mb-5">
                 {comments.length === 0 ? (
                   <p className="text-sm text-black-placeholder italic">No comments yet. Be the first to comment!</p>
@@ -569,7 +569,7 @@ export default function ReportDetailPage() {
             {/* Rewards Banner */}
             <div className="bg-[#F8F9FA] border border-white-stroke rounded-2xl p-6 flex flex-col items-center text-center shadow-sm">
               <Gift className="w-10 h-10 text-[#FEAA01] mb-3" strokeWidth={1.5} />
-              <h3 className="font-heading font-bold text-lg text-black mb-2">Sent a CleanReport?</h3>
+              <h2 className="font-heading font-bold text-lg text-black mb-2">Sent a CleanReport?</h2>
               <p className="text-[12px] text-paragraph leading-relaxed mb-5 max-w-[240px]">
                 When you send a report, your reward appears here after the report have been resolved.
               </p>
@@ -672,7 +672,7 @@ export default function ReportDetailPage() {
                 </div>
                 {/* Text aligned to the middle of the bottom half of the avatar */}
                 <div className="mt-3">
-                  <h3 className="font-heading font-bold text-black text-xl sm:text-[28px] leading-none mb-1">
+                  <h2 className="font-heading font-bold text-black text-xl sm:text-[28px] leading-none mb-1">
                     {report.reporterName || report.reporter?.displayName || report.reporter?.name || report.reporter?.fullName || report.reporter?.firstName || 'Anonymous'}
                   </h3>
                   <p className="text-sm text-paragraph font-medium">
@@ -683,10 +683,10 @@ export default function ReportDetailPage() {
               
               <div className="flex flex-wrap justify-center sm:justify-start items-center gap-3 mt-4 sm:mt-3">
                 <div className="flex items-center gap-2">
-                  <button className="text-black-icon hover:text-primary transition-colors p-1" title="Save Report">
+                  <button className="text-black-icon hover:text-primary transition-colors p-1" title="Save Report" aria-label="Save Report">
                     <Star className="w-[20px] h-[20px]" strokeWidth={1.5} />
                   </button>
-                  <button className="text-black-icon hover:text-alert-error transition-colors p-1" title="Flag Report">
+                  <button className="text-black-icon hover:text-alert-error transition-colors p-1" title="Flag Report" aria-label="Flag Report">
                     <Flag className="w-[20px] h-[20px]" strokeWidth={1.5} />
                   </button>
                 </div>
@@ -932,7 +932,7 @@ export default function ReportDetailPage() {
               <div className="text-[40px] leading-none mb-1">
                 🎁
               </div>
-              <h3 className="font-heading text-[18px] font-bold text-black">Sent a CleanReport?</h3>
+              <h2 className="font-heading text-[18px] font-bold text-black">Sent a CleanReport?</h2>
               <p className="text-[13px] text-paragraph leading-relaxed px-4">
                 When you send a report, your reward appears here after the report has been resolved.
               </p>
