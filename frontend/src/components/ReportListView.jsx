@@ -84,6 +84,7 @@ export default function ReportListView({ reports }) {
                 <Link
                   to={`/reports/${report.id}`}
                   className="px-4 py-1.5 bg-primary/10 hover:bg-primary/20 text-primary font-bold text-[11px] rounded-lg transition-colors"
+                  aria-label={`View details for ${report.title || 'report'} - Ref ${report.referenceId || report.id}`}
                 >
                   View Report
                 </Link>

@@ -238,7 +238,7 @@ export default function HomePage() {
                   </div>
                   <span className="text-sm font-semibold text-black">Total Reports</span>
                 </div>
-                <button className="text-black-icon hover:text-black shrink-0" aria-label="More options">
+                <button className="text-black-icon hover:text-black shrink-0" aria-label="More options for Total Reports">
                   <MoreVertical className="w-4 h-4" />
                 </button>
               </div>
@@ -268,7 +268,7 @@ export default function HomePage() {
                   </div>
                   <span className="text-sm font-semibold text-black">Resolved Reports</span>
                 </div>
-                <button className="text-black-icon hover:text-black shrink-0" aria-label="More options">
+                <button className="text-black-icon hover:text-black shrink-0" aria-label="More options for Resolved Reports">
                   <MoreVertical className="w-4 h-4" />
                 </button>
               </div>
@@ -298,7 +298,7 @@ export default function HomePage() {
                   </div>
                   <span className="text-sm font-semibold text-black">Community Points</span>
                 </div>
-                <button className="text-black-icon hover:text-black shrink-0" aria-label="More options">
+                <button className="text-black-icon hover:text-black shrink-0" aria-label="More options for Community Points">
                   <MoreVertical className="w-4 h-4" />
                 </button>
               </div>
