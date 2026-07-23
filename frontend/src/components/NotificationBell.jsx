@@ -45,7 +45,7 @@ export default function NotificationBell() {
     if (nextState) {
       setIsLoading(true);
       try {
-        const { data } = await api.get('/notifications?page=1&size=20');
+        const { data } = await api.get('/notifications?page=0&size=20');
         const payload = data.data || data;
         window.__debug_notif_payload = payload;
         let items = [];
