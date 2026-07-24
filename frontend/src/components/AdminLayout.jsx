@@ -161,6 +161,7 @@ export default function AdminLayout({ children }) {
           <button 
             onClick={() => setIsMobileMenuOpen(true)}
             className="p-1.5 text-black-icon rounded-lg hover:bg-white-bg"
+            aria-label="Open menu"
           >
             <Menu className="w-6 h-6" />
           </button>
@@ -174,7 +175,7 @@ export default function AdminLayout({ children }) {
           <div className="relative w-64 max-w-[80vw] bg-white h-full shadow-2xl flex flex-col z-10 animate-in slide-in-from-left">
             <div className="p-4 flex items-center justify-between border-b border-white-stroke">
               <NavbarLogo className="h-7 w-auto" />
-              <button onClick={() => setIsMobileMenuOpen(false)} className="p-1 text-black-icon">
+              <button onClick={() => setIsMobileMenuOpen(false)} className="p-1 text-black-icon" aria-label="Close menu">
                 <X className="w-6 h-6" />
               </button>
             </div>
