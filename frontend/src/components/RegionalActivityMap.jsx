@@ -168,7 +168,7 @@ export default function RegionalActivityMap({ reports, mapStatus, onRetry }) {
             <button 
               onClick={onRetry} 
               className="ml-1 bg-alert-error/10 hover:bg-alert-error/20 text-alert-error p-1 rounded-full transition-colors"
-              title="Retry"
+              aria-label="Retry connection"
             >
               <RefreshCw className="w-3.5 h-3.5" />
             </button>
@@ -241,6 +241,7 @@ export default function RegionalActivityMap({ reports, mapStatus, onRetry }) {
                           <Link 
                             to={`/reports/${report.id}`}
                             className="block w-full py-2 bg-primary/10 text-primary text-[10px] font-bold text-center rounded-lg hover:bg-primary/20 transition-colors"
+                            aria-label={`View details for ${report.title || 'report'} - Ref ${report.referenceId || report.id}`}
                           >
                             View Report
                           </Link>
