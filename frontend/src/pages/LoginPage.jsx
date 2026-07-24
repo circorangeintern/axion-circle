@@ -358,11 +358,13 @@ export default function LoginPage() {
               {isSubmitting ? loadingText : 'Log into Account'}
             </button>
 
-            <div className="w-full mt-3 flex justify-center">
+            <div className="w-full mt-3 flex justify-center h-[46px] items-center relative z-0">
               <GoogleLogin
                 onSuccess={handleGoogleSuccess}
                 onError={handleGoogleError}
-                useOneTap
+                theme="outline"
+                size="large"
+                width="100%"
               />
             </div>
 

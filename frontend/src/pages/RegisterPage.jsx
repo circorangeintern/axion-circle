@@ -362,11 +362,13 @@ export default function RegisterPage() {
               </div>
 
               <div className="flex flex-col gap-3">
-                <div className="w-full flex justify-center">
+                <div className="w-full mt-3 flex justify-center h-[46px] items-center relative z-0">
                   <GoogleLogin
                     onSuccess={handleGoogleSuccess}
                     onError={handleGoogleError}
-                    useOneTap
+                    theme="outline"
+                    size="large"
+                    width="100%"
                   />
                 </div>
 
@@ -657,11 +659,13 @@ export default function RegisterPage() {
                     {isSubmitting ? loadingText : 'Create Account'}
                   </button>
 
-                  <div className="w-full mt-3 flex justify-center">
+                  <div className="w-full mt-3 flex justify-center h-[46px] items-center relative z-0">
                     <GoogleLogin
                       onSuccess={handleGoogleSuccess}
                       onError={handleGoogleError}
-                      useOneTap
+                      theme="outline"
+                      size="large"
+                      width="100%"
                     />
                   </div>
                   
