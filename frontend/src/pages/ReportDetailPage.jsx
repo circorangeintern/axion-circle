@@ -3,6 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
+import { optimizeCloudinaryUrl } from '../utils/cloudinary';
 import { 
   MapPin, Star, Flag, Trash2, ArrowLeft, Gift, 
   MessageSquare, User, Clock, Check, AlertCircle, Share2, ChevronDown 
@@ -342,7 +343,7 @@ export default function ReportDetailPage() {
             {/* Photo */}
             <div className="relative mb-8 mt-2">
               <div className="w-full h-[220px] rounded-2xl overflow-hidden shadow-sm bg-white-bg2 border border-white-stroke">
-                <img src={thePhotoUrl || fallbackImage} width="400" height="220" className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = fallbackImage; }} />
+                <img src={thePhotoUrl ? optimizeCloudinaryUrl(thePhotoUrl, 800) : fallbackImage} alt="Report evidence" width="400" height="220" className="w-full h-full object-cover" onError={(e) => { e.target.onerror = null; e.target.src = fallbackImage; }} />
               </div>
               
               {/* Overlapping Reporter Avatar */}

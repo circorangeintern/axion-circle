@@ -23,6 +23,7 @@ import AppNavbar from '../components/AppNavbar';
 import Footer from '../components/Footer';
 import ReportsFilterModal from '../components/ReportsFilterModal';
 import fallbackImage from '../assets/fallback-image.svg';
+import { optimizeCloudinaryUrl } from '../utils/cloudinary';
 
 export const getCardPhotoUrl = (report) => {
   if (
@@ -32,7 +33,7 @@ export const getCardPhotoUrl = (report) => {
     report.photoUrl !== 'undefined' &&
     report.photoUrl.trim() !== ''
   ) {
-    return report.photoUrl;
+    return optimizeCloudinaryUrl(report.photoUrl, 400);
   }
   return fallbackImage;
 };

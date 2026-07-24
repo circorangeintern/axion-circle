@@ -16,6 +16,7 @@ import {
   Trash2,
 } from 'lucide-react';
 import AppNavbar from '../components/AppNavbar';
+import { optimizeCloudinaryUrl } from '../utils/cloudinary';
 
 const getCardPhotoUrl = (report) => {
   if (
@@ -25,7 +26,7 @@ const getCardPhotoUrl = (report) => {
     report.photoUrl !== 'undefined' &&
     report.photoUrl.trim() !== ''
   ) {
-    return report.photoUrl;
+    return optimizeCloudinaryUrl(report.photoUrl, 400);
   }
   return 'https://placehold.co/600x400/eeeeee/999999?text=No+Image';
 };
