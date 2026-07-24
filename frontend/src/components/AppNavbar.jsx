@@ -146,7 +146,7 @@ export default function AppNavbar({ activeTab = '' }) {
               }`}
             >
               <FileText className={`w-4 h-4 shrink-0 ${activeTab === 'reports' ? 'text-primary' : 'text-black-icon'}`} />
-              <span>All Reports</span>
+              <span>Reports</span>
             </Link>
             <Link
               to="/rewards"
@@ -247,13 +247,6 @@ export default function AppNavbar({ activeTab = '' }) {
                       className="w-full text-left px-4 py-2 text-xs sm:text-sm text-paragraph hover:bg-white-bg flex items-center gap-2.5 transition-colors"
                     >
                       <User className="w-4 h-4 text-black-icon" /> View profile
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => { setIsMenuOpen(false); navigate('/my-reports'); }}
-                      className="w-full text-left px-4 py-2 text-xs sm:text-sm text-paragraph hover:bg-white-bg flex items-center gap-2.5 transition-colors"
-                    >
-                      <FileText className="w-4 h-4 text-black-icon" /> My Reports
                     </button>
                     <button
                       type="button"
@@ -409,7 +402,7 @@ export default function AppNavbar({ activeTab = '' }) {
                   }}
                   className={`flex items-center gap-3.5 font-bold text-sm transition-colors ${activeTab === 'reports' ? 'text-primary' : 'text-black hover:text-primary'}`}
                 >
-                  <FileText className="w-5 h-5 text-black/80 shrink-0" /> All Reports
+                  <FileText className="w-5 h-5 text-black/80 shrink-0" /> Reports
                 </Link>
                 <Link
                   to="/rewards"
@@ -461,17 +454,6 @@ export default function AppNavbar({ activeTab = '' }) {
                     className="w-full flex items-center gap-3 px-3 py-2 text-xs sm:text-sm text-paragraph hover:bg-white-bg2 rounded-lg font-medium transition-colors"
                   >
                     <User className="w-4 h-4 text-black-icon shrink-0" /> View profile
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      setShowMobileUserMenu(false);
-                      navigate('/my-reports');
-                    }}
-                    className="w-full flex items-center gap-3 px-3 py-2 text-xs sm:text-sm text-paragraph hover:bg-white-bg2 rounded-lg font-medium transition-colors"
-                  >
-                    <FileText className="w-4 h-4 text-black-icon shrink-0" /> My Reports
                   </button>
                   <button
                     type="button"

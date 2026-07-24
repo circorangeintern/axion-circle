@@ -328,6 +328,19 @@ export default function ReportsPage() {
                   </button>
                 )}
               </div>
+
+              {/* My Reports Toggle Desktop */}
+              <div className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-white-stroke">
+                <span className="text-xs sm:text-sm font-medium text-paragraph">My Reports</span>
+                <button
+                  type="button"
+                  onClick={() => navigate('/my-reports')}
+                  className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-white-stroke hover:bg-[#d1d5db]"
+                  aria-label="Toggle My Reports"
+                >
+                  <span className="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0" />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -353,15 +366,29 @@ export default function ReportsPage() {
                 }`}
                 aria-label="Filter"
               >
-                <Filter className="w-4 h-4" />
+                <Filter className="w-4 h-4 text-black-icon" />
                 {activeCategoryFilters.length + activeUrgencyFilters.length > 0 && (
-                  <span className="absolute -top-1 -right-1 w-3.5 h-3.5 rounded-full bg-primary text-white text-[9px] font-bold flex items-center justify-center">
+                  <span className="absolute -top-1.5 -right-1.5 w-4 h-4 rounded-full bg-primary text-white text-[10px] font-bold flex items-center justify-center border border-white">
                     {activeCategoryFilters.length + activeUrgencyFilters.length}
                   </span>
                 )}
               </button>
             </div>
             
+            {/* My Reports Toggle Mobile */}
+            <div className="flex items-center justify-between px-1">
+              <span className="text-sm font-medium text-paragraph">Show only my reports</span>
+              <button
+                type="button"
+                onClick={() => navigate('/my-reports')}
+                className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-white-stroke"
+                aria-label="Toggle My Reports"
+              >
+                <span className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-0" />
+              </button>
+            </div>
+
+            {/* Scrollable Status Pills */}
             <div className="flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
               {statusTabs.map((tab) => {
                 const isActive = activeTab === tab;

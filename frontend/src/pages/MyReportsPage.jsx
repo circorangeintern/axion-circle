@@ -335,6 +335,19 @@ export default function MyReportsPage() {
                   className="w-full pl-9 pr-4 py-2 border border-white-stroke rounded-xl text-xs sm:text-sm bg-white-bg focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary/20 text-black font-medium placeholder:text-black-placeholder"
                 />
               </div>
+
+              {/* My Reports Toggle Desktop */}
+              <div className="flex items-center gap-2 pl-2 sm:pl-3 border-l border-white-stroke">
+                <span className="text-xs sm:text-sm font-medium text-paragraph">My Reports</span>
+                <button
+                  type="button"
+                  onClick={() => navigate('/reports')}
+                  className="relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-primary hover:bg-primary/90"
+                  aria-label="Toggle My Reports"
+                >
+                  <span className="pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-4" />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -351,6 +364,19 @@ export default function MyReportsPage() {
                 aria-label="Search your reports"
                 className="w-full pl-9 pr-4 py-2.5 border border-white-stroke rounded-xl text-xs sm:text-sm bg-white focus:outline-none focus:ring-2 focus:ring-primary/20 text-black font-medium placeholder:text-black-placeholder shadow-xs"
               />
+            </div>
+
+            {/* My Reports Toggle Mobile */}
+            <div className="flex items-center justify-between px-1">
+              <span className="text-sm font-medium text-paragraph">Show only my reports</span>
+              <button
+                type="button"
+                onClick={() => navigate('/reports')}
+                className="relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none bg-primary hover:bg-primary/90"
+                aria-label="Toggle My Reports"
+              >
+                <span className="pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out translate-x-5" />
+              </button>
             </div>
 
             {/* Scrollable Status Pills */}

@@ -170,6 +170,7 @@ export default function ReportPage() {
   const [isUploadingPhoto, setIsUploadingPhoto] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showOfflineModal, setShowOfflineModal] = useState(false);
 
   const handleReset = () => {
     setPhoto(null);
@@ -393,8 +394,7 @@ export default function ReportPage() {
           isAnonymous: Boolean(isAnonymous),
         };
         await addPendingReport(offlinePayload);
-        toast.success("You're offline — report saved and will submit automatically when you're back online.", { duration: 5000 });
-        navigate('/my-reports');
+        setShowOfflineModal(true);
         return;
       }
 
@@ -861,6 +861,35 @@ export default function ReportPage() {
                 Request for another Clean up
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Offline Success Modal */}
+      {showOfflineModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+          <div className="bg-white rounded-[24px] p-6 sm:p-8 w-full max-w-[400px] text-center shadow-2xl animate-in zoom-in-95 duration-200">
+            <div className="mx-auto flex justify-center mb-6">
+              <div className="w-24 h-24 bg-alert-warningLight rounded-full flex items-center justify-center">
+                <UploadCloud className="w-12 h-12 text-alert-warning" />
+              </div>
+            </div>
+            <h2 className="text-[28px] font-bold text-black mb-3 font-heading tracking-tight">
+              Saved Offline
+            </h2>
+            <p className="text-[14px] text-paragraph mb-6 leading-relaxed max-w-[320px] mx-auto">
+              You are currently offline. Your report has been saved securely and will be automatically uploaded as soon as you reconnect to the internet.
+            </p>
+            <button
+              type="button"
+              onClick={() => {
+                setShowOfflineModal(false);
+                navigate('/my-reports');
+              }}
+              className="w-full bg-[#187A38] text-white font-semibold py-3 rounded-xl hover:bg-[#14662E] transition-colors shadow-sm"
+            >
+              Got it
+            </button>
           </div>
         </div>
       )}
