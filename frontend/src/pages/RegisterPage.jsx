@@ -368,7 +368,6 @@ export default function RegisterPage() {
                     onError={handleGoogleError}
                     theme="outline"
                     size="large"
-                    width="100%"
                   />
                 </div>
 
@@ -665,7 +664,6 @@ export default function RegisterPage() {
                       onError={handleGoogleError}
                       theme="outline"
                       size="large"
-                      width="100%"
                     />
                   </div>
                   

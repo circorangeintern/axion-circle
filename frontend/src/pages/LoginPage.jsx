@@ -364,7 +364,6 @@ export default function LoginPage() {
                 onError={handleGoogleError}
                 theme="outline"
                 size="large"
-                width="100%"
               />
             </div>
 
