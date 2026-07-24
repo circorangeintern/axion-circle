@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import api from '../services/api';
 import { uploadToCloudinary } from '../services/cloudinary';
+import { addPendingReport } from '../services/offlineQueue';
 import AppNavbar from '../components/AppNavbar';
 import ReactGA from 'react-ga4';
 import Footer from '../components/Footer';
@@ -360,16 +361,6 @@ export default function ReportPage() {
     }
 
     try {
-      setIsUploadingPhoto(true);
-      let photoUrl = '';
-      try {
-        photoUrl = await uploadToCloudinary(photo);
-      } finally {
-        setIsUploadingPhoto(false);
-      }
-
-      setIsSubmitting(true);
-
       // Map UI Category strings to backend enum
       let mappedCategory = 'ILLEGAL_DUMPING';
       if (category === 'Overflow') mappedCategory = 'OVERFLOW';
@@ -387,6 +378,35 @@ export default function ReportPage() {
       const finalAddress = addressText?.includes('Location unavailable') 
         ? 'Location not automatically captured' 
         : (addressText || areaName || 'Pin Location, Lagos');
+
+      if (!navigator.onLine) {
+        const offlinePayload = {
+          title: `${category} report`,
+          photo: photo, // Store the raw File/Blob
+          photoUrl: '', // Will be uploaded during sync
+          latitude: latitude !== null ? latitude : 6.5244,
+          longitude: longitude !== null ? longitude : 3.3792,
+          category: mappedCategory,
+          description: description.trim() || 'Sanitation issue report',
+          address: finalAddress,
+          urgency: mappedUrgency,
+          isAnonymous: Boolean(isAnonymous),
+        };
+        await addPendingReport(offlinePayload);
+        toast.success("You're offline — report saved and will submit automatically when you're back online.", { duration: 5000 });
+        navigate('/my-reports');
+        return;
+      }
+
+      setIsUploadingPhoto(true);
+      let photoUrl = '';
+      try {
+        photoUrl = await uploadToCloudinary(photo);
+      } finally {
+        setIsUploadingPhoto(false);
+      }
+
+      setIsSubmitting(true);
 
       const payload = {
         title: `${category} report`,

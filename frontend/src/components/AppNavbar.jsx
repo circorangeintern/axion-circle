@@ -20,10 +20,12 @@ import {
 } from 'lucide-react';
 import NavbarLogo from './NavbarLogo';
 import NotificationBell from './NotificationBell';
-
+import { useOnlineSync } from '../hooks/useOnlineSync';
 export default function AppNavbar({ activeTab = '' }) {
   const navigate = useNavigate();
   const dropdownRef = useRef(null);
+  
+  const { isOnline, pendingCount } = useOnlineSync();
 
   const location = useLocation();
   const [isLoggedIn, setIsLoggedIn] = useState(() => {
@@ -178,6 +180,15 @@ export default function AppNavbar({ activeTab = '' }) {
             </Link>
           ) : (
             <div className="flex items-center gap-3 relative" ref={dropdownRef}>
+              {pendingCount > 0 && (
+                <div className="hidden md:flex items-center gap-2 bg-alert-warningLight text-alert-warning px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm animate-in fade-in zoom-in">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-alert-warning opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-alert-warning"></span>
+                  </span>
+                  {pendingCount} report{pendingCount !== 1 ? 's' : ''} pending sync
+                </div>
+              )}
               <button
                 type="button"
                 onClick={() => toast.success('Settings modal coming soon!')}
