@@ -319,14 +319,14 @@ export default function UsersPage() {
                           </button>
                         </td>
                         <td className="px-4 py-4 text-center">
-                          <button 
-                            className="p-1.5 text-black-icon hover:text-primary transition-colors focus:outline-none"
+                          <Link 
+                            to={`/admin/users/${user.id}`}
+                            className="p-1.5 text-black-icon hover:text-primary transition-colors focus:outline-none inline-block"
                             title="View User Details"
                             aria-label="View user details"
-                            disabled
                           >
-                            <Eye className="w-4 h-4 opacity-70" />
-                          </button>
+                            <Eye className="w-4 h-4" />
+                          </Link>
                         </td>
                       </tr>
                     );
